@@ -1,0 +1,64 @@
+/* Basic resets and full-bleed layout */
+html, body, #root { height: 100%; }
+body { margin: 0; }
+main { display: block; }
+
+/* Subtle login animations */
+@keyframes fadeInUp {
+  0% { opacity: 0; transform: translateY(12px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes floatY {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+.login-brand {
+  color: #F9FAFB;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.05);
+}
+
+/* Google login button (GitHub-like dark style) */
+.google-login-btn {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  height: 44px;
+  padding: 0 16px;
+  border-radius: 10px;
+  background-color: #21262d; /* GitHub dark btn */
+  border: 1px solid #30363d;
+  color: #c9d1d9;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+  transition: background-color 120ms ease, border-color 120ms ease, box-shadow 120ms ease,
+    transform 50ms ease;
+}
+
+.google-login-btn:hover:not(:disabled) {
+  background-color: #30363d;
+  border-color: #8b949e;
+}
+
+.google-login-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.google-login-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.google-login-btn .icon {
+  display: inline-flex;
+  width: 18px;
+  height: 18px;
+}
+
+.google-login-btn .label {
+  line-height: 1;
+}

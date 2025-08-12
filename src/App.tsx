@@ -47,11 +47,8 @@ function AppShell() {
           padding: isLoginRoute ? '0' : '2rem',
           display: isLoginRoute ? 'grid' : 'block',
           placeItems: isLoginRoute ? 'center' : undefined,
-          backgroundColor: isLoginRoute ? '#000' : undefined,
-          backgroundImage: isLoginRoute ? `url(${loginBgUrl})` : undefined,
-          backgroundSize: isLoginRoute ? 'cover' : undefined,
-          backgroundPosition: isLoginRoute ? 'center' : undefined,
-          backgroundRepeat: isLoginRoute ? 'no-repeat' : undefined
+          // Ensure a solid black background under the image
+          background: isLoginRoute ? `#000 url(${loginBgUrl}) center / cover no-repeat` : undefined
         }}
       >
         <Routes>

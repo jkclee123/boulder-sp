@@ -14,6 +14,26 @@ main { display: block; }
   50% { transform: translateY(-4px); }
 }
 
+/* Radial scrim to improve legibility on login page */
+.login-hero {
+  position: relative;
+  z-index: 0;
+}
+
+.login-hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+.login-hero::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: rgba(0, 0, 0, 0.3)
+}
+
 .login-brand {
   color: #F9FAFB;
   text-shadow: 0 1px 0 rgba(255,255,255,0.05);
@@ -26,13 +46,14 @@ main { display: block; }
   align-items: center;
   justify-content: flex-start;
   gap: 12px;
-  height: 44px;
+  height: 45px;
   padding: 0 16px;
   border-radius: 10px;
   background-color: #21262d; /* GitHub dark btn */
-  border: 1px solid #30363d;
+  border: 1px solid #b2b9c2;
   color: #c9d1d9;
   font-weight: 600;
+  font-size: 14px;
   cursor: pointer;
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
   transition: background-color 120ms ease, border-color 120ms ease, box-shadow 120ms ease,
@@ -61,4 +82,5 @@ main { display: block; }
 
 .google-login-btn .label {
   line-height: 1;
+  color: #f0f6fc;
 }

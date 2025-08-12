@@ -36,7 +36,7 @@ export default function LoginPage() {
   // removed legal small text
 
   return (
-    <div style={{ width: '100%', display: 'grid', justifyItems: 'center', gap: 20 }}>
+    <div className="login-hero" style={{ width: '100%', display: 'grid', justifyItems: 'center', gap: 20 }}>
       <h1
         className="login-brand"
         style={{

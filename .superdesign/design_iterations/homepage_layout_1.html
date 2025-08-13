@@ -12,6 +12,9 @@
     <style>
       html, body { height: 100%; }
       .sticky-filter { position: sticky; top: 64px; z-index: 20; }
+      /* Slight raise on hover for result items */
+      .chat-row { transition: transform 150ms ease; }
+      .chat-row:hover { transform: translateY(-2px); }
     </style>
   </head>
   <body class="min-h-screen bg-[var(--background)] text-[var(--ink)]">

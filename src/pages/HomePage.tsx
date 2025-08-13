@@ -53,24 +53,26 @@ export default function HomePage() {
     return allPasses.filter(p => p.gym === selectedGym)
   }, [allPasses, selectedGym])
 
-  const [hoveredId, setHoveredId] = useState<number | null>(null)
+  
 
   return (
     <div className="container" style={{ display: 'grid', gap: 12 }}>
-      <section
-        className="filter"
-        style={{ position: 'sticky', top: 64, zIndex: 20, padding: 12, marginBottom: 12 }}
-        role="search"
-      >
-        <form className="grid grid-cols-1 gap-sm" aria-label="Filter items">
+      <section className="filter sticky-filter" role="search" style={{ marginBottom: 12 }}>
+        <form aria-label="Filter items" style={{ display: 'grid', gap: 8 }}>
           <label>
-            <span style={{ position: 'absolute', width: 1, height: 1, padding: 0, margin: -1, overflow: 'hidden', clip: 'rect(0,0,0,0)', whiteSpace: 'nowrap', border: 0 }}>Gym</span>
+            <span className="sr-only">Gym</span>
             <select
               aria-label="Gym"
               value={selectedGym}
               onChange={e => setSelectedGym(e.target.value)}
-              className="w-full"
-              style={{ height: 40, borderRadius: 12, padding: '0 12px' }}
+              style={{
+                width: '100%',
+                height: 40,
+                borderRadius: 12,
+                padding: '0 12px',
+                border: '1px solid var(--border)',
+                background: 'var(--surface)'
+              }}
             >
               {gyms.map(g => (
                 <option key={g} value={g}>{g}</option>
@@ -81,43 +83,51 @@ export default function HomePage() {
       </section>
 
       <section aria-labelledby="results-heading">
-        <h2 id="results-heading" style={{ position: 'absolute', width: 1, height: 1, padding: 0, margin: -1, overflow: 'hidden', clip: 'rect(0,0,0,0)', whiteSpace: 'nowrap', border: 0 }}>Results</h2>
+        <h2 id="results-heading" className="sr-only">Results</h2>
         {filtered.length === 0 ? (
-          <div className="card" style={{ textAlign: 'center' }}>
+          <div className="filter" style={{ textAlign: 'center' }}>
             <h3 style={{ margin: 0 }}>No results</h3>
-            <p className="muted" style={{ marginTop: 6 }}>Try adjusting your filters.</p>
+            <p className="chat-subtitle" style={{ marginTop: 6 }}>Try adjusting your filters.</p>
           </div>
         ) : (
-          <div style={{ borderTop: '1px solid var(--border)' }}>
+          <div className="divide-y">
             {filtered.map((item, idx) => (
               <div
                 key={item.id}
                 className="chat-row animate-fade-in"
-                style={{
-                  transition: 'transform 150ms ease',
-                  transform: hoveredId === item.id ? 'translateY(-2px)' : undefined,
-                  animationDelay: `${idx * 40}ms`
-                }}
-                onMouseEnter={() => setHoveredId(item.id)}
-                onMouseLeave={() => setHoveredId(null)}
+                style={{ animationDelay: `${idx * 40}ms` }}
               >
                 <div className="chat-avatar" aria-hidden>{getInitials(item.gym)}</div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
-                    <h3 className="chat-title" style={{ margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.gym}</h3>
+                    <h3 className="chat-title" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.gym}</h3>
                     <a
                       href="https://t.me/"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="btn"
-                      style={{ height: 32, padding: '0 8px', fontSize: 12 }}
                       aria-label={`Open chat about ${item.name} at ${item.gym}`}
                     >
+                      <svg
+                        aria-hidden
+                        viewBox="0 0 24 24"
+                        width="16"
+                        height="16"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        style={{ display: 'inline-block' }}
+                      >
+                        <path d="M22 2L11 13" />
+                        <path d="M22 2L7 7l5 5 5 5 5-15Z" />
+                      </svg>
                       Chat
                     </a>
                   </div>
                   <div className="chat-subtitle" style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                    <span>${item.price.toFixed(2)} • {item.passesLeft} left</span>
+                    <span>${item.price.toFixed(0)} • {item.passesLeft} left</span>
                     <span>Last updated {computeDaysAgo(item.updated)}</span>
                   </div>
                 </div>

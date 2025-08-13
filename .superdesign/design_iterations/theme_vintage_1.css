@@ -1,5 +1,5 @@
 :root {
-  --background: #0F0D0A; /* warm near-black */
+  --background: hsl(36, 20%, 6%); /* warm near-black */
   --surface: #1A1712;   /* deep warm brown/black */
   --ink: #F4EDE1;       /* warm off-white */
   --muted: #B8AA99;     /* desaturated warm gray */

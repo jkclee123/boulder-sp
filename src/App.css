@@ -182,7 +182,7 @@ main { display: block; }
   position: sticky;
   top: 64px; /* below header */
   z-index: 5;
-  background: #fff;
+  /* background: #fff; */
   border: 1px solid #e5e7eb;
   border-radius: 12px;
   padding: 10px;
@@ -302,3 +302,122 @@ main { display: block; }
 .dot { color: #9CA3AF; }
 .price { font-weight: 700; color: #111827; }
 .stock { color: #065F46; font-weight: 600; }
+
+/* ——— Vintage theme variables and base ——— */
+:root {
+  --background: #0F0D0A; /* warm near-black */
+  --surface: #1A1712;   /* deep warm brown/black */
+  --ink: #F4EDE1;       /* warm off-white */
+  --muted: #B8AA99;     /* desaturated warm gray */
+  --primary: #C07A3A;   /* burnt amber */
+  --accent: #A23E48;    /* oxblood */
+  --accent-2: #5D8F7A;  /* heritage green */
+  --border: #2A261F;    /* warm dark border */
+  --ring: #3A342B;      /* subtle focus */
+
+  --radius: 12px;
+  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  --font-serif: Merriweather, "Times New Roman", Times, serif;
+}
+
+body {
+  background: var(--background);
+  color: var(--ink);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+}
+
+.brand-font {
+  font-family: 'Space Grotesk', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+  letter-spacing: -0.01em;
+}
+
+/* Container */
+.container {
+  width: 100%;
+  max-width: 1120px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+/* Sticky filter card */
+.sticky-filter { position: sticky; top: 64px; z-index: 20; }
+.filter {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+/* Button */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 8px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  text-decoration: none;
+  transition: transform 120ms ease, box-shadow 160ms ease, background-color 160ms ease;
+}
+.btn:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0,0,0,0.06); }
+.btn:active { transform: translateY(0); }
+
+/* Chat list rows */
+.chat-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  transition: transform 150ms ease;
+}
+.chat-row:hover { transform: translateY(-2px); }
+
+.chat-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+}
+
+.chat-title {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.chat-subtitle { color: var(--muted); font-size: 14px; }
+
+/* Simple divider container */
+.divide-y { border-top: 1px solid var(--border); }
+
+/* A11y */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Appear animation */
+@keyframes fadeInList {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in { animation: fadeInList 260ms ease both; }

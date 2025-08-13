@@ -1,76 +1,131 @@
-import { useAuth } from '../providers/AuthProvider'
 import { useMemo, useState } from 'react'
 
-export default function HomePage() {
-  const { user } = useAuth()
-  const [query, setQuery] = useState('')
+type PassItem = {
+  id: number
+  name: string
+  gym: string
+  price: number
+  passesLeft: number
+  updated: string // YYYY-MM-DD
+}
 
-  const passes = useMemo(() => {
-    const gyms = ['Granite Peak', 'Crux Hall', 'Summit Works', 'Boulder Barn']
-    const names = ['Day Pass', 'Evening Pass', '10 Punch Pass', 'Monthly Transfer']
-    const base = Array.from({ length: 12 }).map((_, i) => ({
+function computeDaysAgo(isoDate: string): string {
+  const now = new Date()
+  const then = new Date(isoDate + 'T00:00:00Z')
+  const msPerDay = 24 * 60 * 60 * 1000
+  const diff = Math.max(0, Math.floor((now.getTime() - then.getTime()) / msPerDay))
+  if (diff === 0) return 'today'
+  if (diff === 1) return '1 day ago'
+  return `${diff} days ago`
+}
+
+function getInitials(name: string): string {
+  const parts = name.trim().split(/\s+/)
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
+  return (parts[0][0] + parts[1][0]).toUpperCase()
+}
+
+export default function HomePage() {
+  const baseGyms = ['Granite Peak', 'Crux Hall', 'Summit Works', 'Boulder Barn']
+  const names = ['Day Pass', 'Evening Pass', '10 Punch Pass', 'Monthly Transfer']
+
+  const allPasses: PassItem[] = useMemo(() =>
+    Array.from({ length: 12 }).map((_, i) => ({
       id: i + 1,
       name: names[i % names.length],
-      gym: gyms[i % gyms.length],
-      price: 10 + (i % 5) * 5, // simple sample pricing
+      gym: baseGyms[i % baseGyms.length],
+      price: 10 + (i % 5) * 5,
       passesLeft: 1 + (i % 8),
-      remarks: i % 2 === 0 ? 'Valid this month, non-refundable' : 'Includes gear rental'
-    }))
-    const q = query.trim().toLowerCase()
-    if (!q) return base
-    return base.filter(p =>
-      [p.name, p.gym, p.remarks].some(v => v.toLowerCase().includes(q))
-    )
-  }, [query])
+      // spread some dates across the past two months
+      updated: new Date(Date.now() - (i * 5 + (i % 3)) * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .slice(0, 10)
+    })),
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  [])
+
+  const [selectedGym, setSelectedGym] = useState<string>('All gyms')
+
+  const gyms = useMemo(() => ['All gyms', ...Array.from(new Set(allPasses.map(p => p.gym)))], [allPasses])
+
+  const filtered = useMemo(() => {
+    if (selectedGym === 'All gyms') return allPasses
+    return allPasses.filter(p => p.gym === selectedGym)
+  }, [allPasses, selectedGym])
+
+  const [hoveredId, setHoveredId] = useState<number | null>(null)
 
   return (
-    <div style={{ display: 'grid', gap: '1rem' }}>
-      <div style={{ display: 'grid', gap: '0.5rem' }}>
-        <h1 style={{ margin: 0 }}>Home</h1>
-        <p style={{ margin: 0, color: '#6B7280' }}>Browse items and use filters to narrow results.</p>
-      </div>
+    <div className="container" style={{ display: 'grid', gap: 12 }}>
+      <section
+        className="filter"
+        style={{ position: 'sticky', top: 64, zIndex: 20, padding: 12, marginBottom: 12 }}
+        role="search"
+      >
+        <form className="grid grid-cols-1 gap-sm" aria-label="Filter items">
+          <label>
+            <span style={{ position: 'absolute', width: 1, height: 1, padding: 0, margin: -1, overflow: 'hidden', clip: 'rect(0,0,0,0)', whiteSpace: 'nowrap', border: 0 }}>Gym</span>
+            <select
+              aria-label="Gym"
+              value={selectedGym}
+              onChange={e => setSelectedGym(e.target.value)}
+              className="w-full"
+              style={{ height: 40, borderRadius: 12, padding: '0 12px' }}
+            >
+              {gyms.map(g => (
+                <option key={g} value={g}>{g}</option>
+              ))}
+            </select>
+          </label>
+        </form>
+      </section>
 
-      <div className="filter-bar" role="search">
-        <div className="filter-row">
-          <input
-            className="filter-input"
-            type="search"
-            placeholder="Search passes..."
-            aria-label="Search passes"
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-          />
-        </div>
-      </div>
-
-      {user ? (
-        <div className="list" role="list">
-          {passes.map(pass => (
-            <article key={pass.id} className="list-item" role="listitem">
-              <div className="list-item-media" aria-hidden>
-                <div className="media-thumb" />
-              </div>
-              <div className="list-item-body">
-                <h3 className="pass-row1">{pass.name}</h3>
-                <p className="pass-row2">
-                  <span className="muted">{pass.gym}</span>
-                  <span className="dot">•</span>
-                  <span className="muted">{pass.remarks}</span>
-                </p>
-                <div className="pass-row3">
-                  <span className="price">${pass.price.toFixed(2)}</span>
-                  <span className="dot">•</span>
-                  <span className="stock">{pass.passesLeft} left</span>
+      <section aria-labelledby="results-heading">
+        <h2 id="results-heading" style={{ position: 'absolute', width: 1, height: 1, padding: 0, margin: -1, overflow: 'hidden', clip: 'rect(0,0,0,0)', whiteSpace: 'nowrap', border: 0 }}>Results</h2>
+        {filtered.length === 0 ? (
+          <div className="card" style={{ textAlign: 'center' }}>
+            <h3 style={{ margin: 0 }}>No results</h3>
+            <p className="muted" style={{ marginTop: 6 }}>Try adjusting your filters.</p>
+          </div>
+        ) : (
+          <div style={{ borderTop: '1px solid var(--border)' }}>
+            {filtered.map((item, idx) => (
+              <div
+                key={item.id}
+                className="chat-row animate-fade-in"
+                style={{
+                  transition: 'transform 150ms ease',
+                  transform: hoveredId === item.id ? 'translateY(-2px)' : undefined,
+                  animationDelay: `${idx * 40}ms`
+                }}
+                onMouseEnter={() => setHoveredId(item.id)}
+                onMouseLeave={() => setHoveredId(null)}
+              >
+                <div className="chat-avatar" aria-hidden>{getInitials(item.gym)}</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+                    <h3 className="chat-title" style={{ margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.gym}</h3>
+                    <a
+                      href="https://t.me/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn"
+                      style={{ height: 32, padding: '0 8px', fontSize: 12 }}
+                      aria-label={`Open chat about ${item.name} at ${item.gym}`}
+                    >
+                      Chat
+                    </a>
+                  </div>
+                  <div className="chat-subtitle" style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                    <span>${item.price.toFixed(2)} • {item.passesLeft} left</span>
+                    <span>Last updated {computeDaysAgo(item.updated)}</span>
+                  </div>
                 </div>
               </div>
-            </article>
-          ))}
-        </div>
-      ) : (
-        <div className="card">
-          <p>You are not signed in. Use the Login button in the header.</p>
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   )
 }

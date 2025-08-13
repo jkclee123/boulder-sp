@@ -13,14 +13,6 @@ function GoogleIcon() {
   )
 }
 
-// function AppleIcon() {
-//   return (
-//     <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-//       <path d="M16.365 1.43c0 1.14-.458 2.2-1.198 2.97-.77.8-2.05 1.4-3.12 1.29-.12-1.12.5-2.28 1.23-3.04.8-.82 2.22-1.4 3.09-1.46.02.08.03.16.03.24zM20.71 17.35c-.65 1.48-.96 2.15-1.8 3.47-1.17 1.8-2.83 4.04-4.86 4.04-1.09 0-1.83-.36-3-.36-1.17 0-1.98.37-3.07.37-2.03 0-3.59-1.95-4.86-3.95-3.34-5.2-3.66-11.3-1.62-14.53C2.7 4.56 4.42 3.53 6.24 3.53c1.16 0 2.12.4 2.86.4.73 0 1.87-.43 3.24-.43 1.23 0 2.53.56 3.47 1.53-.14.09-2.09 1.22-2.07 3.63.02 2.9 2.55 3.86 2.58 3.87-.03.08-.41 1.44.08 3.82.47 2.25 1.72 4.5 1.72 4.5z" />
-//     </svg>
-//   )
-// }
-
 export default function LoginPage() {
   const { signInWithGoogle, loading, user, isAuthReady } = useAuth()
   const navigate = useNavigate()
@@ -28,12 +20,6 @@ export default function LoginPage() {
   useEffect(() => {
     if (user) navigate('/')
   }, [user, navigate])
-
-  // legacy button style removed in favor of CSS class based styling
-
-  // Divider styles kept here in case we reintroduce a separator in future
-
-  // removed legal small text
 
   return (
     <div className="login-hero" style={{ width: '100%', display: 'grid', justifyItems: 'center', gap: 20 }}>
@@ -75,18 +61,6 @@ export default function LoginPage() {
             <span className="icon"><GoogleIcon /></span>
             <span className="label">Continue with Google</span>
           </button>
-
-          {/* <button
-            style={{ ...button, background: '#0F0F0F' }}
-            onClick={signInWithApple}
-            disabled={loading}
-            aria-label="Continue with Apple"
-          >
-            <span style={{ display: 'inline-flex', color: '#FFFFFF' }}>
-              <AppleIcon />
-            </span>
-            <span>Continue with Apple</span>
-          </button> */}
         </div>
       </div>
     </div>

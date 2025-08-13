@@ -1,0 +1,64 @@
+:root {
+  --background: #0F0D0A; /* warm near-black */
+  --surface: #1A1712;   /* deep warm brown/black */
+  --ink: #F4EDE1;       /* warm off-white */
+  --muted: #B8AA99;     /* desaturated warm gray */
+  --primary: #C07A3A;   /* burnt amber */
+  --accent: #A23E48;    /* oxblood */
+  --accent-2: #5D8F7A;  /* heritage green */
+  --border: #2A261F;    /* warm dark border */
+  --ring: #3A342B;      /* subtle focus */
+
+  --radius: 12px;
+  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  --font-serif: Merriweather, "Times New Roman", Times, serif;
+}
+
+/* Base typography and colors */
+html, body { height: 100%; }
+body {
+  background: var(--background) !important;
+  color: var(--ink) !important;
+  font-family: var(--font-sans) !important;
+}
+
+h1, h2, h3 { color: var(--ink) !important; }
+p { color: var(--ink) !important; }
+
+/* Form controls */
+input, select, textarea {
+  background: var(--surface) !important;
+  color: var(--ink) !important;
+  border: 1px solid var(--border) !important;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none !important;
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--ring) 60%, transparent) !important;
+  border-color: color-mix(in oklab, var(--ring) 60%, var(--border)) !important;
+}
+
+/* Surfaces */
+.card, .panel, .filter, .menu, .dropdown {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius) !important;
+}
+
+/* Buttons */
+button, .btn {
+  color: var(--ink) !important;
+  border: 1px solid var(--border) !important;
+  background: color-mix(in oklab, var(--surface) 85%, black) !important;
+  border-radius: 10px !important;
+}
+button:hover, .btn:hover {
+  border-color: color-mix(in oklab, var(--border) 70%, white) !important;
+}
+
+/* Utility */
+.muted { color: var(--muted) !important; }
+.ink { color: var(--ink) !important; }
+.surface { background: var(--surface) !important; }
+.border-warm { border-color: var(--border) !important; }
+
+

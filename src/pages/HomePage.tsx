@@ -4,22 +4,24 @@ import { useMemo, useState } from 'react'
 export default function HomePage() {
   const { user } = useAuth()
   const [query, setQuery] = useState('')
-  const [category, setCategory] = useState('')
-  const [sort, setSort] = useState('recent')
 
-  const items = useMemo(() => {
+  const passes = useMemo(() => {
+    const gyms = ['Granite Peak', 'Crux Hall', 'Summit Works', 'Boulder Barn']
+    const names = ['Day Pass', 'Evening Pass', '10 Punch Pass', 'Monthly Transfer']
     const base = Array.from({ length: 12 }).map((_, i) => ({
       id: i + 1,
-      title: `Sample item ${i + 1}`,
-      subtitle: 'Short description goes here',
-      category: ['Routes', 'Gyms', 'Setters'][i % 3]
+      name: names[i % names.length],
+      gym: gyms[i % gyms.length],
+      price: 10 + (i % 5) * 5, // simple sample pricing
+      passesLeft: 1 + (i % 8),
+      remarks: i % 2 === 0 ? 'Valid this month, non-refundable' : 'Includes gear rental'
     }))
-    let next = base
-    if (query) next = next.filter(it => it.title.toLowerCase().includes(query.toLowerCase()))
-    if (category) next = next.filter(it => it.category === category)
-    if (sort === 'popular') next = next.slice().reverse()
-    return next
-  }, [query, category, sort])
+    const q = query.trim().toLowerCase()
+    if (!q) return base
+    return base.filter(p =>
+      [p.name, p.gym, p.remarks].some(v => v.toLowerCase().includes(q))
+    )
+  }, [query])
 
   return (
     <div style={{ display: 'grid', gap: '1rem' }}>
@@ -30,34 +32,36 @@ export default function HomePage() {
 
       <div className="filter-bar" role="search">
         <div className="filter-row">
-          <input className="filter-input" type="search" placeholder="Search..." aria-label="Search items" value={query} onChange={e => setQuery(e.target.value)} />
-          <select className="filter-select" aria-label="Category" value={category} onChange={e => setCategory(e.target.value)}>
-            <option value="">All categories</option>
-            <option value="Routes">Routes</option>
-            <option value="Gyms">Gyms</option>
-            <option value="Setters">Setters</option>
-          </select>
-          <select className="filter-select" aria-label="Sort by" value={sort} onChange={e => setSort(e.target.value)}>
-            <option value="recent">Most recent</option>
-            <option value="popular">Most popular</option>
-            <option value="rating">Top rated</option>
-          </select>
+          <input
+            className="filter-input"
+            type="search"
+            placeholder="Search passes..."
+            aria-label="Search passes"
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+          />
         </div>
       </div>
 
       {user ? (
         <div className="list" role="list">
-          {items.map(item => (
-            <article key={item.id} className="list-item" role="listitem">
+          {passes.map(pass => (
+            <article key={pass.id} className="list-item" role="listitem">
               <div className="list-item-media" aria-hidden>
                 <div className="media-thumb" />
               </div>
               <div className="list-item-body">
-                <h3 className="list-item-title">{item.title}</h3>
-                <p className="list-item-subtitle">{item.subtitle}</p>
-              </div>
-              <div className="list-item-meta">
-                <span className="badge">{item.category}</span>
+                <h3 className="pass-row1">{pass.name}</h3>
+                <p className="pass-row2">
+                  <span className="muted">{pass.gym}</span>
+                  <span className="dot">•</span>
+                  <span className="muted">{pass.remarks}</span>
+                </p>
+                <div className="pass-row3">
+                  <span className="price">${pass.price.toFixed(2)}</span>
+                  <span className="dot">•</span>
+                  <span className="stock">{pass.passesLeft} left</span>
+                </div>
               </div>
             </article>
           ))}

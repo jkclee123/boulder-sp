@@ -163,7 +163,7 @@ main { display: block; }
 
 .filter-row {
   display: grid;
-  grid-template-columns: 1fr minmax(140px, 200px) minmax(140px, 200px);
+  grid-template-columns: 1fr;
   gap: 8px;
 }
 
@@ -195,7 +195,7 @@ main { display: block; }
 
 .list-item {
   display: grid;
-  grid-template-columns: 64px 1fr auto;
+  grid-template-columns: 64px 1fr;
   gap: 12px;
   align-items: center;
   padding: 10px;
@@ -243,3 +243,35 @@ main { display: block; }
   font-size: 12px;
   font-weight: 600;
 }
+
+/* Pass list three-row layout */
+.pass-row1 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.pass-row2 {
+  margin: 4px 0 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  color: #6B7280;
+  font-size: 14px;
+}
+
+.pass-row3 {
+  margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.muted { color: #6B7280; }
+.dot { color: #9CA3AF; }
+.price { font-weight: 700; color: #111827; }
+.stock { color: #065F46; font-weight: 600; }

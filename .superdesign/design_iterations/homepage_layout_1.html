@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Boulder SP – Homepage Layout Mock</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Merriweather:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Merriweather:wght@700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/flowbite@2.0.0/dist/flowbite.min.js"></script>
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
@@ -18,7 +18,7 @@
     <!-- Mock header (your app already has one; included here for layout context) -->
     <header class="sticky top-0 z-30 bg-[var(--surface)]/80 backdrop-blur border-b border-[var(--border)] text-[var(--ink)]">
       <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        <a href="#" class="font-extrabold text-lg tracking-tight">Boulder SP</a>
+        <a href="#" class="brand-font font-extrabold text-lg tracking-tight">Boulder SP</a>
         <div class="flex items-center gap-3">
           <button class="w-9 h-9 rounded-full border border-[var(--border)] grid place-items-center bg-[var(--surface)]">
             <span class="sr-only">Open profile menu</span>
@@ -45,80 +45,77 @@
         </form>
       </section>
 
-      <!-- Results grid: 1col mobile, 2col tablet, 3col desktop -->
+      <!-- Results: chat selection list -->
       <section aria-labelledby="results-heading">
         <h2 id="results-heading" class="sr-only">Results</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          <!-- Card item -->
-          <article class="group border border-[var(--border)] bg-[var(--surface)] rounded-xl overflow-hidden flex flex-col" role="listitem">
-            <div class="aspect-[4/3] bg-gradient-to-br from-neutral-800 to-neutral-700"></div>
-            <div class="p-3 flex-1 flex flex-col">
-              <h3 class="text-base font-bold">Day Pass</h3>
-              <p class="mt-1 text-sm text-[var(--muted)] flex flex-wrap items-center gap-2">
-                <span>Granite Peak</span>
-                <span class="text-neutral-500">•</span>
-                <span>Valid this month, non-refundable</span>
-              </p>
-              <div class="mt-2 flex flex-wrap items-center gap-2 text-sm">
-                <span class="font-bold">$15.00</span>
-                <span class="text-neutral-500">•</span>
-                <span class="text-emerald-400 font-semibold">5 left</span>
+        <div class="divide-y divide-[var(--border)]">
+          <div class="chat-row">
+            <div class="chat-avatar">GP</div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-start justify-between gap-3">
+                <h3 class="chat-title truncate">Granite Peak</h3>
+                <a href="https://t.me/" target="_blank" rel="noopener noreferrer" class="btn inline-flex items-center gap-1 h-8 px-2 text-xs">
+                  <i data-lucide="send" class="w-4 h-4"></i>
+                  Chat
+                </a>
               </div>
-              <div class="mt-3 flex justify-end">
-                <button class="inline-flex items-center gap-2 h-9 px-3 rounded-lg border border-[var(--border)] text-sm hover:border-neutral-500">
-                  <i data-lucide="ticket" class="w-4 h-4"></i>
-                  View details
-                </button>
+              <div class="chat-subtitle flex flex-wrap gap-x-2 gap-y-1">
+                <span>$15.00 • 5 left</span>
+                <span>Last updated <span class="js-days-ago" data-updated="2025-10-03"></span></span>
               </div>
             </div>
-          </article>
+          </div>
 
-          <!-- Repeat a few placeholders to demonstrate layout -->
-          <article class="group border border-[var(--border)] bg-[var(--surface)] rounded-xl overflow-hidden flex flex-col" role="listitem">
-            <div class="aspect-[4/3] bg-gradient-to-br from-neutral-800 to-neutral-700"></div>
-            <div class="p-3 flex-1 flex flex-col">
-              <h3 class="text-base font-bold">Evening Pass</h3>
-              <p class="mt-1 text-sm text-[var(--muted)] flex flex-wrap items-center gap-2">
-                <span>Crux Hall</span>
-                <span class="text-neutral-500">•</span>
-                <span>Includes gear rental</span>
-              </p>
-              <div class="mt-2 flex flex-wrap items-center gap-2 text-sm">
-                <span class="font-bold">$20.00</span>
-                <span class="text-neutral-500">•</span>
-                <span class="text-emerald-400 font-semibold">3 left</span>
+          <div class="chat-row">
+            <div class="chat-avatar">CX</div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-start justify-between gap-3">
+                <h3 class="chat-title truncate">Crux Hall</h3>
+                <a href="https://t.me/" target="_blank" rel="noopener noreferrer" class="btn inline-flex items-center gap-1 h-8 px-2 text-xs">
+                  <i data-lucide="send" class="w-4 h-4"></i>
+                  Chat
+                </a>
               </div>
-              <div class="mt-3 flex justify-end">
-                <button class="inline-flex items-center gap-2 h-9 px-3 rounded-lg border border-[var(--border)] text-sm hover:border-neutral-500">
-                  <i data-lucide="ticket" class="w-4 h-4"></i>
-                  View details
-                </button>
+              <div class="chat-subtitle flex flex-wrap gap-x-2 gap-y-1">
+                <span>$20.00 • 3 left</span>
+                <span>Last updated <span class="js-days-ago" data-updated="2025-10-27"></span></span>
               </div>
             </div>
-          </article>
+          </div>
 
-          <article class="group border border-[var(--border)] bg-[var(--surface)] rounded-xl overflow-hidden flex flex-col" role="listitem">
-            <div class="aspect-[4/3] bg-gradient-to-br from-neutral-800 to-neutral-700"></div>
-            <div class="p-3 flex-1 flex flex-col">
-              <h3 class="text-base font-bold">10 Punch Pass</h3>
-              <p class="mt-1 text-sm text-[var(--muted)] flex flex-wrap items-center gap-2">
-                <span>Summit Works</span>
-                <span class="text-neutral-500">•</span>
-                <span>Valid this month, non-refundable</span>
-              </p>
-              <div class="mt-2 flex flex-wrap items-center gap-2 text-sm">
-                <span class="font-bold">$45.00</span>
-                <span class="text-neutral-500">•</span>
-                <span class="text-emerald-400 font-semibold">8 left</span>
+          <div class="chat-row">
+            <div class="chat-avatar">SW</div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-start justify-between gap-3">
+                <h3 class="chat-title truncate">Summit Works</h3>
+                <a href="https://t.me/" target="_blank" rel="noopener noreferrer" class="btn inline-flex items-center gap-1 h-8 px-2 text-xs">
+                  <i data-lucide="send" class="w-4 h-4"></i>
+                  Chat
+                </a>
               </div>
-              <div class="mt-3 flex justify-end">
-                <button class="inline-flex items-center gap-2 h-9 px-3 rounded-lg border border-[var(--border)] text-sm hover:border-neutral-500">
-                  <i data-lucide="ticket" class="w-4 h-4"></i>
-                  View details
-                </button>
+              <div class="chat-subtitle flex flex-wrap gap-x-2 gap-y-1">
+                <span>$45.00 • 8 left</span>
+                <span>Last updated <span class="js-days-ago" data-updated="2025-09-29"></span></span>
               </div>
             </div>
-          </article>
+          </div>
+
+          <div class="chat-row">
+            <div class="chat-avatar">BB</div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-start justify-between gap-3">
+                <h3 class="chat-title truncate">Boulder Barn</h3>
+                <a href="https://t.me/" target="_blank" rel="noopener noreferrer" class="btn inline-flex items-center gap-1 h-8 px-2 text-xs">
+                  <i data-lucide="send" class="w-4 h-4"></i>
+                  Chat
+                </a>
+              </div>
+              <div class="chat-subtitle flex flex-wrap gap-x-2 gap-y-1">
+                <span>$30.00 • 2 left</span>
+                <span>Last updated <span class="js-days-ago" data-updated="2025-11-15"></span></span>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Empty state mock (hidden by default) -->
@@ -136,6 +133,20 @@
     <script>
       lucide.createIcons();
       document.getElementById('year').textContent = String(new Date().getFullYear());
+      // Compute "days ago" for last updated timestamps
+      (function () {
+        var elements = document.querySelectorAll('.js-days-ago');
+        var now = new Date();
+        var msPerDay = 24 * 60 * 60 * 1000;
+        elements.forEach(function (el) {
+          var iso = el.getAttribute('data-updated');
+          if (!iso) return;
+          var then = new Date(iso + 'T00:00:00Z');
+          var diff = now.getTime() - then.getTime();
+          var days = Math.max(0, Math.floor(diff / msPerDay));
+          el.textContent = days === 0 ? 'today' : (days === 1 ? '1 day ago' : days + ' days ago');
+        });
+      })();
     </script>
   </body>
   </html>

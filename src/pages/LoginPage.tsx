@@ -41,15 +41,15 @@ export default function LoginPage() {
         className="login-brand"
         style={{
           margin: 0,
-          fontWeight: 700,
+          fontWeight: 600,
           letterSpacing: 0.5,
-          animation: 'fadeInUp 400ms ease-out both'
+          animation: 'fadeInUp 500ms ease-out both'
         }}
       >
         Boulder SP
       </h1>
 
-      <div style={{ animation: 'fadeInUp 500ms ease-out 80ms both' }} aria-busy={loading}>
+      <div style={{ animation: 'fadeInUp 600ms ease-out 80ms both' }} aria-busy={loading}>
 
         {!isAuthReady && (
           <div style={{

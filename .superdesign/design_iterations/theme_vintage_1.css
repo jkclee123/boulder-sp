@@ -61,4 +61,30 @@ button:hover, .btn:hover {
 .surface { background: var(--surface) !important; }
 .border-warm { border-color: var(--border) !important; }
 
+/* Branding */
+.brand-font { font-family: 'Space Grotesk', var(--font-sans) !important; letter-spacing: 0.2px !important; }
+
+/* Chat bubbles */
+.bubble { background: var(--surface) !important; border: 1px solid var(--border) !important; border-radius: 16px !important; }
+.bubble-out { background: color-mix(in oklab, var(--primary) 18%, var(--surface)) !important; border-color: color-mix(in oklab, var(--primary) 35%, var(--border)) !important; }
+.avatar { background: #2f2a23 !important; color: var(--muted) !important; }
+
+/* Chat list rows */
+.chat-row { display: flex !important; align-items: center !important; gap: 12px !important; padding: 12px 4px !important; }
+.chat-row:hover { background: color-mix(in oklab, var(--surface) 85%, black) !important; }
+.chat-avatar { width: 48px !important; height: 48px !important; border-radius: 9999px !important; border: 1px solid var(--border) !important; background: #2f2a23 !important; color: var(--muted) !important; font-weight: 700 !important; display: grid !important; place-items: center !important; }
+.chat-title { margin: 0 !important; font-weight: 800 !important; color: var(--ink) !important; }
+.chat-subtitle { margin: 2px 0 0 0 !important; color: var(--muted) !important; font-size: 14px !important; }
+.chat-date { color: var(--muted) !important; font-size: 12px !important; white-space: nowrap !important; }
+.unread-dot { width: 8px !important; height: 8px !important; border-radius: 9999px !important; background: var(--accent) !important; }
+
+/* Line clamp utilities */
+.clamp-2 {
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+  word-break: break-word !important;
+}
+
 

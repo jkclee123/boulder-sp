@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&display=swap');
+
 /* Basic resets and full-bleed layout */
 html, body, #root { height: 100%; }
 body { margin: 0; }
@@ -35,38 +37,62 @@ main { display: block; }
 }
 
 .login-brand {
-  color: #F9FAFB;
-  text-shadow: 0 1px 0 rgba(255,255,255,0.05);
+	/* Elevated, warm gradient brand title without changing page bg */
+	background: linear-gradient(135deg, #FFE29A 0%, #fac5bf 45%, #FFD6A5 100%);
+	-webkit-background-clip: text;
+	background-clip: text;
+	color: transparent;
+	font-family: 'Space Grotesk', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+	font-size: clamp(32px, 6vw, 48px);
+	line-height: 1.05;
+	letter-spacing: 0.8px;
+	text-shadow: 0 2px 18px rgba(0,0,0,0.35);
 }
 
 /* Google login button (GitHub-like dark style) */
 .google-login-btn {
-  width: 100%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 12px;
-  height: 45px;
-  padding: 0 16px;
-  border-radius: 10px;
-  background-color: #21262d; /* GitHub dark btn */
-  border: 1px solid #b2b9c2;
-  color: #c9d1d9;
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
-  transition: background-color 120ms ease, border-color 120ms ease, box-shadow 120ms ease,
-    transform 50ms ease;
+	width: 100%;
+	display: inline-flex;
+	align-items: center;
+	justify-content: flex-start;
+	gap: 12px;
+	height: clamp(44px, 5.5vw, 50px);
+	padding: 0 16px;
+	border-radius: 12px;
+	background: linear-gradient(180deg, rgba(28,29,33,0.85), rgba(18,19,22,0.85));
+	backdrop-filter: saturate(140%) blur(4px);
+	-webkit-backdrop-filter: saturate(140%) blur(4px);
+	border: 1px solid rgba(255,255,255,0.14);
+	color: #f0f6fc;
+	font-weight: 600;
+	font-size: clamp(14px, 3.6vw, 15px);
+	cursor: pointer;
+	box-shadow:
+		inset 0 1px 0 rgba(255,255,255,0.06),
+		0 6px 24px rgba(0,0,0,0.25);
+	transition: background-color 140ms ease, border-color 140ms ease, box-shadow 160ms ease,
+		transform 50ms ease, filter 160ms ease;
 }
 
 .google-login-btn:hover:not(:disabled) {
-  background-color: #30363d;
-  border-color: #8b949e;
+	filter: brightness(1.05);
+	border-color: rgba(255,255,255,0.24);
+	box-shadow:
+		inset 0 1px 0 rgba(255,255,255,0.08),
+		0 10px 30px rgba(0,0,0,0.35);
 }
 
 .google-login-btn:active:not(:disabled) {
-  transform: translateY(1px);
+	transform: translateY(1px) scale(0.995);
+}
+
+.google-login-btn:focus-visible {
+	outline: none;
+	box-shadow:
+		0 0 0 3px rgba(249, 115, 22, 0.15), /* orange ring outside */
+		inset 0 1px 0 rgba(255,255,255,0.08),
+		0 8px 28px rgba(0,0,0,0.32);
+	border-color: rgba(249, 115, 22, 0.45);
 }
 
 .google-login-btn:disabled {
@@ -75,14 +101,15 @@ main { display: block; }
 }
 
 .google-login-btn .icon {
-  display: inline-flex;
-  width: 18px;
-  height: 18px;
+	display: inline-flex;
+	width: 18px;
+	height: 18px;
 }
 
 .google-login-btn .label {
-  line-height: 1;
-  color: #f0f6fc;
+	line-height: 1;
+	letter-spacing: 0.2px;
+	color: #f8fafc;
 }
 
 /* Header avatar button */

@@ -4,11 +4,10 @@ import { collection, onSnapshot, orderBy, query, Timestamp } from 'firebase/fire
 
 type PassItem = {
   id: number
-  name: string
   gym: string
   price: number
-  passesLeft: number
-  updated: string // YYYY-MM-DD
+  count: number
+  lastupdate: string // YYYY-MM-DD
 }
 
 function computeDaysAgo(isoDate: string): string {
@@ -38,22 +37,21 @@ export default function HomePage() {
       setLoading(false)
       return
     }
-    const q = query(collection(db, 'passes'), orderBy('updated', 'desc'))
+    const q = query(collection(db, 'public_pass'), orderBy('lastupdate', 'desc'))
     const unsub = onSnapshot(q, snapshot => {
       const items: PassItem[] = snapshot.docs.map((doc, idx) => {
         const data = doc.data() as any
-        const updated = data.updated instanceof Timestamp
-          ? data.updated.toDate().toISOString().slice(0, 10)
-          : typeof data.updated === 'string'
-            ? data.updated
+        const lastupdate = data.lastupdate instanceof Timestamp
+          ? data.lastupdate.toDate().toISOString().slice(0, 10)
+          : typeof data.lastupdate === 'string'
+            ? data.lastupdate
             : new Date().toISOString().slice(0, 10)
         return {
           id: idx + 1,
-          name: String(data.name || 'Pass'),
           gym: String(data.gym || 'Unknown Gym'),
           price: Number(data.price || 0),
-          passesLeft: Number(data.passesLeft || 0),
-          updated,
+          count: Number(data.count || 0),
+          lastupdate,
         }
       })
       setAllPasses(items)
@@ -136,7 +134,7 @@ export default function HomePage() {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="btn"
-                      aria-label={`Open chat about ${item.name} at ${item.gym}`}
+                      // aria-label={`Open chat about ${item.name} at ${item.gym}`}
                     >
                       <svg
                         aria-hidden
@@ -157,8 +155,8 @@ export default function HomePage() {
                     </a>
                   </div>
                   <div className="chat-subtitle" style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                    <span>${item.price.toFixed(0)} • {item.passesLeft} left</span>
-                    <span>Last updated {computeDaysAgo(item.updated)}</span>
+                    <span>${item.price.toFixed(0)} • {item.count} left</span>
+                    <span>Last updated {computeDaysAgo(item.lastupdate)}</span>
                   </div>
                 </div>
               </div>

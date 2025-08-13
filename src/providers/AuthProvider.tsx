@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, OAuthProvider, signOut as fbSignOut, signInWithRedirect, getRedirectResult } from 'firebase/auth'
-import { auth, canInitializeFirebase } from '../firebase'
+import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore'
+import { auth, canInitializeFirebase, db } from '../firebase'
 import type { User } from 'firebase/auth'
 
 type AuthContextValue = {
@@ -36,6 +37,30 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
 
     const unsub = onAuthStateChanged(auth, nextUser => {
       setUser(nextUser)
+      // On first login, create a user document in Firestore (collection: "user")
+      if (nextUser && db) {
+        ;(async () => {
+          try {
+            const userDocRef = doc(db, 'user', nextUser.uid)
+            const existing = await getDoc(userDocRef)
+            if (!existing.exists()) {
+              await setDoc(userDocRef, {
+                uid: nextUser.uid,
+                email: nextUser.email ?? null,
+                displayName: nextUser.displayName ?? null,
+                name: nextUser.displayName ?? null,
+                photoURL: nextUser.photoURL ?? null,
+                providerIds: Array.isArray(nextUser.providerData)
+                  ? nextUser.providerData.map(p => p?.providerId).filter(Boolean)
+                  : [],
+                createdAt: serverTimestamp(),
+              })
+            }
+          } catch {
+            // Silently ignore write errors; app should remain usable
+          }
+        })()
+      }
       // Ensure we do not prematurely clear loading while redirect result is pending
       if (hasCheckedRedirect) {
         setLoading(false)
@@ -56,9 +81,23 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
     setLoading(true)
     try {
       if (isLikelyMobile()) {
+        // Prefer redirect on mobile/webviews for higher reliability
         await signInWithRedirect(auth, provider)
-      } else {
+        return
+      }
+
+      // Try popup first on desktop
+      try {
         await signInWithPopup(auth, provider)
+      } catch (err) {
+        const possible = err as { code?: string; message?: string } | undefined
+        const code = possible?.code || possible?.message || ''
+        // Fallback to redirect for common popup failures (blocked/closed/etc.)
+        if (typeof code === 'string' && /popup|blocked|cancel/i.test(code)) {
+          await signInWithRedirect(auth, provider)
+          return
+        }
+        throw err
       }
     } catch (error) {
       setLoading(false)

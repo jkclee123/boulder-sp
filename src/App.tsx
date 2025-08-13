@@ -7,14 +7,6 @@ import HomePage from './pages/HomePage'
 
 const loginBgUrl = new URL('./assets/login_bg.PNG', import.meta.url).href
 
-function RequireAuth({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth()
-  const location = useLocation()
-  if (loading) return <div style={{ padding: '2rem' }}>Loading...</div>
-  if (!user) return <Navigate to="/login" replace state={{ from: location }} />
-  return children
-}
-
 function RedirectIfAuthed({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
   if (loading) return children
@@ -101,7 +93,7 @@ function AppShell() {
         }}
       >
         <Routes>
-          <Route path="/" element={<RequireAuth><HomePage /></RequireAuth>} />
+          <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<RedirectIfAuthed><LoginPage /></RedirectIfAuthed>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

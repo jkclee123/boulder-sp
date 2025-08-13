@@ -1,4 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { db } from '../firebase'
+import { collection, onSnapshot, orderBy, query, Timestamp } from 'firebase/firestore'
 
 type PassItem = {
   id: number
@@ -26,23 +28,42 @@ function getInitials(name: string): string {
 }
 
 export default function HomePage() {
-  const baseGyms = ['Granite Peak', 'Crux Hall', 'Summit Works', 'Boulder Barn']
-  const names = ['Day Pass', 'Evening Pass', '10 Punch Pass', 'Monthly Transfer']
+  const [allPasses, setAllPasses] = useState<PassItem[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const allPasses: PassItem[] = useMemo(() =>
-    Array.from({ length: 12 }).map((_, i) => ({
-      id: i + 1,
-      name: names[i % names.length],
-      gym: baseGyms[i % baseGyms.length],
-      price: 10 + (i % 5) * 5,
-      passesLeft: 1 + (i % 8),
-      // spread some dates across the past two months
-      updated: new Date(Date.now() - (i * 5 + (i % 3)) * 24 * 60 * 60 * 1000)
-        .toISOString()
-        .slice(0, 10)
-    })),
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  [])
+  useEffect(() => {
+    if (!db) {
+      setError('Firebase is not configured')
+      setLoading(false)
+      return
+    }
+    const q = query(collection(db, 'passes'), orderBy('updated', 'desc'))
+    const unsub = onSnapshot(q, snapshot => {
+      const items: PassItem[] = snapshot.docs.map((doc, idx) => {
+        const data = doc.data() as any
+        const updated = data.updated instanceof Timestamp
+          ? data.updated.toDate().toISOString().slice(0, 10)
+          : typeof data.updated === 'string'
+            ? data.updated
+            : new Date().toISOString().slice(0, 10)
+        return {
+          id: idx + 1,
+          name: String(data.name || 'Pass'),
+          gym: String(data.gym || 'Unknown Gym'),
+          price: Number(data.price || 0),
+          passesLeft: Number(data.passesLeft || 0),
+          updated,
+        }
+      })
+      setAllPasses(items)
+      setLoading(false)
+    }, err => {
+      setError(err.message || 'Failed to load')
+      setLoading(false)
+    })
+    return () => unsub()
+  }, [])
 
   const [selectedGym, setSelectedGym] = useState<string>('All gyms')
 
@@ -54,6 +75,10 @@ export default function HomePage() {
   }, [allPasses, selectedGym])
 
   
+
+  if (loading) {
+    return <div className="container" style={{ padding: 16 }}>Loading...</div>
+  }
 
   return (
     <div className="container" style={{ display: 'grid', gap: 12 }}>
@@ -84,7 +109,12 @@ export default function HomePage() {
 
       <section aria-labelledby="results-heading">
         <h2 id="results-heading" className="sr-only">Results</h2>
-        {filtered.length === 0 ? (
+        {error ? (
+          <div className="filter" style={{ textAlign: 'center' }}>
+            <h3 style={{ margin: 0 }}>Error</h3>
+            <p className="chat-subtitle" style={{ marginTop: 6 }}>{error}</p>
+          </div>
+        ) : filtered.length === 0 ? (
           <div className="filter" style={{ textAlign: 'center' }}>
             <h3 style={{ margin: 0 }}>No results</h3>
             <p className="chat-subtitle" style={{ marginTop: 6 }}>Try adjusting your filters.</p>

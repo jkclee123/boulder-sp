@@ -1,9 +1,9 @@
 :root {
-  --background: hsl(36, 20%, 6%); /* warm near-black */
+  --background: hsl(36, 20%, 7%); /* warm near-black */
   --surface: #1A1712;   /* deep warm brown/black */
   --ink: #F4EDE1;       /* warm off-white */
   --muted: #B8AA99;     /* desaturated warm gray */
-  --primary: #C07A3A;   /* burnt amber */
+  --primary: #c07a3a;   /* burnt amber */
   --accent: #A23E48;    /* oxblood */
   --accent-2: #5D8F7A;  /* heritage green */
   --border: #2A261F;    /* warm dark border */

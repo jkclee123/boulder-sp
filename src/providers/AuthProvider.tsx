@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react'
-import { initializeApp } from 'firebase/app'
-import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, OAuthProvider, signOut as fbSignOut, signInWithRedirect, getRedirectResult } from 'firebase/auth'
+import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, OAuthProvider, signOut as fbSignOut, signInWithRedirect, getRedirectResult } from 'firebase/auth'
+import { auth, canInitializeFirebase } from '../firebase'
 import type { User } from 'firebase/auth'
 
 type AuthContextValue = {
@@ -14,29 +14,7 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 
-const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-}
-
-const canInitializeFirebase = Boolean(
-  firebaseConfig.apiKey &&
-  firebaseConfig.authDomain &&
-  firebaseConfig.projectId &&
-  firebaseConfig.appId
-)
-
-let auth: ReturnType<typeof getAuth> | null = null
-try {
-  if (canInitializeFirebase) {
-    const app = initializeApp(firebaseConfig)
-    auth = getAuth(app)
-  }
-} catch {
-  auth = null
-}
+// Using shared `auth` instance from ../firebase
 
 export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null)
@@ -110,7 +88,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
   }
 
   const value = useMemo(
-    () => ({ user, loading, isAuthReady: Boolean(auth), signInWithGoogle, signInWithApple, signOut }),
+    () => ({ user, loading, isAuthReady: Boolean(auth && canInitializeFirebase), signInWithGoogle, signInWithApple, signOut }),
     [user, loading]
   )
 

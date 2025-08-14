@@ -44,12 +44,11 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
             const userDocRef = doc(db, 'user', nextUser.uid)
             const existing = await getDoc(userDocRef)
             if (!existing.exists()) {
+              const nameFromDisplayOrEmail = nextUser.displayName ?? (nextUser.email?.split('@')[0] ?? null)
               await setDoc(userDocRef, {
                 uid: nextUser.uid,
                 email: nextUser.email ?? null,
-                displayName: nextUser.displayName ?? null,
-                name: nextUser.displayName ?? null,
-                photoURL: nextUser.photoURL ?? null,
+                name: nameFromDisplayOrEmail,
                 providerIds: Array.isArray(nextUser.providerData)
                   ? nextUser.providerData.map(p => p?.providerId).filter(Boolean)
                   : [],

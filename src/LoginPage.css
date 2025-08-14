@@ -100,3 +100,126 @@
 }
 
 
+
+/* Liquid glass button styles (ported from liquidglass.html and scoped for login) */
+@property --bg-image-alpha {
+	syntax: '<number>';
+	inherits: true;
+	initial-value: 0.7;
+}
+@property --btn-offset-y {
+	syntax: '<length>';
+	inherits: true;
+	initial-value: 60px;
+}
+
+@keyframes liquid-page-intro {
+	0% {
+		--btn-offset-y: 100px;
+	}
+	100% {
+		--btn-offset-y: 80px;
+	}
+}
+
+/* Host the animatable custom props on the login hero so children can inherit */
+.login-hero {
+	--btn-padding: 0.9rem 1.6rem;
+	--btn-radius: 14px;
+	--glass-border: rgba(255, 255, 255, 0.14);
+	--text: #ffffff;
+	animation: liquid-page-intro 900ms ease-out both;
+}
+
+/* Liquid glass variant for the Google button */
+.liquid-glass-btn {
+	appearance: none;
+	border: 1px solid var(--glass-border) !important;
+	cursor: pointer;
+	position: relative;
+	top: var(--btn-offset-y);
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 12px;
+	width: 100%;
+	padding: var(--btn-padding);
+	border-radius: var(--btn-radius) !important;
+	color: var(--text) !important;
+	font-weight: 600;
+	font-size: clamp(14px, 3.6vw, 15px);
+	letter-spacing: 0.2px;
+	background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02)) !important;
+	box-shadow: 0 8px 30px rgba(2, 6, 23, 0.6), inset 0 1px 0 rgba(255,255,255,0.02);
+	backdrop-filter: blur(8px) saturate(120%);
+	-webkit-backdrop-filter: blur(8px) saturate(120%);
+	overflow: hidden;
+	transition: transform 240ms ease, box-shadow 240ms ease, filter 160ms ease;
+}
+
+.liquid-glass-btn .icon {
+	display: inline-flex;
+	width: 18px;
+	height: 18px;
+}
+
+/* sheen highlight + moving liquid blobs */
+.liquid-glass-btn::before,
+.liquid-glass-btn::after {
+	content: "";
+	position: absolute;
+	pointer-events: none;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%);
+}
+
+.liquid-glass-btn::before {
+	width: 220%;
+	height: 220%;
+	background: radial-gradient(
+		circle at 30% 20%,
+		rgba(255,255,255,0.18),
+		rgba(255,255,255,0.03) 30%,
+		transparent 45%
+	);
+	filter: blur(10px);
+	mix-blend-mode: overlay;
+	transition: transform 700ms cubic-bezier(.2,.9,.2,1);
+}
+
+.liquid-glass-btn::after {
+	width: 160%;
+	height: 160%;
+	filter: blur(20px);
+	mix-blend-mode: screen;
+	animation: liquid-floaty 6.5s ease-in-out infinite;
+}
+
+@keyframes liquid-floaty {
+	0%   { transform: translate(-40%, -50%) scale(1) rotate(0deg); }
+	25%  { transform: translate(-28%, -58%) scale(1.06) rotate(6deg); }
+	50%  { transform: translate(-18%, -44%) scale(1.08) rotate(-4deg); }
+	75%  { transform: translate(-30%, -50%) scale(1.03) rotate(3deg); }
+	100% { transform: translate(-40%, -50%) scale(1) rotate(0deg); }
+}
+
+.liquid-glass-btn:hover:not(:disabled) {
+	transform: translateY(-1px) scale(1.01);
+	box-shadow: 0 22px 60px rgba(2, 6, 23, 0.7);
+}
+
+.liquid-glass-btn:active:not(:disabled) {
+	transform: translateY(0) scale(0.99);
+}
+
+.liquid-glass-btn:focus-visible {
+	outline: 3px solid rgba(173,95,255,0.18);
+	outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.liquid-glass-btn::after { animation: none; }
+	.liquid-glass-btn { transition: none; }
+	.login-hero { animation: none; }
+}

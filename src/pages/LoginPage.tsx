@@ -54,7 +54,7 @@ export default function LoginPage() {
 
         <div style={{ display: 'grid', gap: 10 }}>
           <button
-            className="google-login-btn"
+            className="google-login-btn liquid-glass-btn"
             onClick={signInWithGoogle}
             disabled={loading}
             aria-label="Continue with Google"

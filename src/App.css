@@ -5,112 +5,21 @@ html, body, #root { height: 100%; }
 body { margin: 0; }
 main { display: block; }
 
-/* Subtle login animations */
-@keyframes fadeInUp {
-  0% { opacity: 0; transform: translateY(12px); }
-  100% { opacity: 1; transform: translateY(0); }
-}
+/* Box sizing reset to prevent mobile overflow due to padding/borders */
+*, *::before, *::after { box-sizing: border-box; }
+
+/* Subtle login animations - moved to LoginPage.css */
 
 @keyframes floatY {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-4px); }
 }
 
-/* Radial scrim to improve legibility on login page */
-.login-hero {
-  position: relative;
-  z-index: 0;
-}
+/* Radial scrim to improve legibility on login page - moved to LoginPage.css */
 
-.login-hero > * {
-  position: relative;
-  z-index: 1;
-}
+/* .login-brand moved to LoginPage.css */
 
-.login-hero::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  background: rgba(0, 0, 0, 0.3)
-}
-
-.login-brand {
-	/* Elevated, warm gradient brand title without changing page bg */
-	background: linear-gradient(135deg, #FFE29A 0%, #fac5bf 45%, #FFD6A5 100%);
-	-webkit-background-clip: text;
-	background-clip: text;
-	color: transparent;
-	font-family: 'Space Grotesk', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
-	font-size: clamp(32px, 6vw, 48px);
-	line-height: 1.05;
-	letter-spacing: 0.8px;
-	text-shadow: 0 2px 18px rgba(0,0,0,0.35);
-}
-
-/* Google login button (GitHub-like dark style) */
-.google-login-btn {
-	width: 100%;
-	display: inline-flex;
-	align-items: center;
-	justify-content: flex-start;
-	gap: 12px;
-	height: clamp(44px, 5.5vw, 50px);
-	padding: 0 16px;
-	border-radius: 12px;
-	background: linear-gradient(180deg, rgba(28,29,33,0.85), rgba(18,19,22,0.85));
-	backdrop-filter: saturate(140%) blur(4px);
-	-webkit-backdrop-filter: saturate(140%) blur(4px);
-	border: 1px solid rgba(255,255,255,0.14);
-	color: #f0f6fc;
-	font-weight: 600;
-	font-size: clamp(14px, 3.6vw, 15px);
-	cursor: pointer;
-	box-shadow:
-		inset 0 1px 0 rgba(255,255,255,0.06),
-		0 6px 24px rgba(0,0,0,0.25);
-	transition: background-color 140ms ease, border-color 140ms ease, box-shadow 160ms ease,
-		transform 50ms ease, filter 160ms ease;
-}
-
-.google-login-btn:hover:not(:disabled) {
-	filter: brightness(1.05);
-	border-color: rgba(255,255,255,0.24);
-	box-shadow:
-		inset 0 1px 0 rgba(255,255,255,0.08),
-		0 10px 30px rgba(0,0,0,0.35);
-}
-
-.google-login-btn:active:not(:disabled) {
-	transform: translateY(1px) scale(0.995);
-}
-
-.google-login-btn:focus-visible {
-	outline: none;
-	box-shadow:
-		0 0 0 3px rgba(249, 115, 22, 0.15), /* orange ring outside */
-		inset 0 1px 0 rgba(255,255,255,0.08),
-		0 8px 28px rgba(0,0,0,0.32);
-	border-color: rgba(249, 115, 22, 0.45);
-}
-
-.google-login-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.google-login-btn .icon {
-	display: inline-flex;
-	width: 18px;
-	height: 18px;
-}
-
-.google-login-btn .label {
-	line-height: 1;
-	letter-spacing: 0.2px;
-	color: #f8fafc;
-}
+/* .google-login-btn moved to LoginPage.css */
 
 /* Header avatar button */
 .avatar-button {
@@ -298,38 +207,13 @@ main { display: block; }
   font-size: 14px;
 }
 
-.muted { color: #6B7280; }
 .dot { color: #9CA3AF; }
 .price { font-weight: 700; color: #111827; }
 .stock { color: #065F46; font-weight: 600; }
 
-/* ——— Vintage theme variables and base ——— */
-:root {
-  --background: #0F0D0A; /* warm near-black */
-  --surface: #1A1712;   /* deep warm brown/black */
-  --ink: #F4EDE1;       /* warm off-white */
-  --muted: #B8AA99;     /* desaturated warm gray */
-  --primary: #C07A3A;   /* burnt amber */
-  --accent: #A23E48;    /* oxblood */
-  --accent-2: #5D8F7A;  /* heritage green */
-  --border: #2A261F;    /* warm dark border */
-  --ring: #3A342B;      /* subtle focus */
+ 
 
-  --radius: 12px;
-  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-  --font-serif: Merriweather, "Times New Roman", Times, serif;
-}
-
-body {
-  background: var(--background);
-  color: var(--ink);
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
-}
-
-.brand-font {
-  font-family: 'Space Grotesk', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
-  letter-spacing: -0.01em;
-}
+ 
 
 /* Container */
 .container {
@@ -370,34 +254,33 @@ body {
 .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0,0,0,0.06); }
 .btn:active { transform: translateY(0); }
 
-/* Chat list rows */
-.chat-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 12px 0;
-  transition: transform 150ms ease;
-}
-.chat-row:hover { transform: translateY(-2px); }
-
-.chat-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  background: var(--surface);
+/* Header action buttons (icon + label) */
+.header-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 12px;
   border: 1px solid var(--border);
-  display: grid;
-  place-items: center;
-  font-weight: 800;
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 160ms ease, background-color 160ms ease, border-color 160ms ease, color 160ms ease;
 }
 
-.chat-title {
-  font-size: 16px;
-  font-weight: 700;
-  margin: 0;
+.header-action .icon { display: inline-block; }
+
+.header-action:hover {
+  transform: translateY(-1px);
+  background: color-mix(in oklab, var(--surface) 85%, black);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+  border-color: color-mix(in oklab, var(--border) 70%, white);
 }
 
-.chat-subtitle { color: var(--muted); font-size: 14px; }
+.header-action:active { transform: translateY(0); }
+
+ 
 
 /* Simple divider container */
 .divide-y { border-top: 1px solid var(--border); }
@@ -422,25 +305,14 @@ body {
 }
 .animate-fade-in { animation: fadeInList 260ms ease both; }
 
-/* ---- Merged vintage theme from .superdesign/design_iterations/theme_vintage_1.css ---- */
 :root {
-  --background: rgb(21, 19, 14); /* warm near-black */
   --surface: #1A1712;   /* deep warm brown/black */
   --ink: #F4EDE1;       /* warm off-white */
   --muted: #B8AA99;     /* desaturated warm gray */
-  --primary: #c07a3a;   /* burnt amber */
-  --accent: #A23E48;    /* oxblood */
-  --accent-2: #5D8F7A;  /* heritage green */
-  --border: #2A261F;    /* warm dark border */
-  --ring: #3A342B;      /* subtle focus */
-
-  --radius: 12px;
-  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-  --font-serif: Merriweather, "Times New Roman", Times, serif;
 }
 
 /* Base typography and colors */
-html, body { height: 100%; }
+ 
 body {
   background: var(--background) !important;
   color: var(--ink) !important;
@@ -473,11 +345,11 @@ input:focus, select:focus, textarea:focus {
 button, .btn {
   color: var(--ink) !important;
   border: 1px solid var(--border) !important;
-  background: color-mix(in oklab, var(--surface) 85%, black) !important;
+  background: color-mix(in oklab, var(--surface) 95%, var(--primary)) !important;
   border-radius: 10px !important;
 }
 button:hover, .btn:hover {
-  border-color: color-mix(in oklab, var(--border) 70%, white) !important;
+  border-color: color-mix(in oklab, var(--primary) 40%, var(--border)) !important;
 }
 
 /* Utility */
@@ -491,13 +363,13 @@ button:hover, .btn:hover {
 
 /* Chat bubbles */
 .bubble { background: var(--surface) !important; border: 1px solid var(--border) !important; border-radius: 16px !important; }
-.bubble-out { background: color-mix(in oklab, var(--primary) 18%, var(--surface)) !important; border-color: color-mix(in oklab, var(--primary) 35%, var(--border)) !important; }
-.avatar { background: #2f2a23 !important; color: var(--muted) !important; }
+.bubble-out { background: color-mix(in oklab, var(--primary) 10%, var(--surface)) !important; border-color: color-mix(in oklab, var(--primary) 35%, var(--border)) !important; }
+.avatar { background: #E5E7EB !important; color: var(--muted) !important; }
 
 /* Chat list rows */
 .chat-row { display: flex !important; align-items: center !important; gap: 12px !important; padding: 12px 4px !important; }
-.chat-row:hover { background: color-mix(in oklab, var(--surface) 85%, black) !important; }
-.chat-avatar { width: 48px !important; height: 48px !important; border-radius: 9999px !important; border: 1px solid var(--border) !important; background: #2f2a23 !important; color: var(--muted) !important; font-weight: 700 !important; display: grid !important; place-items: center !important; }
+.chat-row:hover { background: color-mix(in oklab, var(--primary) 6%, var(--surface)) !important; }
+.chat-avatar { width: 48px !important; height: 48px !important; border-radius: 9999px !important; border: 1px solid var(--border) !important; background: #E5E7EB !important; color: var(--muted) !important; font-weight: 700 !important; display: grid !important; place-items: center !important; }
 .chat-title { margin: 0 !important; font-weight: 800 !important; color: var(--ink) !important; }
 .chat-subtitle { margin: 2px 0 0 0 !important; color: var(--muted) !important; font-size: 14px !important; }
 .chat-date { color: var(--muted) !important; font-size: 12px !important; white-space: nowrap !important; }
@@ -511,4 +383,43 @@ button:hover, .btn:hover {
   -webkit-box-orient: vertical !important;
   overflow: hidden !important;
   word-break: break-word !important;
+}
+
+/* Light theme overrides applied when <html data-theme="light"> */
+:root[data-theme="light"] {
+  --background: #f9fafb;
+  --surface: #ffffff;
+  --ink: #111827;
+  --muted: #6B7280;
+  --primary: #c07a3a;
+  --accent: #A23E48;
+  --accent-2: #5D8F7A;
+  --border: #e5e7eb;
+  --ring: #cbd5e1;
+}
+
+/* App header */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: var(--surface);
+  z-index: 50;
+}
+
+.app-brand {
+  font-weight: 600;
+  font-size: 1.5rem;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.header-right {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
 }

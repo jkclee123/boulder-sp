@@ -7,7 +7,7 @@ type PassItem = {
   gym: string
   price: number
   count: number
-  lastupdate: string // YYYY-MM-DD
+  lastUpdated: string // YYYY-MM-DD
 }
 
 function computeDaysAgo(isoDate: string): string {
@@ -26,7 +26,7 @@ function getInitials(name: string): string {
   return (parts[0][0] + parts[1][0]).toUpperCase()
 }
 
-export default function HomePage() {
+export default function MarketPage() {
   const [allPasses, setAllPasses] = useState<PassItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -37,21 +37,21 @@ export default function HomePage() {
       setLoading(false)
       return
     }
-    const q = query(collection(db, 'public_pass'), orderBy('lastupdate', 'desc'))
+    const q = query(collection(db, 'public_pass'), orderBy('lastUpdated', 'desc'))
     const unsub = onSnapshot(q, snapshot => {
       const items: PassItem[] = snapshot.docs.map((doc, idx) => {
         const data = doc.data() as any
-        const lastupdate = data.lastupdate instanceof Timestamp
+        const lastUpdated = data.lastUpdated instanceof Timestamp
           ? data.lastupdate.toDate().toISOString().slice(0, 10)
-          : typeof data.lastupdate === 'string'
-            ? data.lastupdate
+          : typeof data.lastUpdated === 'string'
+            ? data.lastUpdated
             : new Date().toISOString().slice(0, 10)
         return {
           id: idx + 1,
           gym: String(data.gym || 'Unknown Gym'),
           price: Number(data.price || 0),
           count: Number(data.count || 0),
-          lastupdate,
+          lastUpdated,
         }
       })
       setAllPasses(items)
@@ -80,7 +80,7 @@ export default function HomePage() {
 
   return (
     <div className="container" style={{ display: 'grid', gap: 12 }}>
-      <section className="filter sticky-filter" role="search" style={{ marginBottom: 12 }}>
+      <section className="sticky-filter" role="search" style={{ marginBottom: 12 }}>
         <form aria-label="Filter items" style={{ display: 'grid', gap: 8 }}>
           <label>
             <span className="sr-only">Gym</span>
@@ -94,7 +94,8 @@ export default function HomePage() {
                 borderRadius: 12,
                 padding: '0 12px',
                 border: '1px solid var(--border)',
-                background: 'var(--surface)'
+                background: 'var(--surface)',
+                boxSizing: 'border-box'
               }}
             >
               {gyms.map(g => (
@@ -134,7 +135,6 @@ export default function HomePage() {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="btn"
-                      // aria-label={`Open chat about ${item.name} at ${item.gym}`}
                     >
                       <svg
                         aria-hidden
@@ -156,7 +156,7 @@ export default function HomePage() {
                   </div>
                   <div className="chat-subtitle" style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                     <span>${item.price.toFixed(0)} • {item.count} left</span>
-                    <span>Last updated {computeDaysAgo(item.lastupdate)}</span>
+                    <span>Last updated {computeDaysAgo(item.lastUpdated)}</span>
                   </div>
                 </div>
               </div>
@@ -167,5 +167,7 @@ export default function HomePage() {
     </div>
   )
 }
+
+
 
 

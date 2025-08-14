@@ -26,6 +26,7 @@
   display: grid;
   place-content: center;
   gap: 20px;
+  animation: page-intro 1100ms ease-out both;
 }
 
 .login-hero > * {
@@ -40,7 +41,7 @@
   pointer-events: none;
   z-index: 0;
   /* Render the background image in a non-interactive layer to avoid long-press save */
-  background-image: linear-gradient(rgba(0, 0, 0, var(--bg-image-alpha)), rgba(0, 0, 0, var(--bg-image-alpha))), url('./assets/login_bg.PNG');
+  background-image: url('./assets/login_bg.PNG');
   background-position: center;
   background-size: cover;
   background-repeat: no-repeat;
@@ -49,7 +50,18 @@
   -webkit-user-select: none;
   user-select: none;
   -webkit-user-drag: none;
-  animation: page-intro 1100ms ease-out both;
+}
+
+/* Black scrim layer that fades in using widely-supported opacity animation */
+.login-hero::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-color: #000;
+  opacity: 0.3; /* final state */
+  animation: scrim-intro 1100ms ease-out both;
 }
 
 .login-brand {
@@ -139,7 +151,7 @@
 @property --bg-image-alpha {
 	syntax: '<number>';
 	inherits: true;
-	initial-value: 0.7;
+	initial-value: 0.3;
 }
 @property --offset-y {
 	syntax: '<length>';
@@ -154,6 +166,12 @@
 	100% {
         --bg-image-alpha: 0.3;
 	}
+}
+
+/* Opacity-based scrim intro to work reliably on iOS Safari */
+@keyframes scrim-intro {
+  0% { opacity: 1; }
+  100% { opacity: 0.3; }
 }
 
 /* Host the animatable custom props on the login hero so children can inherit */
@@ -240,12 +258,15 @@
 	outline-offset: 3px;
 }
 
-/* Mobile performance tweaks: avoid fixed background and heavy animations */
+/* Mobile performance tweaks: avoid fixed background positioning */
 @media (max-width: 768px), (pointer: coarse) {
   .login-hero::before {
     position: absolute;
     background-attachment: scroll;
-    animation: none;
+  }
+  .login-hero::after {
+    position: absolute;
+    background-attachment: scroll;
   }
 }
 
@@ -253,5 +274,6 @@
 	.liquid-glass-btn::after { animation: none; }
 	.liquid-glass-btn { transition: none; animation: none; }
 	.login-hero { animation: none; }
+	.login-hero::after { animation: none; }
 	.login-brand { animation: none; }
 }

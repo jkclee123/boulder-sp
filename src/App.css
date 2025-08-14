@@ -342,7 +342,7 @@ input:focus, select:focus, textarea:focus {
 }
 
 /* Buttons */
-button, .btn {
+/* button, .btn {
   color: var(--ink) !important;
   border: 1px solid var(--border) !important;
   background: color-mix(in oklab, var(--surface) 95%, var(--primary)) !important;
@@ -350,7 +350,7 @@ button, .btn {
 }
 button:hover, .btn:hover {
   border-color: color-mix(in oklab, var(--primary) 40%, var(--border)) !important;
-}
+} */
 
 /* Utility */
 .muted { color: var(--muted) !important; }

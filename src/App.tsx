@@ -6,8 +6,6 @@ import LoginPage from './pages/LoginPage'
 import MarketPage from './pages/MarketPage'
 import ProfilePage from './pages/ProfilePage'
 
-const loginBgUrl = new URL('./assets/login_bg.PNG', import.meta.url).href
-
 function RedirectIfAuthed({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
   if (loading) return children
@@ -72,8 +70,8 @@ function AppShell() {
           padding: isLoginRoute ? '0' : '1rem 0',
           display: isLoginRoute ? 'grid' : 'block',
           placeItems: isLoginRoute ? 'center' : undefined,
-          // Ensure a solid black background under the image
-          background: isLoginRoute ? `#000 url(${loginBgUrl}) center / cover no-repeat` : undefined
+          // Solid base background; actual image handled by LoginPage pseudo-element
+          background: isLoginRoute ? '#000' : undefined
         }}
       >
         <Routes>

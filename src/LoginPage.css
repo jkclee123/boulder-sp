@@ -17,6 +17,15 @@
 .login-hero {
   position: relative;
   z-index: 0;
+  --btn-padding: 0.9rem 1.6rem;
+  --btn-radius: 14px;
+  --glass-border: rgba(255, 255, 255, 0.14);
+  --text: #ffffff;
+  min-height: 100svh;
+  overflow: hidden;
+  display: grid;
+  place-content: center;
+  gap: 20px;
 }
 
 .login-hero > * {
@@ -30,7 +39,16 @@
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  background: rgba(0, 0, 0, var(--bg-image-alpha));
+  /* Render the background image in a non-interactive layer to avoid long-press save */
+  background-image: linear-gradient(rgba(0, 0, 0, var(--bg-image-alpha)), rgba(0, 0, 0, var(--bg-image-alpha))), url('./assets/login_bg.PNG');
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  -webkit-touch-callout: none; /* disable iOS save image callout */
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-user-drag: none;
   animation: page-intro 1100ms ease-out both;
 }
 
@@ -102,7 +120,8 @@
   cursor: not-allowed;
 }
 
-.google-login-btn .icon {
+.google-login-btn .icon,
+.liquid-glass-btn .icon {
 	display: inline-flex;
 	width: 18px;
 	height: 18px;
@@ -138,12 +157,6 @@
 }
 
 /* Host the animatable custom props on the login hero so children can inherit */
-.login-hero {
-	--btn-padding: 0.9rem 1.6rem;
-	--btn-radius: 14px;
-	--glass-border: rgba(255, 255, 255, 0.14);
-	--text: #ffffff;
-}
 
 /* Liquid glass variant for the Google button */
 .liquid-glass-btn {
@@ -170,12 +183,6 @@
 	overflow: hidden;
 	transition: transform 240ms ease, box-shadow 240ms ease;
 	animation: fadeInUp 650ms ease-out both;
-}
-
-.liquid-glass-btn .icon {
-	display: inline-flex;
-	width: 18px;
-	height: 18px;
 }
 
 /* sheen highlight + moving liquid blobs */
@@ -233,10 +240,18 @@
 	outline-offset: 3px;
 }
 
+/* Mobile performance tweaks: avoid fixed background and heavy animations */
+@media (max-width: 768px), (pointer: coarse) {
+  .login-hero::before {
+    position: absolute;
+    background-attachment: scroll;
+    animation: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
 	.liquid-glass-btn::after { animation: none; }
-	.liquid-glass-btn { transition: none; }
+	.liquid-glass-btn { transition: none; animation: none; }
 	.login-hero { animation: none; }
-	.liquid-glass-btn { animation: none; }
 	.login-brand { animation: none; }
 }

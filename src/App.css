@@ -423,3 +423,8 @@ button:hover, .btn:hover {
   gap: 0.75rem;
   align-items: center;
 }
+
+/* prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  body { animation: none; }
+}

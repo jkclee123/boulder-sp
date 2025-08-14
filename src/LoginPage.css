@@ -1,3 +1,8 @@
+:root {
+    --bg-image-alpha: 0.7;
+    --offset-y: 0px;
+}
+
 /* Subtle login animations */
 @keyframes fadeInUp {
   0% { opacity: 0; transform: translateY(12px); }
@@ -21,7 +26,7 @@
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  background: rgba(0, 0, 0, 0.3)
+  background: rgba(0, 0, 0, var(--bg-image-alpha));
 }
 
 .login-brand {
@@ -107,18 +112,20 @@
 	inherits: true;
 	initial-value: 0.7;
 }
-@property --btn-offset-y {
+@property --offset-y {
 	syntax: '<length>';
 	inherits: true;
-	initial-value: 60px;
+	initial-value: 0px;
 }
 
-@keyframes liquid-page-intro {
+@keyframes page-intro {
 	0% {
-		--btn-offset-y: 100px;
+        --bg-image-alpha: 1;
+		--offset-y: 60px;
 	}
 	100% {
-		--btn-offset-y: 80px;
+        --bg-image-alpha: 0.3;
+		--offset-y: 0px;
 	}
 }
 
@@ -128,7 +135,8 @@
 	--btn-radius: 14px;
 	--glass-border: rgba(255, 255, 255, 0.14);
 	--text: #ffffff;
-	animation: liquid-page-intro 900ms ease-out both;
+    top: var(--offset-y);
+	animation: page-intro 900ms ease-out both;
 }
 
 /* Liquid glass variant for the Google button */
@@ -137,7 +145,7 @@
 	border: 1px solid var(--glass-border) !important;
 	cursor: pointer;
 	position: relative;
-	top: var(--btn-offset-y);
+	isolation: isolate;
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
@@ -154,7 +162,7 @@
 	backdrop-filter: blur(8px) saturate(120%);
 	-webkit-backdrop-filter: blur(8px) saturate(120%);
 	overflow: hidden;
-	transition: transform 240ms ease, box-shadow 240ms ease, filter 160ms ease;
+	transition: transform 240ms ease, box-shadow 240ms ease;
 }
 
 .liquid-glass-btn .icon {

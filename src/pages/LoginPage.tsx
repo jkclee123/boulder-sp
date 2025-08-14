@@ -30,13 +30,12 @@ export default function LoginPage() {
           margin: 0,
           fontWeight: 600,
           letterSpacing: 0.5,
-          animation: 'fadeInUp 500ms ease-out both'
         }}
       >
         Boulder SP
       </h1>
 
-      <div style={{ animation: 'fadeInUp 600ms ease-out 80ms both' }} aria-busy={loading}>
+      <div aria-busy={loading}>
 
         {!isAuthReady && (
           <div style={{

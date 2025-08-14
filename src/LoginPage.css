@@ -1,12 +1,16 @@
 :root {
-    --bg-image-alpha: 0.7;
+    --bg-image-alpha: 0.3;
     --offset-y: 0px;
 }
 
 /* Subtle login animations */
 @keyframes fadeInUp {
-  0% { opacity: 0; transform: translateY(12px); }
-  100% { opacity: 1; transform: translateY(0); }
+  0% { 		
+    --offset-y: 40px;
+  }
+  100% { 		
+    --offset-y: 0px;
+  }
 }
 
 /* Radial scrim to improve legibility on login page */
@@ -27,6 +31,7 @@
   pointer-events: none;
   z-index: 0;
   background: rgba(0, 0, 0, var(--bg-image-alpha));
+  animation: page-intro 1100ms ease-out both;
 }
 
 .login-brand {
@@ -40,6 +45,8 @@
 	line-height: 1.05;
 	letter-spacing: 0.8px;
 	text-shadow: 0 2px 18px rgba(0,0,0,0.35);
+    top: var(--offset-y);
+	animation: fadeInUp 700ms ease-out both;
 }
 
 /* Google login button (GitHub-like dark style) */
@@ -64,6 +71,9 @@
 		0 6px 24px rgba(0,0,0,0.25);
 	transition: background-color 140ms ease, border-color 140ms ease, box-shadow 160ms ease,
 		transform 50ms ease, filter 160ms ease;
+
+    top: var(--offset-y);
+	animation: fadeInUp 800ms ease-out both;
 }
 
 .google-login-btn:hover:not(:disabled) {
@@ -121,11 +131,9 @@
 @keyframes page-intro {
 	0% {
         --bg-image-alpha: 1;
-		--offset-y: 60px;
 	}
 	100% {
         --bg-image-alpha: 0.3;
-		--offset-y: 0px;
 	}
 }
 
@@ -135,8 +143,6 @@
 	--btn-radius: 14px;
 	--glass-border: rgba(255, 255, 255, 0.14);
 	--text: #ffffff;
-    top: var(--offset-y);
-	animation: page-intro 900ms ease-out both;
 }
 
 /* Liquid glass variant for the Google button */
@@ -163,6 +169,7 @@
 	-webkit-backdrop-filter: blur(8px) saturate(120%);
 	overflow: hidden;
 	transition: transform 240ms ease, box-shadow 240ms ease;
+	animation: fadeInUp 650ms ease-out both;
 }
 
 .liquid-glass-btn .icon {
@@ -230,4 +237,6 @@
 	.liquid-glass-btn::after { animation: none; }
 	.liquid-glass-btn { transition: none; }
 	.login-hero { animation: none; }
+	.liquid-glass-btn { animation: none; }
+	.login-brand { animation: none; }
 }

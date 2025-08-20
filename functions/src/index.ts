@@ -1,5 +1,6 @@
 import * as functions from 'firebase-functions'
 import * as admin from 'firebase-admin'
+import { FieldValue } from 'firebase-admin/firestore'
 
 admin.initializeApp()
 
@@ -12,7 +13,7 @@ export const updateUserProfile = functions.https.onCall(async (data, context) =>
     throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated')
   }
 
-  const { name, phoneNumber } = data
+  const { name, phoneNumber, telegramId } = data
   const uid = context.auth.uid
 
   // Validate input
@@ -24,12 +25,17 @@ export const updateUserProfile = functions.https.onCall(async (data, context) =>
     throw new functions.https.HttpsError('invalid-argument', 'Phone number must be a string')
   }
 
+  if (telegramId && typeof telegramId !== 'string') {
+    throw new functions.https.HttpsError('invalid-argument', 'Telegram ID must be a string')
+  }
+
   try {
     // Update user profile in Firestore - using 'users' collection to match security rules
     await db.collection('users').doc(uid).update({
       name: name.trim(),
       phoneNumber: phoneNumber?.trim() || null,
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      telegramId: telegramId?.trim() || null,
+      updatedAt: FieldValue.serverTimestamp(),
     })
 
     return { success: true }
@@ -74,6 +80,7 @@ export const getUserProfile = functions.https.onCall(async (data, context) => {
       email: userData?.email,
       name: userData?.name,
       phoneNumber: userData?.phoneNumber,
+      telegramId: userData?.telegramId,
       createdAt: userData?.createdAt,
       updatedAt: userData?.updatedAt,
     }

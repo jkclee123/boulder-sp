@@ -7,7 +7,7 @@ This document details the server-side logic for core application features, inten
 - **Trigger**: Initiated from the "My Pass" page via a "Transfer" button on a pass item.
 - **Applicable Passes**: Any active (non-expired) `privatePass`, `marketPass`, or `adminPass`.
 - **Steps**:
-    1.  **Recipient Search**: The sender (fromUser) searches for the recipient (toUser) by their unique `telephone` or `gymMemberId`.
+    1.  **Recipient Search**: The sender (fromUser) searches for the recipient (toUser) by their unique `phoneNumber` or `gymMemberId`.
     2.  **Confirmation**: The recipient's name is displayed for confirmation.
     3.  **Set Details**: The sender specifies the `count` and total `purchasePrice` for the transfer.
     4.  **Execution**:
@@ -22,7 +22,7 @@ This document details the server-side logic for core application features, inten
 - **Trigger**: Initiated from the "Admin Page" via a "Consume Pass" button.
 - **Permissions**: Admins can only consume passes associated with their `adminGym`.
 - **Steps**:
-    1.  **User Search**: The admin searches for the target user by their `telephone` or `gymMemberId`.
+    1.  **User Search**: The admin searches for the target user by their `phoneNumber` or `gymMemberId`.
     2.  **Confirmation**: The target user's name is displayed for confirmation.
     3.  **Set Details**: The admin enters the number of passes to consume.
     4.  **Execution & Validation**:

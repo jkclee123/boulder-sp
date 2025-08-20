@@ -14,7 +14,7 @@ This document outlines the technical architecture, primarily focusing on the Fir
 
 ## Firestore Data Model
 
-### `gym` collection
+### `gyms` collection
 - **`displayName`**: `string`
 - **`id`**: `string`
 
@@ -26,7 +26,7 @@ This document outlines the technical architecture, primarily focusing on the Fir
 - **`email`**: `string`
 - **`providerIds`**: `string[]`
 - **`telegramId`**: `string` (without @)
-- **`telephone`**: `string` (*unique*)
+- **`phoneNumber`**: `string` (*unique*)
 - **`gymMemberId`**: `map<string, string>` (gym name -> member id, *unique per gym*)
 - **`isAdmin`**: `boolean`
 - **`adminGym`**: `string` (name of gym for admin users)

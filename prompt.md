@@ -33,7 +33,7 @@ email: string
 providerIds: string[]
 uid: (Auth uid as doc ID)
 telegramId: string (without @)
-telephone: string (*unique)
+phoneNumber: string (*unique)
 gymMemberId: map<string, string> (gym name to gym member id *unique)
 isAdmin: boolean
 adminGym: string (name of gym)
@@ -117,7 +117,7 @@ UI
 1. admin can view active admin pass list that belongs to his gym (gym field in user)
 2. admin can add and de-activate admin pass in this page
 3. admin can transfer admin pass to normal user account as private pass
-4. admin can consume pass in this page, similar to transfer, admin search for target user with telephone number or membershipId, check the name to see if target user is correct, and choose number of pass to consume, then the same number of private pass or market pass is consumed
+4. admin can consume pass in this page, similar to transfer, admin search for target user with phoneNumber or membershipId, check the name to see if target user is correct, and choose number of pass to consume, then the same number of private pass or market pass is consumed
 
 
 - pass log pass
@@ -128,7 +128,7 @@ UI
 1. shows all marketPass that are not expiried (according to lastDay) and with count > 0
 2. includes a filter to filter by gym
 3. trailing the list item is a button that has link "https://t.me/{owner-telegramId}?text={to-be-impleted-in-the-future}"
-4. check if user has set telephone before routing to telegram
+4. check if user has set phoneNumber before routing to telegram
 5. when marketPass count goes to 0, it wont show up in the market page 
 
 -------

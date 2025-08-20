@@ -26,6 +26,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getUserProfile = exports.updateUserProfile = void 0;
 const functions = __importStar(require("firebase-functions"));
 const admin = __importStar(require("firebase-admin"));
+const firestore_1 = require("firebase-admin/firestore");
 admin.initializeApp();
 const db = admin.firestore();
 // Update user profile
@@ -34,7 +35,7 @@ exports.updateUserProfile = functions.https.onCall(async (data, context) => {
     if (!context.auth) {
         throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
     }
-    const { name, phoneNumber } = data;
+    const { name, phoneNumber, telegramId } = data;
     const uid = context.auth.uid;
     // Validate input
     if (!name || typeof name !== 'string' || name.trim().length === 0) {
@@ -43,12 +44,16 @@ exports.updateUserProfile = functions.https.onCall(async (data, context) => {
     if (phoneNumber && typeof phoneNumber !== 'string') {
         throw new functions.https.HttpsError('invalid-argument', 'Phone number must be a string');
     }
+    if (telegramId && typeof telegramId !== 'string') {
+        throw new functions.https.HttpsError('invalid-argument', 'Telegram ID must be a string');
+    }
     try {
         // Update user profile in Firestore - using 'users' collection to match security rules
         await db.collection('users').doc(uid).update({
             name: name.trim(),
             phoneNumber: (phoneNumber === null || phoneNumber === void 0 ? void 0 : phoneNumber.trim()) || null,
-            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            telegramId: (telegramId === null || telegramId === void 0 ? void 0 : telegramId.trim()) || null,
+            updatedAt: firestore_1.FieldValue.serverTimestamp(),
         });
         return { success: true };
     }
@@ -88,6 +93,7 @@ exports.getUserProfile = functions.https.onCall(async (data, context) => {
             email: userData === null || userData === void 0 ? void 0 : userData.email,
             name: userData === null || userData === void 0 ? void 0 : userData.name,
             phoneNumber: userData === null || userData === void 0 ? void 0 : userData.phoneNumber,
+            telegramId: userData === null || userData === void 0 ? void 0 : userData.telegramId,
             createdAt: userData === null || userData === void 0 ? void 0 : userData.createdAt,
             updatedAt: userData === null || userData === void 0 ? void 0 : userData.updatedAt,
         };

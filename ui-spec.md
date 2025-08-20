@@ -20,9 +20,9 @@ This document details the user interface and user experience for each page of th
 - **Fields**:
     - `name`: `string`
     - `telegramId`: `string`
-    - `telephone`: `string` (input restricted to 8 digits, no verification needed)
+    - `phoneNumber`: `string` (input restricted to 8 digits, no verification needed)
     - `gymMemberId`: A section to add membership IDs for different gyms.
-- **Routing**: Users are forced to this page if `name` or `telephone` is not set.
+- **Routing**: Users are forced to this page if `name` or `phoneNumber` is not set.
 
 ### My Pass Page
 - **Objective**: Display the user's pass inventory.
@@ -48,7 +48,7 @@ This document details the user interface and user experience for each page of th
 - **Filtering**: A control to filter the list by `gym`.
 - **Actions**:
     - Each list item has a "Contact Seller" button.
-    - Before navigating, the app must check if the *current user's* `telephone` is set.
+    - Before navigating, the app must check if the *current user's* `phoneNumber` is set.
     - The button links to `https://t.me/{owner-telegramId}`.
 
 ### Admin Page

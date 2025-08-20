@@ -10,6 +10,7 @@ type UserProfile = {
   email: string | null
   name: string | null
   phoneNumber: string | null
+  telegramId: string | null
   createdAt: any
   updatedAt: any
 }
@@ -22,7 +23,7 @@ type AuthContextValue = {
   signInWithGoogle: () => Promise<void>
   signInWithApple: () => Promise<void>
   signOut: () => Promise<void>
-  updateProfile: (name: string, phoneNumber?: string) => Promise<void>
+  updateProfile: (name: string, phoneNumber?: string, telegramId?: string) => Promise<void>
   refreshProfile: () => Promise<void>
 }
 
@@ -38,22 +39,18 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
 
   const refreshProfile = async () => {
     if (!user || !functions) {
-      console.log('refreshProfile: user or functions not available', { user: !!user, functions: !!functions })
       return
     }
     
     try {
-      console.log('refreshProfile: calling getUserProfile function')
       const getUserProfile = httpsCallable(functions, 'getUserProfile')
       const result = await getUserProfile({})
-      console.log('refreshProfile: result received', result.data)
       setUserProfile(result.data as UserProfile)
     } catch (error) {
       console.error('Error refreshing profile:', error)
       // If the function call fails, try to get the profile directly from Firestore
       if (db && user) {
         try {
-          console.log('refreshProfile: falling back to direct Firestore read')
           const userDocRef = doc(db, 'users', user.uid)
           const userDoc = await getDoc(userDocRef)
           if (userDoc.exists()) {
@@ -63,10 +60,10 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
               email: userData.email,
               name: userData.name,
               phoneNumber: userData.phoneNumber,
+              telegramId: userData.telegramId,
               createdAt: userData.createdAt,
               updatedAt: userData.updatedAt,
             }
-            console.log('refreshProfile: direct read successful', profile)
             setUserProfile(profile)
           }
         } catch (fallbackError) {
@@ -76,19 +73,14 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
     }
   }
 
-  const updateProfile = async (name: string, phoneNumber?: string) => {
+  const updateProfile = async (name: string, phoneNumber?: string, telegramId?: string) => {
     if (!user || !functions) throw new Error('Not authenticated or functions not available')
     
     try {
-      console.log('AuthProvider: updateProfile called with:', { name, phoneNumber })
-      console.log('AuthProvider: functions available:', !!functions)
-      console.log('AuthProvider: user authenticated:', !!user)
       
       const updateUserProfile = httpsCallable(functions, 'updateUserProfile')
-      console.log('AuthProvider: updateUserProfile function created')
       
-      const result = await updateUserProfile({ name, phoneNumber })
-      console.log('AuthProvider: updateUserProfile result:', result)
+      const result = await updateUserProfile({ name, phoneNumber, telegramId })
       
       await refreshProfile()
     } catch (error) {
@@ -125,7 +117,6 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
             const userDocRef = doc(db, 'users', nextUser.uid)
             const existing = await getDoc(userDocRef)
             if (!existing.exists()) {
-              console.log('Creating new user document for:', nextUser.uid)
               const nameFromDisplayOrEmail = nextUser.displayName ?? (nextUser.email?.split('@')[0] ?? null)
               await setDoc(userDocRef, {
                 uid: nextUser.uid,
@@ -135,8 +126,13 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
                   ? nextUser.providerData.map(p => p?.providerId).filter(Boolean)
                   : [],
                 createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp(),
+                isAdmin: false,
+                adminGym: null,
+                telegramId: null,
+                phoneNumber: null,
+                gymMemberId: {},
               })
-              console.log('User document created successfully')
               
               // After creating the document, set the profile immediately from the data we just created
               const profile: UserProfile = {
@@ -144,18 +140,17 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
                 email: nextUser.email,
                 name: nameFromDisplayOrEmail,
                 phoneNumber: null,
+                telegramId: null,
                 createdAt: new Date(), // Use current time as fallback for immediate display
                 updatedAt: null,
               }
               setUserProfile(profile)
-              console.log('Profile set immediately after creation:', profile)
               
               // Refresh profile to get the actual server timestamp
               setTimeout(() => {
                 refreshProfile()
               }, 1000)
             } else {
-              console.log('User document already exists, fetching profile...')
               // User document exists, try to refresh profile
               await refreshProfile()
             }
@@ -172,10 +167,10 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
                   email: userData.email,
                   name: userData.name,
                   phoneNumber: userData.phoneNumber,
+                  telegramId: userData.telegramId,
                   createdAt: userData.createdAt,
                   updatedAt: userData.updatedAt,
                 }
-                console.log('Fallback profile read successful:', profile)
                 setUserProfile(profile)
               }
             } catch (fallbackError) {
@@ -197,7 +192,6 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
   // Additional effect to ensure profile is fetched when functions become available
   useEffect(() => {
     if (user && functions && !userProfile) {
-      console.log('Functions available, fetching profile for existing user')
       refreshProfile()
     }
   }, [user, functions, userProfile])

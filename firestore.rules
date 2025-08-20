@@ -18,23 +18,21 @@ service cloud.firestore {
     }
 
     function isGymAdmin(gym) {
-      if (!isAuthenticated()) {
-        return false;
-      }
-      let userData = getUserData(request.auth.uid);
-      return userData.isAdmin == true && userData.adminGym == gym;
+      // Rewritten to be a single expression without 'if' or 'let'
+      return isAuthenticated() && 
+             getUserData(request.auth.uid).isAdmin == true && 
+             getUserData(request.auth.uid).adminGym == gym;
     }
 
     // Collections Rules
 
     // Gyms: Readable by any authenticated user, writable only by admins.
-    match /gym/{gymId} {
+    match /gyms/{gymId} {
       allow read: if isAuthenticated();
       allow write: if isRequestingUserAdmin();
     }
 
     // Users: Can manage their own profile. Admins have full access.
-    // A user cannot make themselves an admin upon creation or update.
     match /users/{userId} {
       allow read: if request.auth.uid == userId || isRequestingUserAdmin();
       
@@ -47,7 +45,6 @@ service cloud.firestore {
     }
 
     // privatePass: Owned by a user. Readable/updatable by owner or a relevant gym admin.
-    // Creation is handled by cloud functions, so rule is permissive but requires auth.
     match /privatePass/{passId} {
       allow read: if isAuthenticated() && (request.auth.uid == resource.data.userRef.id || isGymAdmin(resource.data.gym));
       allow create: if isAuthenticated(); // Trust cloud function for validation.
@@ -66,15 +63,13 @@ service cloud.firestore {
     // adminPass: Only manageable by a gym admin of the specific gym.
     match /adminPass/{passId} {
       function isPassGymAdmin() {
-        // On create, resource.data is null, so check request.resource.data
-        let gym = request.method == 'create' ? request.resource.data.gym : resource.data.gym;
-        return isGymAdmin(gym);
+        // Rewritten to be a single expression without 'let'
+        return isGymAdmin(request.method == 'create' ? request.resource.data.gym : resource.data.gym);
       }
       allow read, write: if isPassGymAdmin();
     }
 
     // passLog: Immutable logs. Readable by participants or a relevant gym admin.
-    // Creation is handled by cloud functions.
     match /passLog/{logId} {
       allow read: if isAuthenticated() && (request.auth.uid in resource.data.participants || isGymAdmin(resource.data.gym));
       allow create: if isAuthenticated(); // Trust cloud function for validation.

@@ -20,8 +20,8 @@ The Minimum Viable Product (MVP) will focus on core pass management, transfer, a
 
 ### Functional
 * **FR1**: Users must be able to log in to the application using Firebase Authentication.
-* **FR2**: Users must be routed to their Account page upon login if their `name` and `telephone` fields are not set.
-* **FR3**: The Account page shall allow users to set their `name`, `telegramId`, `telephone` (8 digits), and gym-specific `gymMemberId`.
+* **FR2**: Users must be routed to their Account page upon login if their `name` and `phoneNumber` fields are not set.
+* **FR3**: The Account page shall allow users to set their `name`, `telegramId`, `phoneNumber` (8 digits), and gym-specific `gymMemberId`.
 * **FR4**: Normal users shall be routed to the Market page after a successful login (if their profile is complete).
 * **FR5**: Admin users shall be routed to the Admin page after a successful login (if their profile is complete).
 * **FR6**: The "My Pass" page shall display a user's passes in three distinct lists: active `privatePass`, active `marketPass`, and expired passes.
@@ -29,15 +29,15 @@ The Minimum Viable Product (MVP) will focus on core pass management, transfer, a
 * **FR8**: Listing a `privatePass` for sale shall decrease its count and create a corresponding `marketPass` record with the specified count and price.
 * **FR9**: Unlisting a `marketPass` shall delete the `marketPass` record and merge its `count` back into the parent `privatePass`.
 * **FR10**: Users can initiate a transfer of any active `privatePass` or `marketPass` they own.
-* **FR11**: The transfer process requires the sender to find the recipient by their unique `telephone` or `gymMemberId`.
+* **FR11**: The transfer process requires the sender to find the recipient by their unique `phoneNumber` or `gymMemberId`.
 * **FR12**: A successful transfer creates a new `privatePass` for the recipient and generates a `passLog` record.
 * **FR13**: The Market page shall display all active, unexpired `marketPass` records with a `count` greater than 0.
 * **FR14**: The Market page shall include a button on each listing that links to the owner's Telegram profile.
-* **FR15**: Users must set their `telephone` number before they can contact a seller on Telegram from the market page.
+* **FR15**: Users must set their `phoneNumber` number before they can contact a seller on Telegram from the market page.
 * **FR16**: The Admin page shall display a list of active `adminPass` records associated with the admin's gym.
 * **FR17**: Admins shall be able to add and deactivate `adminPass` records.
 * **FR18**: Admins can transfer an `adminPass` to a normal user, which creates a `privatePass` for that user. An `adminPass`'s count is not reduced upon transfer.
-* **FR19**: Admins can consume passes from users belonging to their gym by searching for the user via `telephone` or `gymMemberId`.
+* **FR19**: Admins can consume passes from users belonging to their gym by searching for the user via `phoneNumber` or `gymMemberId`.
 * **FR20**: The consume process shall default to consuming a `privatePass` before consuming a `marketPass`. A transaction attempting to consume from both types simultaneously shall fail.
 * **FR21**: A successful consumption shall reduce the `count` of the user's pass and create a `passLog` record.
 * **FR22**: The "Pass Log" page shall display all log entries where the current user is either the `fromUserRef` or the `toUserRef`.
@@ -48,7 +48,7 @@ The Minimum Viable Product (MVP) will focus on core pass management, transfer, a
 * **NFR3**: Records in the database will not be physically deleted. A boolean `active` flag will be used to manage visibility and status (soft-delete).
 * **NFR4**: The application will be a responsive web app built with React.
 * **NFR5**: The backend infrastructure will exclusively use Firebase services: Authentication, Hosting, Firestore, and Cloud Functions.
-* **NFR6**: The `telephone` field in the `user` collection must be unique across all users.
+* **NFR6**: The `phoneNumber` field in the `user` collection must be unique across all users.
 * **NFR7**: The `gymMemberId` map values in the `user` collection must be unique for each gym.
 
 ---
@@ -104,15 +104,15 @@ The Minimum Viable Product (MVP) will focus on core pass management, transfer, a
 * **Story 1.3: Account Profile Page**
     * **As a** user, **I want** a dedicated Account page, **so that** I can manage my personal information.
     * **Acceptance Criteria**:
-        1.  An Account page is created with input fields for `name`, `telegramId`, `telephone`, and a section for `gymMemberId`.
-        2.  The telephone input is restricted to 8 digits.
+        1.  An Account page is created with input fields for `name`, `telegramId`, `phoneNumber`, and a section for `gymMemberId`.
+        2.  The phoneNumber input is restricted to 8 digits.
         3.  The form successfully saves the entered data to the user's Firestore document.
         4.  Existing data is pre-populated in the form fields.
 
 * **Story 1.4: Mandatory Profile Completion**
     * **As a** new user, **I want** to be directed to my Account page until I provide my name and phone number, **so that** my profile is complete before I use other features.
     * **Acceptance Criteria**:
-        1.  Upon login, the system checks if the user's `name` and `telephone` are set.
+        1.  Upon login, the system checks if the user's `name` and `phoneNumber` are set.
         2.  If either field is missing, the user is automatically redirected to the `/account` page.
         3.  The user cannot navigate to other pages (e.g., `/market`, `/my-pass`) until these fields are filled.
         4.  Once the fields are set, the user is correctly routed to the `/market` page (for normal users) or `/admin` page (for admins).
@@ -168,7 +168,7 @@ The Minimum Viable Product (MVP) will focus on core pass management, transfer, a
     * **As a** user, **I want** to transfer a pass to another user, **so that** I can give or sell it to them directly.
     * **Acceptance Criteria**:
         1.  A "Transfer" button is available on active `privatePass` and `marketPass` items.
-        2.  The transfer form requires searching for the recipient by `telephone` or `gymMemberId`. The recipient's name is displayed for confirmation.
+        2.  The transfer form requires searching for the recipient by `phoneNumber` or `gymMemberId`. The recipient's name is displayed for confirmation.
         3.  The sender can specify the `count` and total `purchasePrice` for the transfer.
         4.  A Firebase Function executes the transfer, reducing the sender's pass count and creating a new `privatePass` for the recipient.
         5.  The new `privatePass`'s `lastDay` is calculated based on its `createdAt` date plus the `duration` inherited from the original pass, not the sender's pass `lastDay`.
@@ -184,7 +184,7 @@ The Minimum Viable Product (MVP) will focus on core pass management, transfer, a
     * **As a** buyer, **I want** to contact a seller from the market page, **so that** I can arrange payment.
     * **Acceptance Criteria**:
         1.  A contact button is present on each Market page listing.
-        2.  The user is prevented from clicking the button if their own `telephone` number is not set, with an appropriate message.
+        2.  The user is prevented from clicking the button if their own `phoneNumber` number is not set, with an appropriate message.
         3.  Clicking the button opens a new tab to `https://t.me/{owner-telegramId}`.
 
 ---
@@ -202,7 +202,7 @@ The Minimum Viable Product (MVP) will focus on core pass management, transfer, a
     * **As an** admin, **I want** to transfer passes to a user, **so that** I can distribute passes they have purchased.
     * **Acceptance Criteria**:
         1.  A transfer option is available on each `adminPass` item.
-        2.  The admin searches for the recipient user by `telephone` or `gymMemberId`.
+        2.  The admin searches for the recipient user by `phoneNumber` or `gymMemberId`.
         3.  On confirmation, a Firebase Function creates a new `privatePass` for the recipient.
         4.  The new `privatePass` inherits its `duration` from the `adminPass`. Its `lastDay` is calculated as `createdAt` + `duration`, ending at 23:59:59 HKT.
         5.  The original `adminPass` `count` is NOT reduced.
@@ -212,7 +212,7 @@ The Minimum Viable Product (MVP) will focus on core pass management, transfer, a
     * **As an** admin, **I want** to consume a pass from a user who is visiting the gym, **so that** I can redeem their entry.
     * **Acceptance Criteria**:
         1.  A "Consume Pass" button is available on the Admin page.
-        2.  The admin searches for the target user by `telephone` or `gymMemberId`, and the user's name appears for confirmation.
+        2.  The admin searches for the target user by `phoneNumber` or `gymMemberId`, and the user's name appears for confirmation.
         3.  The admin enters the number of passes to consume.
         4.  A Firebase Function verifies the user has enough passes of a single type (`privatePass` or `marketPass`) from the admin's gym. It shows an error if not, or if the consumption would require using both types.
         5.  The function preferentially reduces the count of a `privatePass`. If none exists, it reduces the count of a `marketPass`.

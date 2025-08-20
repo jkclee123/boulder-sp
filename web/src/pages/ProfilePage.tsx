@@ -10,7 +10,8 @@ export default function ProfilePage(): React.ReactElement {
   const { user, userProfile, signOut, updateProfile, refreshProfile } = useAuth()
   const [formData, setFormData] = useState({
     name: '',
-    phoneNumber: ''
+    phoneNumber: '',
+    telegramId: ''
   })
   const [isEditing, setIsEditing] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -18,21 +19,17 @@ export default function ProfilePage(): React.ReactElement {
   const [success, setSuccess] = useState<string | null>(null)
 
   useEffect(() => {
-    console.log('ProfilePage: userProfile changed', userProfile)
     if (userProfile) {
-      console.log('ProfilePage: Setting form data from userProfile', {
-        name: userProfile.name,
-        phoneNumber: userProfile.phoneNumber
-      })
       setFormData({
         name: userProfile.name || '',
-        phoneNumber: userProfile.phoneNumber || ''
+        phoneNumber: userProfile.phoneNumber || '',
+        telegramId: userProfile.telegramId || ''
       })
     } else {
-      console.log('ProfilePage: userProfile is null, clearing form data')
       setFormData({
         name: '',
-        phoneNumber: ''
+        phoneNumber: '',
+        telegramId: ''
       })
     }
   }, [userProfile])
@@ -55,11 +52,8 @@ export default function ProfilePage(): React.ReactElement {
     setIsSubmitting(true)
 
     try {
-      console.log('ProfilePage: Attempting to update profile with:', formData)
-      console.log('ProfilePage: Functions available:', !!functions)
-      console.log('ProfilePage: User authenticated:', !!user)
       
-      await updateProfile(formData.name, formData.phoneNumber || undefined)
+      await updateProfile(formData.name, formData.phoneNumber || undefined, formData.telegramId || undefined)
       setSuccess('Profile updated successfully!')
       setIsEditing(false)
       // Refresh profile to get updated data
@@ -102,7 +96,8 @@ export default function ProfilePage(): React.ReactElement {
     if (userProfile) {
       setFormData({
         name: userProfile.name || '',
-        phoneNumber: userProfile.phoneNumber || ''
+        phoneNumber: userProfile.phoneNumber || '',
+        telegramId: userProfile.telegramId || ''
       })
     }
     setIsEditing(false)
@@ -123,22 +118,42 @@ export default function ProfilePage(): React.ReactElement {
     if (!timestamp) return 'Unknown'
     
     try {
-      // Handle both Firestore Timestamp and regular Date objects
-      if (timestamp.toDate && typeof timestamp.toDate === 'function') {
+      // Handle serialized Timestamp from Callable Functions (e.g., { _seconds: ..., _nanoseconds: ... })
+      if (timestamp._seconds !== undefined && timestamp._nanoseconds !== undefined) {
+        const date = new Date(timestamp._seconds * 1000 + timestamp._nanoseconds / 1000000);
+        if (!isNaN(date.getTime())) {
+          return date.toLocaleDateString();
+        }
+      }
+      // Handle Firestore Timestamp objects (they have seconds and nanoseconds)
+      else if (timestamp.seconds !== undefined && timestamp.nanoseconds !== undefined) {
+        const date = new Date(timestamp.seconds * 1000 + timestamp.nanoseconds / 1000000)
+        if (!isNaN(date.getTime())) {
+          return date.toLocaleDateString()
+        }
+      }
+      // Handle Firestore Timestamp with toDate method
+      else if (timestamp.toDate && typeof timestamp.toDate === 'function') {
         const date = timestamp.toDate()
         if (date instanceof Date && !isNaN(date.getTime())) {
           return date.toLocaleDateString()
         }
-      } else if (timestamp instanceof Date) {
+      }
+      // Handle regular Date objects
+      else if (timestamp instanceof Date) {
         if (!isNaN(timestamp.getTime())) {
           return timestamp.toLocaleDateString()
         }
-      } else if (typeof timestamp === 'number') {
-        const date = new Date(timestamp)
+      }
+      // Handle Unix timestamps (seconds or milliseconds)
+      else if (typeof timestamp === 'number') {
+        const date = new Date(timestamp > 1000000000000 ? timestamp : timestamp * 1000)
         if (!isNaN(date.getTime())) {
           return date.toLocaleDateString()
         }
-      } else if (typeof timestamp === 'string') {
+      }
+      // Handle ISO string timestamps
+      else if (typeof timestamp === 'string') {
         const date = new Date(timestamp)
         if (!isNaN(date.getTime())) {
           return date.toLocaleDateString()
@@ -253,6 +268,22 @@ export default function ProfilePage(): React.ReactElement {
               required
               className="profile-form-input"
               placeholder="Enter your phone number"
+            />
+          </div>
+
+          <div className="profile-form-group">
+            <label htmlFor="telegramId" className="profile-form-label">
+              Telegram Username
+            </label>
+            <input
+              type="text"
+              id="telegramId"
+              name="telegramId"
+              value={formData.telegramId}
+              onChange={handleInputChange}
+              disabled={!isEditing}
+              className="profile-form-input"
+              placeholder="Enter your Telegram username"
             />
           </div>
 

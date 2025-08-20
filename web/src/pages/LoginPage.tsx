@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import '../LoginPage.css'
+import '../css/LoginPage.css'
 import { useAuth } from '../providers/AuthProvider'
 import { useNavigate } from 'react-router-dom'
 

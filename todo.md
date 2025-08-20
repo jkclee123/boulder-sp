@@ -5,9 +5,9 @@ This document outlines the development tasks based on the PRD.
 ## Epic 1: Foundation, Auth & User Profile
 **Goal**: To set up the project structure, implement a secure authentication flow, and ensure all users have a complete profile before accessing core application features.
 
-- [ ] **Story 1.1: Project & Firebase Initialization**: As a developer, I want to set up a new React project in a monorepo structure and initialize Firebase services, so that we have a foundational platform for development.
-- [ ] **Story 1.2: User Authentication**: As a user, I want to log in to the application, so that I can access my personal account and features.
-- [ ] **Story 1.3: Account Profile Page**: As a user, I want a dedicated Account page, so that I can manage my personal information.
+- [x] **Story 1.1: Project & Firebase Initialization**: As a developer, I want to set up a new React project in a monorepo structure and initialize Firebase services, so that we have a foundational platform for development.
+- [x] **Story 1.2: User Authentication**: As a user, I want to log in to the application, so that I can access my personal account and features.
+- [x] **Story 1.3: Account Profile Page**: As a user, I want a dedicated Account page, so that I can manage my personal information.
 - [ ] **Story 1.4: Mandatory Profile Completion**: As a new user, I want to be directed to my Account page until I provide my name and phone number, so that my profile is complete before I use other features.
 
 ## Epic 2: Core Pass & Market Viewing

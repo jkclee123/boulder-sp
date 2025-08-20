@@ -41,7 +41,7 @@
   pointer-events: none;
   z-index: 0;
   /* Render the background image in a non-interactive layer to avoid long-press save */
-  background-image: url('./assets/login_bg_ds.jpg');
+  background-image: url('../assets/login_bg_ds.jpg');
   background-position: center;
   background-size: cover;
   background-repeat: no-repeat;

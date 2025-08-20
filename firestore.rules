@@ -1,14 +1,84 @@
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Allow authenticated users to read and write their own data
-    match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
     }
-    
-    // Allow authenticated users to read public data
-    match /{document=**} {
-      allow read: if request.auth != null;
+
+    function getUserData(userId) {
+      return get(/databases/$(database)/documents/users/$(userId)).data;
+    }
+
+    function isRequestingUserAdmin() {
+      // Check if the UID making the request belongs to an admin.
+      return isAuthenticated() && getUserData(request.auth.uid).isAdmin == true;
+    }
+
+    function isGymAdmin(gym) {
+      if (!isAuthenticated()) {
+        return false;
+      }
+      let userData = getUserData(request.auth.uid);
+      return userData.isAdmin == true && userData.adminGym == gym;
+    }
+
+    // Collections Rules
+
+    // Gyms: Readable by any authenticated user, writable only by admins.
+    match /gym/{gymId} {
+      allow read: if isAuthenticated();
+      allow write: if isRequestingUserAdmin();
+    }
+
+    // Users: Can manage their own profile. Admins have full access.
+    // A user cannot make themselves an admin upon creation or update.
+    match /users/{userId} {
+      allow read: if request.auth.uid == userId || isRequestingUserAdmin();
+      
+      // On create, a user cannot assign themselves as admin.
+      allow create: if request.auth.uid == userId && request.resource.data.isAdmin == false;
+
+      // An owner can update their data, but not their admin status.
+      // An admin can update any user, including their admin status.
+      allow update: if (request.auth.uid == userId && request.resource.data.isAdmin == resource.data.isAdmin) || isRequestingUserAdmin();
+    }
+
+    // privatePass: Owned by a user. Readable/updatable by owner or a relevant gym admin.
+    // Creation is handled by cloud functions, so rule is permissive but requires auth.
+    match /privatePass/{passId} {
+      allow read: if isAuthenticated() && (request.auth.uid == resource.data.userRef.id || isGymAdmin(resource.data.gym));
+      allow create: if isAuthenticated(); // Trust cloud function for validation.
+      allow update: if isAuthenticated() && (request.auth.uid == resource.data.userRef.id || isGymAdmin(resource.data.gym));
+      allow delete: if false; // Soft delete only
+    }
+
+    // marketPass: Publicly readable. Writable by owner or relevant gym admin.
+    match /marketPass/{passId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && request.auth.uid == request.resource.data.userRef.id;
+      allow update: if isAuthenticated() && (request.auth.uid == resource.data.userRef.id || isGymAdmin(resource.data.gym));
+      allow delete: if false; // Soft delete only
+    }
+
+    // adminPass: Only manageable by a gym admin of the specific gym.
+    match /adminPass/{passId} {
+      function isPassGymAdmin() {
+        // On create, resource.data is null, so check request.resource.data
+        let gym = request.method == 'create' ? request.resource.data.gym : resource.data.gym;
+        return isGymAdmin(gym);
+      }
+      allow read, write: if isPassGymAdmin();
+    }
+
+    // passLog: Immutable logs. Readable by participants or a relevant gym admin.
+    // Creation is handled by cloud functions.
+    match /passLog/{logId} {
+      allow read: if isAuthenticated() && (request.auth.uid in resource.data.participants || isGymAdmin(resource.data.gym));
+      allow create: if isAuthenticated(); // Trust cloud function for validation.
+      allow update, delete: if false;
     }
   }
 }

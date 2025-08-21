@@ -13,7 +13,7 @@ export const updateUserProfile = functions.https.onCall(async (data, context) =>
     throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated')
   }
 
-  const { name, phoneNumber, telegramId } = data
+  const { name, phoneNumber, telegramId, gymMemberId } = data
   const uid = context.auth.uid
 
   // Validate input
@@ -29,6 +29,10 @@ export const updateUserProfile = functions.https.onCall(async (data, context) =>
     throw new functions.https.HttpsError('invalid-argument', 'Telegram ID must be a string')
   }
 
+  if (gymMemberId && typeof gymMemberId !== 'object') {
+    throw new functions.https.HttpsError('invalid-argument', 'Gym member ID must be an object')
+  }
+
   try {
     // Update user profile in Firestore - using 'users' collection to match security rules
     await db.collection('users').doc(uid).update({
@@ -36,6 +40,7 @@ export const updateUserProfile = functions.https.onCall(async (data, context) =>
       phoneNumber: phoneNumber?.trim() || null,
       telegramId: telegramId?.trim() || null,
       updatedAt: FieldValue.serverTimestamp(),
+      gymMemberId: gymMemberId || null,
     })
 
     return { success: true }

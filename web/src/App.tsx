@@ -1,10 +1,12 @@
 import { BrowserRouter, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom'
-import { useEffect } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import type React from 'react'
 import { AuthProvider, useAuth } from './providers/AuthProvider'
 import LoginPage from './pages/LoginPage'
 import MarketPage from './pages/MarketPage'
 import ProfilePage from './pages/ProfilePage'
+import MyPassPage from './pages/MyPassPage'
+import PassLogPage from './pages/PassLogPage'
 
 function RedirectIfAuthed({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
@@ -14,8 +16,10 @@ function RedirectIfAuthed({ children }: { children: React.ReactNode }) {
 }
 
 function AppShell() {
-  const { user } = useAuth()
+  const { user, signOut } = useAuth()
   const location = useLocation()
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
+  const profileMenuRef = useRef<HTMLDivElement>(null)
 
   const isLoginRoute = location.pathname === '/login'
   const isLightRoute = location.pathname === '/' || location.pathname === '/profile'
@@ -29,10 +33,27 @@ function AppShell() {
     }
   }, [isLightRoute])
 
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
+        setIsProfileMenuOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [profileMenuRef])
+
   const userInitial = ((): string => {
     const name = (user?.displayName || user?.email || '') as string
     return name ? name.charAt(0).toUpperCase() : '•'
   })()
+
+  const handleSignOut = async () => {
+    await signOut()
+    setIsProfileMenuOpen(false)
+  }
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', flexDirection: 'column' }}>
@@ -41,15 +62,23 @@ function AppShell() {
           <Link to="/" className="app-brand">Boulder SP</Link>
           <div className="header-right">
             {user ? (
-              <Link to="/profile" aria-label="Profile">
-                <button className="avatar-button">
+              <div className="profile-menu-container" ref={profileMenuRef}>
+                <button className="avatar-button" onClick={() => setIsProfileMenuOpen(prev => !prev)} aria-label="Profile menu">
                   {user.photoURL ? (
                     <img src={user.photoURL} alt="Profile" className="avatar-img" />
                   ) : (
                     <span className="avatar-fallback">{userInitial}</span>
                   )}
                 </button>
-              </Link>
+                {isProfileMenuOpen && (
+                  <div className="profile-menu">
+                    <Link to="/profile" className="profile-menu-item" onClick={() => setIsProfileMenuOpen(false)}>Profile</Link>
+                    <Link to="/my-pass" className="profile-menu-item" onClick={() => setIsProfileMenuOpen(false)}>My Pass</Link>
+                    <Link to="/pass-log" className="profile-menu-item" onClick={() => setIsProfileMenuOpen(false)}>Pass Records</Link>
+                    <button onClick={handleSignOut} className="profile-menu-item danger">Sign Out</button>
+                  </div>
+                )}
+              </div>
             ) : (
               <Link to="/login" className="header-action" aria-label="Sign in">
                 <span className="icon" aria-hidden>
@@ -77,6 +106,8 @@ function AppShell() {
         <Routes>
           <Route path="/" element={<MarketPage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/my-pass" element={<MyPassPage />} />
+          <Route path="/pass-log" element={<PassLogPage />} />
           <Route path="/login" element={<RedirectIfAuthed><LoginPage /></RedirectIfAuthed>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

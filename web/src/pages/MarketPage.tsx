@@ -42,7 +42,7 @@ export default function MarketPage() {
       const items: PassItem[] = snapshot.docs.map((doc, idx) => {
         const data = doc.data() as any
         const lastUpdated = data.lastUpdated instanceof Timestamp
-          ? data.lastupdate.toDate().toISOString().slice(0, 10)
+          ? data.lastUpdated.toDate().toISOString().slice(0, 10)
           : typeof data.lastUpdated === 'string'
             ? data.lastUpdated
             : new Date().toISOString().slice(0, 10)

@@ -34,10 +34,10 @@ try {
         connectAuthEmulator(auth, 'http://192.168.0.6:9099')
       } catch {}
       try {
-        connectFirestoreEmulator(db, '127.0.0.1', 8080)
+        connectFirestoreEmulator(db, '192.168.0.6', 8080)
       } catch {}
       try {
-        connectFunctionsEmulator(functions, '127.0.0.1', 5002)
+        connectFunctionsEmulator(functions, '192.168.0.6', 5002)
       } catch {}
     }
   }

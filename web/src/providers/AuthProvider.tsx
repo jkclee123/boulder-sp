@@ -13,6 +13,7 @@ type UserProfile = {
   telegramId: string | null
   createdAt: any
   updatedAt: any
+  gymMemberId: Record<string, string>
 }
 
 type AuthContextValue = {
@@ -23,7 +24,7 @@ type AuthContextValue = {
   signInWithGoogle: () => Promise<void>
   signInWithApple: () => Promise<void>
   signOut: () => Promise<void>
-  updateProfile: (name: string, phoneNumber?: string, telegramId?: string) => Promise<void>
+  updateProfile: (name: string, phoneNumber?: string, telegramId?: string, gymMemberId?: Record<string, string>) => Promise<void>
   refreshProfile: () => Promise<void>
 }
 
@@ -63,6 +64,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
               telegramId: userData.telegramId,
               createdAt: userData.createdAt,
               updatedAt: userData.updatedAt,
+              gymMemberId: userData.gymMemberId,
             }
             setUserProfile(profile)
           }
@@ -73,14 +75,14 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
     }
   }
 
-  const updateProfile = async (name: string, phoneNumber?: string, telegramId?: string) => {
+  const updateProfile = async (name: string, phoneNumber?: string, telegramId?: string, gymMemberId?: Record<string, string>) => {
     if (!user || !functions) throw new Error('Not authenticated or functions not available')
     
     try {
       
       const updateUserProfile = httpsCallable(functions, 'updateUserProfile')
       
-      const result = await updateUserProfile({ name, phoneNumber, telegramId })
+      const result = await updateUserProfile({ name, phoneNumber, telegramId, gymMemberId })
       
       await refreshProfile()
     } catch (error) {
@@ -143,6 +145,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
                 telegramId: null,
                 createdAt: new Date(), // Use current time as fallback for immediate display
                 updatedAt: null,
+                gymMemberId: {},
               }
               setUserProfile(profile)
               
@@ -169,7 +172,8 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
                   phoneNumber: userData.phoneNumber,
                   telegramId: userData.telegramId,
                   createdAt: userData.createdAt,
-                  updatedAt: userData.updatedAt,
+                  updatedAt: userData.updatedAt,  
+                  gymMemberId: userData.gymMemberId,
                 }
                 setUserProfile(profile)
               }

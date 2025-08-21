@@ -31,7 +31,7 @@ try {
 
     if (import.meta.env.DEV && import.meta.env.VITE_USE_EMULATORS === 'true') {
       try {
-        connectAuthEmulator(auth, 'http://127.0.0.1:9099')
+        connectAuthEmulator(auth, 'http://192.168.0.6:9099')
       } catch {}
       try {
         connectFirestoreEmulator(db, '127.0.0.1', 8080)

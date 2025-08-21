@@ -50,12 +50,7 @@ export default function MarketPage() {
             ? data.updatedAt
             : new Date().toISOString().slice(0, 10)
         
-        // Handle lastDay field
-        const lastDay = data.lastDay instanceof Timestamp
-          ? data.lastDay.toDate().toISOString().slice(0, 10)
-          : typeof data.lastDay === 'string'
-            ? data.lastDay
-            : new Date().toISOString().slice(0, 10)
+
         
         return {
           id: idx + 1,

@@ -106,3 +106,161 @@ export const getUserProfile = functions.https.onCall(async (data, context) => {
     throw new functions.https.HttpsError('internal', 'Failed to get profile. Please try again.')
   }
 })
+
+// Transfer pass function
+export const transfer = functions.https.onCall(async (data, context) => {
+  // Check if user is authenticated
+  if (!context.auth) {
+    throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated')
+  }
+
+  const {
+    fromUserId,
+    toUserId,
+    passId,
+    passType,
+    count,
+    price
+  } = data
+
+  // Validate input
+  if (!fromUserId || !toUserId || !passId || !passType || !count || typeof count !== 'number' || count <= 0) {
+    throw new functions.https.HttpsError('invalid-argument', 'Invalid transfer parameters')
+  }
+
+  if (fromUserId !== context.auth.uid) {
+    throw new functions.https.HttpsError('permission-denied', 'You can only transfer your own passes')
+  }
+
+  if (fromUserId === toUserId) {
+    throw new functions.https.HttpsError('invalid-argument', 'Cannot transfer to yourself')
+  }
+
+  const transferPrice = price || 0
+
+  try {
+    return await db.runTransaction(async (transaction) => {
+      // Get source pass document
+      let sourcePassRef;
+      let sourcePassData;
+
+      if (passType === 'private') {
+        sourcePassRef = db.collection('privatePass').doc(passId)
+      } else if (passType === 'market') {
+        sourcePassRef = db.collection('marketPass').doc(passId)
+      } else if (passType === 'admin') {
+        sourcePassRef = db.collection('adminPass').doc(passId)
+      } else {
+        throw new functions.https.HttpsError('invalid-argument', 'Invalid pass type')
+      }
+
+      const sourcePassDoc = await transaction.get(sourcePassRef)
+
+      if (!sourcePassDoc.exists) {
+        throw new functions.https.HttpsError('not-found', 'Source pass not found')
+      }
+
+      sourcePassData = sourcePassDoc.data()
+
+      // Verify ownership and active status
+      if (sourcePassData?.userRef?.id !== fromUserId) {
+        throw new functions.https.HttpsError('permission-denied', 'You do not own this pass')
+      }
+
+      if (sourcePassData?.active !== true) {
+        throw new functions.https.HttpsError('failed-precondition', 'Pass is not active')
+      }
+
+      // Check if pass is expired
+      if (sourcePassData?.lastDay && sourcePassData.lastDay.toDate() < new Date()) {
+        throw new functions.https.HttpsError('failed-precondition', 'Cannot transfer expired pass')
+      }
+
+      // Check if count is sufficient
+      if (sourcePassData?.count < count) {
+        throw new functions.https.HttpsError('failed-precondition', `Insufficient pass count. Available: ${sourcePassData.count}, Requested: ${count}`)
+      }
+
+      // Get recipient user
+      const toUserRef = db.collection('users').doc(toUserId)
+      const toUserDoc = await transaction.get(toUserRef)
+
+      if (!toUserDoc.exists) {
+        throw new functions.https.HttpsError('not-found', 'Recipient user not found')
+      }
+
+      // Calculate lastDay for new pass
+      let newPassLastDay = null
+      if (passType === 'admin') {
+        // For admin passes, calculate new lastDay based on duration from now
+        const duration = sourcePassData?.duration || 0
+        if (duration > 0) {
+          // Set lastDay to end of day at 23:59:59 HKT (UTC+8)
+          const now = new Date()
+          const newLastDay = new Date(now.getTime() + duration * 24 * 60 * 60 * 1000)
+          newLastDay.setHours(23, 59, 59, 999) // End of day
+          newPassLastDay = admin.firestore.Timestamp.fromDate(newLastDay)
+        }
+      } else {
+        // For private and market passes, preserve the original lastDay
+        if (sourcePassData?.lastDay && typeof sourcePassData.lastDay.toDate === 'function') {
+          newPassLastDay = sourcePassData.lastDay
+        }
+      }
+
+      // Create new private pass for recipient
+      const newPassRef = db.collection('privatePass').doc()
+      const newPassData = {
+        createdAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
+        gymDisplayName: sourcePassData?.gymDisplayName,
+        gymId: sourcePassData?.gymId,
+        purchasePrice: transferPrice,
+        purchaseCount: count,
+        count: count,
+        userRef: toUserRef,
+        lastDay: newPassLastDay,
+        active: true
+      }
+
+      transaction.set(newPassRef, newPassData)
+
+      // Reduce count from source pass (unless it's an admin pass)
+      if (passType !== 'admin') {
+        transaction.update(sourcePassRef, {
+          count: FieldValue.increment(-count),
+          updatedAt: FieldValue.serverTimestamp()
+        })
+      }
+
+      // Create pass log entry
+      const passLogRef = db.collection('passLog').doc()
+      const passLogData = {
+        createdAt: FieldValue.serverTimestamp(),
+        gym: sourcePassData?.gymDisplayName,
+        count: count,
+        price: transferPrice,
+        fromUserRef: db.collection('users').doc(fromUserId),
+        toUserRef: toUserRef,
+        action: 'transfer',
+        participants: [fromUserId, toUserId]
+      }
+
+      transaction.set(passLogRef, passLogData)
+
+      return {
+        success: true,
+        message: 'Transfer completed successfully',
+        newPassId: newPassRef.id
+      }
+    })
+  } catch (error) {
+    console.error('Error in transfer:', error)
+
+    if (error instanceof functions.https.HttpsError) {
+      throw error
+    }
+
+    throw new functions.https.HttpsError('internal', 'Transfer failed. Please try again.')
+  }
+})

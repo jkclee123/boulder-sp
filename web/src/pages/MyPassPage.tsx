@@ -3,6 +3,7 @@ import { useAuth } from '../providers/AuthProvider';
 import { db } from '../firebase';
 import { collection, query, where, onSnapshot, Timestamp, doc } from 'firebase/firestore';
 import '../css/MyPassPage.css';
+import TransferModal from './TransferModal';
 
 interface Pass {
   id: string;
@@ -57,6 +58,8 @@ const MyPassPage: React.FC = () => {
   const [marketPasses, setMarketPasses] = useState<MarketPass[]>([]);
   const [expiredPasses, setExpiredPasses] = useState<AnyPass[]>([]);
   const [loading, setLoading] = useState(true);
+  const [transferModalOpen, setTransferModalOpen] = useState(false);
+  const [selectedPass, setSelectedPass] = useState<AnyPass | null>(null);
 
   useEffect(() => {
     if (!user || !db) {
@@ -95,8 +98,37 @@ const MyPassPage: React.FC = () => {
 
   const handleAction = (action: string, pass: AnyPass) => {
     console.log(`Action: ${action} on pass:`, pass);
-    // TODO: Implement action logic (modals, functions, etc.)
-    alert(`Action: ${action} on pass ${pass.id}. Check console for details.`);
+
+    switch (action) {
+      case 'transfer':
+        if (pass.lastDay.toDate() < new Date()) {
+          alert('Cannot transfer expired passes.');
+          return;
+        }
+        setSelectedPass(pass);
+        setTransferModalOpen(true);
+        break;
+      case 'market':
+        // TODO: Implement market listing
+        alert('Market listing functionality coming soon!');
+        break;
+      case 'unlist':
+        // TODO: Implement unlist functionality
+        alert('Unlist functionality coming soon!');
+        break;
+      case 'deactivate':
+        // TODO: Implement deactivate functionality
+        alert('Deactivate functionality coming soon!');
+        break;
+      default:
+        alert(`Action: ${action} on pass ${pass.id}. Check console for details.`);
+    }
+  };
+
+  const handleTransferSuccess = () => {
+    // Refresh the passes data
+    setLoading(true);
+    // The useEffect will automatically refresh the data due to onSnapshot
   };
 
   if (loading) {
@@ -139,6 +171,15 @@ const MyPassPage: React.FC = () => {
           )}
         </div>
       </div>
+
+      {selectedPass && (
+        <TransferModal
+          isOpen={transferModalOpen}
+          onClose={() => setTransferModalOpen(false)}
+          pass={selectedPass}
+          onTransferSuccess={handleTransferSuccess}
+        />
+      )}
     </div>
   );
 };

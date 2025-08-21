@@ -99,6 +99,11 @@ const TransferModal: React.FC<TransferModalProps> = ({ isOpen, onClose, pass, on
       }
 
       if (foundUser) {
+        // Check if the found user is the current user
+        if (foundUser.id === user?.uid) {
+          alert('You cannot transfer passes to yourself.');
+          return;
+        }
         setRecipient(foundUser);
         setStep('confirm');
       } else {

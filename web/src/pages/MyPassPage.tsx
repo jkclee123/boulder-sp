@@ -4,6 +4,7 @@ import { db } from '../firebase';
 import { collection, query, where, onSnapshot, Timestamp, doc } from 'firebase/firestore';
 import '../css/MyPassPage.css';
 import TransferModal from './TransferModal';
+import MarketModal from './MarketModal';
 
 interface Pass {
   id: string;
@@ -53,12 +54,13 @@ const PassCard: React.FC<{ pass: AnyPass; onAction: (action: string, pass: AnyPa
 };
 
 const MyPassPage: React.FC = () => {
-  const { user } = useAuth();
+  const { user, userProfile } = useAuth();
   const [privatePasses, setPrivatePasses] = useState<PrivatePass[]>([]);
   const [marketPasses, setMarketPasses] = useState<MarketPass[]>([]);
   const [expiredPasses, setExpiredPasses] = useState<AnyPass[]>([]);
   const [loading, setLoading] = useState(true);
   const [transferModalOpen, setTransferModalOpen] = useState(false);
+  const [marketModalOpen, setMarketModalOpen] = useState(false);
   const [selectedPass, setSelectedPass] = useState<AnyPass | null>(null);
 
   useEffect(() => {
@@ -109,8 +111,16 @@ const MyPassPage: React.FC = () => {
         setTransferModalOpen(true);
         break;
       case 'market':
-        // TODO: Implement market listing
-        alert('Market listing functionality coming soon!');
+        if (!userProfile?.telegramId) {
+          alert('You must set your Telegram ID in your profile before you can list passes for sale. Go to Account page to set it.');
+          return;
+        }
+        if (pass.lastDay.toDate() < new Date()) {
+          alert('Cannot list expired passes for sale.');
+          return;
+        }
+        setSelectedPass(pass);
+        setMarketModalOpen(true);
         break;
       case 'unlist':
         // TODO: Implement unlist functionality
@@ -126,6 +136,12 @@ const MyPassPage: React.FC = () => {
   };
 
   const handleTransferSuccess = () => {
+    // Refresh the passes data
+    setLoading(true);
+    // The useEffect will automatically refresh the data due to onSnapshot
+  };
+
+  const handleMarketSuccess = () => {
     // Refresh the passes data
     setLoading(true);
     // The useEffect will automatically refresh the data due to onSnapshot
@@ -178,6 +194,15 @@ const MyPassPage: React.FC = () => {
           onClose={() => setTransferModalOpen(false)}
           pass={selectedPass}
           onTransferSuccess={handleTransferSuccess}
+        />
+      )}
+
+      {selectedPass && selectedPass.type === 'private' && (
+        <MarketModal
+          isOpen={marketModalOpen}
+          onClose={() => setMarketModalOpen(false)}
+          pass={selectedPass}
+          onSuccess={handleMarketSuccess}
         />
       )}
     </div>

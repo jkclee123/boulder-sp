@@ -114,7 +114,7 @@ The Minimum Viable Product (MVP) will focus on core pass management, transfer, a
     * **Acceptance Criteria**:
         1.  Upon login, the system checks if the user's `name` and `phoneNumber` are set.
         2.  If either field is missing, the user is automatically redirected to the `/account` page.
-        3.  The user cannot navigate to other pages (e.g., `/market`, `/my-pass`) until these fields are filled.
+        3.  The user cannot navigate to other pages (e.g., `/market`, `/mypass`) until these fields are filled.
         4.  Once the fields are set, the user is correctly routed to the `/market` page (for normal users) or `/admin` page (for admins).
 
 ---

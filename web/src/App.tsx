@@ -23,7 +23,7 @@ function AppShell() {
   const profileMenuRef = useRef<HTMLDivElement>(null)
 
   const isLoginRoute = location.pathname === '/login'
-  const isLightRoute = location.pathname === '/' || location.pathname === '/profile'
+  const isLightRoute = !isLoginRoute
 
   useEffect(() => {
     const root = document.documentElement
@@ -74,7 +74,7 @@ function AppShell() {
                 {isProfileMenuOpen && (
                   <div className="profile-menu">
                     <Link to="/profile" className="profile-menu-item" onClick={() => setIsProfileMenuOpen(false)}>Profile</Link>
-                    <Link to="/my-pass" className="profile-menu-item" onClick={() => setIsProfileMenuOpen(false)}>My Pass</Link>
+                    <Link to="/mypass" className="profile-menu-item" onClick={() => setIsProfileMenuOpen(false)}>My Pass</Link>
                     <Link to="/pass-log" className="profile-menu-item" onClick={() => setIsProfileMenuOpen(false)}>Pass Records</Link>
                     {userProfile?.isAdmin && (
                       <Link to="/admin" className="profile-menu-item" onClick={() => setIsProfileMenuOpen(false)}>Admin Portal</Link>
@@ -110,7 +110,7 @@ function AppShell() {
         <Routes>
           <Route path="/" element={<MarketPage />} />
           <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/my-pass" element={<MyPassPage />} />
+          <Route path="/mypass" element={<MyPassPage />} />
           <Route path="/pass-log" element={<PassLogPage />} />
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/login" element={<RedirectIfAuthed><LoginPage /></RedirectIfAuthed>} />

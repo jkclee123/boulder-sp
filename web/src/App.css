@@ -305,12 +305,6 @@ main { display: block; }
 }
 .animate-fade-in { animation: fadeInList 260ms ease both; }
 
-:root {
-  --surface: #1A1712;   /* deep warm brown/black */
-  --ink: #F4EDE1;       /* warm off-white */
-  --muted: #B8AA99;     /* desaturated warm gray */
-}
-
 /* Base typography and colors */
  
 body {
@@ -319,7 +313,6 @@ body {
   font-family: var(--font-sans) !important;
 }
 
-h1, h2, h3 { color: var(--ink) !important; }
 p { color: var(--ink) !important; }
 
 /* Form controls */
@@ -370,7 +363,7 @@ button:hover, .btn:hover {
 .chat-row { display: flex !important; align-items: center !important; gap: 12px !important; padding: 12px 4px !important; }
 .chat-row:hover { background: color-mix(in oklab, var(--primary) 6%, var(--surface)) !important; }
 .chat-avatar { width: 48px !important; height: 48px !important; border-radius: 9999px !important; border: 1px solid var(--border) !important; background: #E5E7EB !important; color: var(--muted) !important; font-weight: 700 !important; display: grid !important; place-items: center !important; }
-.chat-title { margin: 0 !important; font-weight: 800 !important; color: var(--ink) !important; }
+.chat-title { margin: 0 !important; font-weight: 900 !important; color: var(--ink) !important; }
 .chat-subtitle { margin: 2px 0 0 0 !important; color: var(--muted) !important; font-size: 14px !important; }
 .chat-date { color: var(--muted) !important; font-size: 12px !important; white-space: nowrap !important; }
 .unread-dot { width: 8px !important; height: 8px !important; border-radius: 9999px !important; background: var(--accent) !important; }
@@ -389,8 +382,8 @@ button:hover, .btn:hover {
 :root[data-theme="light"] {
   --background: #f9fafb;
   --surface: #ffffff;
-  --ink: #111827;
-  --muted: #6B7280;
+  --ink: hsl(0, 2%, 5%);
+  --muted: hsl(0, 2%, 25%);
   --primary: #c07a3a;
   --accent: #A23E48;
   --accent-2: #5D8F7A;
@@ -401,14 +394,12 @@ button:hover, .btn:hover {
 /* App header */
 .app-header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  padding: 1rem;
-  border-bottom: 1px solid var(--border);
-  position: sticky;
-  top: 0;
-  background: var(--surface);
-  z-index: 50;
+  align-items: center;
+  padding: 1rem 2rem;
+  background-color: #fff; /* Changed from #333 */
+  color: #333; /* Changed from white */
+  border-bottom: 1px solid #e0e0e0; /* Added */
 }
 
 .app-brand {

@@ -4,13 +4,11 @@ import { collection, onSnapshot, orderBy, query, Timestamp } from 'firebase/fire
 
 type PassItem = {
   id: number
-  gym: string
+  gymDisplayName: string
   price: number
   count: number
   updatedAt: string // YYYY-MM-DD
   remarks?: string
-  lastDay: string // YYYY-MM-DD
-  active: boolean
 }
 
 function computeDaysAgo(isoDate: string): string {
@@ -61,13 +59,11 @@ export default function MarketPage() {
         
         return {
           id: idx + 1,
-          gym: String(data.gym || 'Unknown Gym'),
+          gymDisplayName: String(data.gymDisplayName || 'Unknown Gym'),
           price: Number(data.price || 0),
           count: Number(data.count || 0),
           updatedAt,
           remarks: data.remarks || '',
-          lastDay,
-          active: Boolean(data.active),
         }
       })
       setAllPasses(items)
@@ -81,11 +77,11 @@ export default function MarketPage() {
 
   const [selectedGym, setSelectedGym] = useState<string>('All gyms')
 
-  const gyms = useMemo(() => ['All gyms', ...Array.from(new Set(allPasses.map(p => p.gym)))], [allPasses])
+  const gyms = useMemo(() => ['All gyms', ...Array.from(new Set(allPasses.map(p => p.gymDisplayName)))], [allPasses])
 
   const filtered = useMemo(() => {
     if (selectedGym === 'All gyms') return allPasses
-    return allPasses.filter(p => p.gym === selectedGym)
+    return allPasses.filter(p => p.gymDisplayName === selectedGym)
   }, [allPasses, selectedGym])
 
   
@@ -142,10 +138,10 @@ export default function MarketPage() {
                 className="chat-row animate-fade-in"
                 style={{ animationDelay: `${idx * 40}ms` }}
               >
-                <div className="chat-avatar" aria-hidden>{getInitials(item.gym)}</div>
+                <div className="chat-avatar" aria-hidden>{getInitials(item.gymDisplayName)}</div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
-                    <h3 className="chat-title" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.gym}</h3>
+                    <h3 className="chat-title" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.gymDisplayName}</h3>
                     <a
                       href="https://t.me/"
                       target="_blank"
@@ -174,8 +170,6 @@ export default function MarketPage() {
                     <span>${item.price.toFixed(0)} • {item.count} left</span>
                     <span>Last updated {computeDaysAgo(item.updatedAt)}</span>
                     {item.remarks && <span>• {item.remarks}</span>}
-                    <span>• Expires {item.lastDay}</span>
-                    <span>• {item.active ? 'Active' : 'Inactive'}</span>
                   </div>
                 </div>
               </div>

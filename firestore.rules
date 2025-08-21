@@ -46,7 +46,7 @@ service cloud.firestore {
 
     // privatePass: Owned by a user. Readable/updatable by owner or a relevant gym admin.
     match /privatePass/{passId} {
-      allow read: if isAuthenticated() && (request.auth.uid == resource.data.userRef.id || isGymAdmin(resource.data.gym));
+            allow read: if isAuthenticated() && resource.data.userRef == resource.data.userRef.path[4];
       allow create: if isAuthenticated(); // Trust cloud function for validation.
       allow update: if isAuthenticated() && (request.auth.uid == resource.data.userRef.id || isGymAdmin(resource.data.gym));
       allow delete: if false; // Soft delete only

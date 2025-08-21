@@ -51,6 +51,18 @@
   border-bottom: 1px solid #e0e0e0;
 }
 
+.pass-card-header.private-pass {
+  background-color: #e8f4fd; /* Light blue for private passes */
+}
+
+.pass-card-header.market-pass {
+  background-color: #f0f8e8; /* Light green for market passes */
+}
+
+.pass-card-header.expired-pass {
+  background-color: #f8f0f0; /* Light red for expired passes */
+}
+
 .pass-card-header h3 {
   margin: 0;
   font-size: 1.2rem;

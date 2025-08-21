@@ -28,7 +28,7 @@ const PassCard: React.FC<{ pass: AnyPass; onAction: (action: string, pass: AnyPa
 
   return (
     <div className={`pass-card ${isExpired ? 'expired' : ''}`}>
-      <div className="pass-card-header">
+      <div className={`pass-card-header ${pass.type === 'private' ? 'private-pass' : 'market-pass'} ${isExpired ? 'expired-pass' : ''}`}>
         <h3>{pass.gymDisplayName}</h3>
       </div>
       <div className="pass-card-body">

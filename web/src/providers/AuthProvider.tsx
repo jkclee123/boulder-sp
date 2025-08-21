@@ -23,7 +23,6 @@ type AuthContextValue = {
   loading: boolean
   isAuthReady: boolean
   signInWithGoogle: () => Promise<void>
-  signInWithApple: () => Promise<void>
   signOut: () => Promise<void>
   updateProfile: (name: string, phoneNumber?: string, telegramId?: string, gymMemberId?: Record<string, string>) => Promise<void>
   refreshProfile: () => Promise<void>
@@ -204,6 +203,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
         await signInWithRedirect(auth, provider)
         return
       }
+
       try {
         await signInWithPopup(auth, provider)
       } catch (err) {

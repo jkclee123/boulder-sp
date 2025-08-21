@@ -176,6 +176,16 @@
   border-color: #007bff;
 }
 
+/* Text inputs with numeric input mode */
+.form-group input[type="text"] {
+  text-align: left;
+}
+
+.form-group input[inputmode="numeric"],
+.form-group input[inputmode="decimal"] {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
 .form-group small {
   color: #666;
   font-size: 12px;

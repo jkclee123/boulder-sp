@@ -237,8 +237,10 @@ const TransferModal: React.FC<TransferModalProps> = ({ isOpen, onClose, pass, on
               <h3>Confirm Recipient</h3>
               <div className="recipient-info">
                 <p><strong>Name:</strong> {recipient.name}</p>
-                <p><strong>Phone:</strong> {recipient.phoneNumber}</p>
-                {recipient.gymMemberId && recipient.gymMemberId[pass.gymId] && (
+                {searchType === 'phone' && (
+                  <p><strong>Phone:</strong> {recipient.phoneNumber}</p>
+                )}
+                {searchType === 'memberId' && recipient.gymMemberId && recipient.gymMemberId[pass.gymId] && (
                   <p><strong>Gym Member ID:</strong> {recipient.gymMemberId[pass.gymId]}</p>
                 )}
               </div>
@@ -258,11 +260,15 @@ const TransferModal: React.FC<TransferModalProps> = ({ isOpen, onClose, pass, on
                 <div className="form-group">
                   <label>Number of passes to transfer:</label>
                   <input
-                    type="number"
-                    min="1"
-                    max={pass.count}
-                    value={transferCount}
-                    onChange={e => setTransferCount(Math.min(pass.count, parseInt(e.target.value) || 1))}
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    value={transferCount.toString()}
+                    onChange={e => {
+                      const value = e.target.value.replace(/[^0-9]/g, '');
+                      const numValue = parseInt(value) || 0;
+                      setTransferCount(Math.min(pass.count, Math.max(0, numValue)));
+                    }}
                   />
                   <small>Maximum: {pass.count}</small>
                 </div>
@@ -270,11 +276,18 @@ const TransferModal: React.FC<TransferModalProps> = ({ isOpen, onClose, pass, on
                 <div className="form-group">
                   <label>Total transfer price (HKD):</label>
                   <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={transferPrice}
-                    onChange={e => setTransferPrice(parseFloat(e.target.value) || 0)}
+                    type="text"
+                    inputMode="decimal"
+                    pattern="[0-9]*\.?[0-9]*"
+                    value={transferPrice.toString()}
+                    onChange={e => {
+                      const value = e.target.value.replace(/[^0-9.]/g, '');
+                      // Ensure only one decimal point
+                      const parts = value.split('.');
+                      const cleanValue = parts[0] + (parts[1] ? '.' + parts[1] : '');
+                      const numValue = parseFloat(cleanValue) || 0;
+                      setTransferPrice(Math.max(0, numValue));
+                    }}
                   />
                 </div>
 

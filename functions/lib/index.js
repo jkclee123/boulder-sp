@@ -35,7 +35,7 @@ exports.updateUserProfile = functions.https.onCall(async (data, context) => {
     if (!context.auth) {
         throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
     }
-    const { name, phoneNumber, telegramId } = data;
+    const { name, phoneNumber, telegramId, gymMemberId } = data;
     const uid = context.auth.uid;
     // Validate input
     if (!name || typeof name !== 'string' || name.trim().length === 0) {
@@ -47,6 +47,9 @@ exports.updateUserProfile = functions.https.onCall(async (data, context) => {
     if (telegramId && typeof telegramId !== 'string') {
         throw new functions.https.HttpsError('invalid-argument', 'Telegram ID must be a string');
     }
+    if (gymMemberId && typeof gymMemberId !== 'object') {
+        throw new functions.https.HttpsError('invalid-argument', 'Gym member ID must be an object');
+    }
     try {
         // Update user profile in Firestore - using 'users' collection to match security rules
         await db.collection('users').doc(uid).update({
@@ -54,6 +57,7 @@ exports.updateUserProfile = functions.https.onCall(async (data, context) => {
             phoneNumber: (phoneNumber === null || phoneNumber === void 0 ? void 0 : phoneNumber.trim()) || null,
             telegramId: (telegramId === null || telegramId === void 0 ? void 0 : telegramId.trim()) || null,
             updatedAt: firestore_1.FieldValue.serverTimestamp(),
+            gymMemberId: gymMemberId || null,
         });
         return { success: true };
     }
@@ -96,6 +100,8 @@ exports.getUserProfile = functions.https.onCall(async (data, context) => {
             telegramId: userData === null || userData === void 0 ? void 0 : userData.telegramId,
             createdAt: userData === null || userData === void 0 ? void 0 : userData.createdAt,
             updatedAt: userData === null || userData === void 0 ? void 0 : userData.updatedAt,
+            gymMemberId: (userData === null || userData === void 0 ? void 0 : userData.gymMemberId) || {},
+            isAdmin: (userData === null || userData === void 0 ? void 0 : userData.isAdmin) || false,
         };
     }
     catch (error) {

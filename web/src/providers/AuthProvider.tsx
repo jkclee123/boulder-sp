@@ -14,6 +14,7 @@ type UserProfile = {
   createdAt: any
   updatedAt: any
   gymMemberId: Record<string, string>
+  isAdmin?: boolean
 }
 
 type AuthContextValue = {
@@ -72,6 +73,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
               createdAt: userData.createdAt,
               updatedAt: userData.updatedAt,
               gymMemberId: userData.gymMemberId,
+              isAdmin: userData.isAdmin,
             }
             setUserProfile(profile)
           }
@@ -148,6 +150,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
                 createdAt: new Date(),
                 updatedAt: null,
                 gymMemberId: {},
+                isAdmin: false,
               }
               setUserProfile(profile)
               
@@ -173,6 +176,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
                   createdAt: userData.createdAt,
                   updatedAt: userData.updatedAt,  
                   gymMemberId: userData.gymMemberId,
+                  isAdmin: userData.isAdmin,
                 }
                 setUserProfile(profile)
               }

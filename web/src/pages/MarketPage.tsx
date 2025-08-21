@@ -7,7 +7,10 @@ type PassItem = {
   gym: string
   price: number
   count: number
-  lastUpdated: string // YYYY-MM-DD
+  updatedAt: string // YYYY-MM-DD
+  remarks?: string
+  lastDay: string // YYYY-MM-DD
+  active: boolean
 }
 
 function computeDaysAgo(isoDate: string): string {
@@ -37,21 +40,34 @@ export default function MarketPage() {
       setLoading(false)
       return
     }
-    const q = query(collection(db, 'public_pass'), orderBy('lastUpdated', 'desc'))
+    const q = query(collection(db, 'marketPass'), orderBy('updatedAt', 'desc'))
     const unsub = onSnapshot(q, snapshot => {
       const items: PassItem[] = snapshot.docs.map((doc, idx) => {
         const data = doc.data() as any
-        const lastUpdated = data.lastUpdated instanceof Timestamp
-          ? data.lastUpdated.toDate().toISOString().slice(0, 10)
-          : typeof data.lastUpdated === 'string'
-            ? data.lastUpdated
+        
+        // Handle updatedAt field
+        const updatedAt = data.updatedAt instanceof Timestamp
+          ? data.updatedAt.toDate().toISOString().slice(0, 10)
+          : typeof data.updatedAt === 'string'
+            ? data.updatedAt
             : new Date().toISOString().slice(0, 10)
+        
+        // Handle lastDay field
+        const lastDay = data.lastDay instanceof Timestamp
+          ? data.lastDay.toDate().toISOString().slice(0, 10)
+          : typeof data.lastDay === 'string'
+            ? data.lastDay
+            : new Date().toISOString().slice(0, 10)
+        
         return {
           id: idx + 1,
           gym: String(data.gym || 'Unknown Gym'),
           price: Number(data.price || 0),
           count: Number(data.count || 0),
-          lastUpdated,
+          updatedAt,
+          remarks: data.remarks || '',
+          lastDay,
+          active: Boolean(data.active),
         }
       })
       setAllPasses(items)
@@ -156,7 +172,10 @@ export default function MarketPage() {
                   </div>
                   <div className="chat-subtitle" style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                     <span>${item.price.toFixed(0)} • {item.count} left</span>
-                    <span>Last updated {computeDaysAgo(item.lastUpdated)}</span>
+                    <span>Last updated {computeDaysAgo(item.updatedAt)}</span>
+                    {item.remarks && <span>• {item.remarks}</span>}
+                    <span>• Expires {item.lastDay}</span>
+                    <span>• {item.active ? 'Active' : 'Inactive'}</span>
                   </div>
                 </div>
               </div>

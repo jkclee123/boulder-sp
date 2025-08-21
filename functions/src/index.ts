@@ -88,6 +88,8 @@ export const getUserProfile = functions.https.onCall(async (data, context) => {
       telegramId: userData?.telegramId,
       createdAt: userData?.createdAt,
       updatedAt: userData?.updatedAt,
+      gymMemberId: userData?.gymMemberId || {},
+      isAdmin: userData?.isAdmin || false,
     }
   } catch (error) {
     console.error('Error getting user profile:', error)

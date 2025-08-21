@@ -34,7 +34,8 @@ This document outlines the technical architecture, primarily focusing on the Fir
 ### `privatePass` collection
 - **`createdAt`**: `timestamp`
 - **`updatedAt`**: `timestamp`
-- **`gym`**: `string` (name of gym)
+- **`gymDisplayName`**: `string` (displayName of gym)
+- **`gymId`**: `string` (name of gym)
 - **`purchasePrice`**: `number` (total price for the batch)
 - **`purchaseCount`**: `number` (initial count of passes in the batch)
 - **`count`**: `number` (current remaining count)
@@ -45,7 +46,8 @@ This document outlines the technical architecture, primarily focusing on the Fir
 ### `marketPass` collection
 - **`createdAt`**: `timestamp`
 - **`updatedAt`**: `timestamp`
-- **`gym`**: `string` (name of gym)
+- **`gymDisplayName`**: `string` (displayName of gym)
+- **`gymId`**: `string` (name of gym)
 - **`price`**: `number` (price per pass)
 - **`count`**: `number`
 - **`userRef`**: `reference` to `user` collection
@@ -58,7 +60,8 @@ This document outlines the technical architecture, primarily focusing on the Fir
 - **`createdAt`**: `timestamp`
 - **`updatedAt`**: `timestamp`
 - **`count`**: `number` (*Note: This count does not decrease upon transfer*)
-- **`gym`**: `string` (name of gym)
+- **`gymDisplayName`**: `string` (displayName of gym)
+- **`gymId`**: `string` (name of gym)
 - **`price`**: `number` (total price for the batch)
 - **`duration`**: `number` (in days, used to calculate `lastDay` for transferred passes)
 - **`lastDay`**: `timestamp` (expiration date for the admin pass itself)

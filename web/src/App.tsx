@@ -7,6 +7,7 @@ import MarketPage from './pages/MarketPage'
 import ProfilePage from './pages/ProfilePage'
 import MyPassPage from './pages/MyPassPage'
 import PassLogPage from './pages/PassLogPage'
+import AdminPage from './pages/AdminPage'
 
 function RedirectIfAuthed({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
@@ -16,7 +17,7 @@ function RedirectIfAuthed({ children }: { children: React.ReactNode }) {
 }
 
 function AppShell() {
-  const { user, signOut } = useAuth()
+  const { user, signOut, userProfile } = useAuth()
   const location = useLocation()
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
   const profileMenuRef = useRef<HTMLDivElement>(null)
@@ -75,6 +76,9 @@ function AppShell() {
                     <Link to="/profile" className="profile-menu-item" onClick={() => setIsProfileMenuOpen(false)}>Profile</Link>
                     <Link to="/my-pass" className="profile-menu-item" onClick={() => setIsProfileMenuOpen(false)}>My Pass</Link>
                     <Link to="/pass-log" className="profile-menu-item" onClick={() => setIsProfileMenuOpen(false)}>Pass Records</Link>
+                    {userProfile?.isAdmin && (
+                      <Link to="/admin" className="profile-menu-item" onClick={() => setIsProfileMenuOpen(false)}>Admin Portal</Link>
+                    )}
                     <button onClick={handleSignOut} className="profile-menu-item danger">Sign Out</button>
                   </div>
                 )}
@@ -108,6 +112,7 @@ function AppShell() {
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/my-pass" element={<MyPassPage />} />
           <Route path="/pass-log" element={<PassLogPage />} />
+          <Route path="/admin" element={<AdminPage />} />
           <Route path="/login" element={<RedirectIfAuthed><LoginPage /></RedirectIfAuthed>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

@@ -48,7 +48,10 @@ const MarketModal: React.FC<MarketModalProps> = ({ isOpen, onClose, pass, onSucc
       return;
     }
 
-    try {
+    try {   
+      if (!functions) {
+        throw new Error('Firebase functions not initialized. Please check your configuration.');
+      }
       const listPassForMarket = httpsCallable(functions, 'listPassForMarket');
       await listPassForMarket({
         privatePassId: pass.id,

@@ -141,7 +141,7 @@ const ProfileFormCard = ({ isEditing, setIsEditing }: ProfileFormCardProps) => {
     setSuccess(null);
   };
 
-  const isProfileComplete = useMemo(() => !!userProfile?.name && !!userProfile?.phoneNumber, [userProfile]);
+  const isProfileComplete = useMemo(() => !!userProfile?.name, [userProfile]);
 
   return (
     <ProfileCard className="main-content-card">
@@ -155,7 +155,7 @@ const ProfileFormCard = ({ isEditing, setIsEditing }: ProfileFormCardProps) => {
         </ProfileCardHeader>
         <ProfileCardBody>
           {!isProfileComplete && (
-            <StatusBanner type="warning" message="Please provide your name and phone number to complete your profile." />
+            <StatusBanner type="warning" message="Please provide your name to complete your profile." />
           )}
           {success && <StatusBanner type="success" message={success} />}
           {error && <StatusBanner type="error" message={error} />}
@@ -166,8 +166,8 @@ const ProfileFormCard = ({ isEditing, setIsEditing }: ProfileFormCardProps) => {
           <FormGroup label="Name *">
             <input type="text" name="name" value={formData.name} onChange={handleInputChange} disabled={!isEditing} required className="form-input" />
           </FormGroup>
-          <FormGroup label="Phone Number *">
-            <input type="tel" name="phoneNumber" value={formData.phoneNumber} onChange={handleInputChange} disabled={!isEditing} required className="form-input" />
+          <FormGroup label="Phone Number">
+            <input type="tel" name="phoneNumber" value={formData.phoneNumber} onChange={handleInputChange} disabled={!isEditing} className="form-input" />
           </FormGroup>
           <FormGroup label="Telegram Username">
             <input type="text" name="telegramId" value={formData.telegramId} onChange={handleInputChange} disabled={!isEditing} className="form-input" />
@@ -193,7 +193,7 @@ const ProfileFormCard = ({ isEditing, setIsEditing }: ProfileFormCardProps) => {
         {isEditing && (
           <ProfileCardFooter>
             <button type="button" onClick={handleCancel} className="btn btn-secondary" disabled={isSubmitting}>Cancel</button>
-            <button type="submit" className="btn btn-primary" disabled={isSubmitting || !formData.name}> {isSubmitting ? 'Saving...' : 'Save Changes'}</button>
+            <button type="submit" className="btn btn-primary" disabled={isSubmitting || !formData.name.trim()}> {isSubmitting ? 'Saving...' : 'Save Changes'}</button>
           </ProfileCardFooter>
         )}
       </form>

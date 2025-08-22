@@ -20,7 +20,7 @@ The Minimum Viable Product (MVP) will focus on core pass management, transfer, a
 
 ### Functional
 * **FR1**: Users must be able to log in to the application using Firebase Authentication.
-* **FR2**: Users must be routed to their Account page upon login if their `name` and `phoneNumber` fields are not set.
+* **FR2**: Users must be routed to their Account page upon login if their `name` field is not set.
 * **FR3**: The Account page shall allow users to set their `name`, `telegramId`, `phoneNumber` (8 digits), and gym-specific `gymMemberId`.
 * **FR4**: Normal users shall be routed to the Market page after a successful login (if their profile is complete).
 * **FR5**: Admin users shall be routed to the Admin page after a successful login (if their profile is complete).
@@ -110,12 +110,12 @@ The Minimum Viable Product (MVP) will focus on core pass management, transfer, a
         4.  Existing data is pre-populated in the form fields.
 
 * **Story 1.4: Mandatory Profile Completion**
-    * **As a** new user, **I want** to be directed to my Account page until I provide my name and phone number, **so that** my profile is complete before I use other features.
+    * **As a** new user, **I want** to be directed to my Account page until I provide my name, **so that** my profile is complete before I use other features.
     * **Acceptance Criteria**:
-        1.  Upon login, the system checks if the user's `name` and `phoneNumber` are set.
-        2.  If either field is missing, the user is automatically redirected to the `/account` page.
-        3.  The user cannot navigate to other pages (e.g., `/market`, `/mypass`) until these fields are filled.
-        4.  Once the fields are set, the user is correctly routed to the `/market` page (for normal users) or `/admin` page (for admins).
+        1.  Upon login, the system checks if the user's `name` is set.
+        2.  If the name field is missing, the user is automatically redirected to the `/account` page.
+        3.  The user cannot navigate to other pages (e.g., `/market`, `/mypass`) until the name field is filled.
+        4.  Once the name is set, the user is correctly routed to the `/market` page (for normal users) or `/admin` page (for admins).
 
 ---
 ## Epic 2: Core Pass & Market Viewing

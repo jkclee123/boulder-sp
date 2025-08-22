@@ -26,7 +26,7 @@ This document outlines the technical architecture, primarily focusing on the Fir
 - **`email`**: `string`
 - **`providerIds`**: `string[]`
 - **`telegramId`**: `string` (without @)
-- **`phoneNumber`**: `string` (*unique*)
+- **`phoneNumber`**: `string` (optional)
 - **`gymMemberId`**: `map<string, string>` (gym id -> member id, *unique per gym*)
 - **`isAdmin`**: `boolean`
 - **`adminGym`**: `string` (name of gym for admin users)

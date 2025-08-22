@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../providers/AuthProvider';
 import { db } from '../firebase';
 import { collection, query, where, onSnapshot, Timestamp, doc } from 'firebase/firestore';
+import { httpsCallable } from 'firebase/functions';
+import { functions } from '../firebase';
 import '../css/MyPassPage.css';
 import TransferModal from './TransferModal';
 import MarketModal from './MarketModal';
@@ -25,7 +27,7 @@ interface MarketPass extends Pass {
 
 type AnyPass = PrivatePass | MarketPass;
 
-const PassCard: React.FC<{ pass: AnyPass; onAction: (action: string, pass: AnyPass) => void }> = ({ pass, onAction }) => {
+const PassCard: React.FC<{ pass: AnyPass; onAction: (action: string, pass: AnyPass) => void; isUnlisting?: boolean }> = ({ pass, onAction, isUnlisting = false }) => {
   const isExpired = pass.lastDay.toDate() < new Date();
 
   return (
@@ -45,7 +47,14 @@ const PassCard: React.FC<{ pass: AnyPass; onAction: (action: string, pass: AnyPa
           <>
             <button onClick={() => onAction('transfer', pass)}>Transfer</button>
             {pass.type === 'private' && <button onClick={() => onAction('market', pass)}>Market</button>}
-            {pass.type === 'market' && <button onClick={() => onAction('unlist', pass)}>Unlist</button>}
+            {pass.type === 'market' && (
+              <button
+                onClick={() => onAction('unlist', pass)}
+                disabled={isUnlisting}
+              >
+                {isUnlisting ? 'Unlisting...' : 'Unlist'}
+              </button>
+            )}
           </>
         )}
       </div>
@@ -62,6 +71,7 @@ const MyPassPage: React.FC = () => {
   const [transferModalOpen, setTransferModalOpen] = useState(false);
   const [marketModalOpen, setMarketModalOpen] = useState(false);
   const [selectedPass, setSelectedPass] = useState<AnyPass | null>(null);
+  const [unlistingPassId, setUnlistingPassId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user || !db) {
@@ -123,8 +133,9 @@ const MyPassPage: React.FC = () => {
         setMarketModalOpen(true);
         break;
       case 'unlist':
-        // TODO: Implement unlist functionality
-        alert('Unlist functionality coming soon!');
+        if (window.confirm('Are you sure you want to unlist this pass? The remaining count will be merged back to your private pass.')) {
+          handleUnlist(pass);
+        }
         break;
       case 'deactivate':
         // TODO: Implement deactivate functionality
@@ -145,6 +156,26 @@ const MyPassPage: React.FC = () => {
     // Refresh the passes data
     setLoading(true);
     // The useEffect will automatically refresh the data due to onSnapshot
+  };
+
+  const handleUnlist = async (pass: AnyPass) => {
+    if (!user || !functions || pass.type !== 'market') return;
+
+    setUnlistingPassId(pass.id);
+    try {
+      const unlistFunction = httpsCallable(functions, 'unlistPass');
+      await unlistFunction({
+        marketPassId: pass.id,
+        userId: user.uid
+      });
+
+      alert('Pass unlisted successfully! The count has been merged back to your private pass.');
+    } catch (error: any) {
+      console.error('Error unlisting pass:', error);
+      alert(`Failed to unlist pass: ${error.message || 'Unknown error'}`);
+    } finally {
+      setUnlistingPassId(null);
+    }
   };
 
   if (loading) {
@@ -170,7 +201,14 @@ const MyPassPage: React.FC = () => {
         <h2>Market Passes</h2>
         <div className="pass-list">
           {marketPasses.length > 0 ? (
-            marketPasses.map(pass => <PassCard key={pass.id} pass={pass} onAction={handleAction} />)
+            marketPasses.map(pass => (
+              <PassCard
+                key={pass.id}
+                pass={pass}
+                onAction={handleAction}
+                isUnlisting={unlistingPassId === pass.id}
+              />
+            ))
           ) : (
             <p>No active market passes.</p>
           )}
@@ -181,7 +219,14 @@ const MyPassPage: React.FC = () => {
         <h2>Expired Passes</h2>
         <div className="pass-list">
           {expiredPasses.length > 0 ? (
-            expiredPasses.map(pass => <PassCard key={pass.id} pass={pass} onAction={handleAction} />)
+            expiredPasses.map(pass => (
+              <PassCard
+                key={pass.id}
+                pass={pass}
+                onAction={handleAction}
+                isUnlisting={unlistingPassId === pass.id}
+              />
+            ))
           ) : (
             <p>No expired passes.</p>
           )}

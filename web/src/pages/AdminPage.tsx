@@ -33,8 +33,6 @@ const TransferAdminPassModal: React.FC<{
   const [searchTerm, setSearchTerm] = useState('');
   const [searchType, setSearchType] = useState<'phone' | 'memberId'>('phone');
   const [recipient, setRecipient] = useState<User | null>(null);
-  const [transferCount, setTransferCount] = useState(1);
-  const [transferPrice, setTransferPrice] = useState(0);
   const [loading, setLoading] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
 
@@ -81,24 +79,26 @@ const TransferAdminPassModal: React.FC<{
   const handleTransfer = async () => {
     if (!recipient || !pass || !functions) return;
 
+    // For admin passes, use the full count and admin pass price
+    const finalCount = pass.count;
+    const finalPrice = pass.price;
+
     setLoading(true);
     try {
       const transferAdminPassFunction = httpsCallable(functions, 'transferAdminPass');
       await transferAdminPassFunction({
         adminPassId: pass.id,
         recipientUserId: recipient.id,
-        count: transferCount,
-        price: transferPrice
+        count: finalCount,
+        price: finalPrice
       });
 
-      alert(`Successfully transferred ${transferCount} pass(es) to ${recipient.name}!`);
+      alert(`Successfully transferred ${finalCount} pass(es) to ${recipient.name}!`);
       onSuccess();
       onClose();
       // Reset form
       setSearchTerm('');
       setRecipient(null);
-      setTransferCount(1);
-      setTransferPrice(0);
     } catch (error: any) {
       console.error('Error transferring admin pass:', error);
       alert(`Failed to transfer admin pass: ${error.message || 'Unknown error'}`);
@@ -163,29 +163,7 @@ const TransferAdminPassModal: React.FC<{
               <div className="user-info">
                 <p><strong>Recipient:</strong> {recipient.name}</p>
                 <p><strong>Phone:</strong> {recipient.phoneNumber}</p>
-              </div>
-              <div className="transfer-details">
-                <div className="form-group">
-                  <label htmlFor="transferCount">Number of passes to transfer:</label>
-                  <input
-                    type="number"
-                    id="transferCount"
-                    value={transferCount}
-                    onChange={(e) => setTransferCount(Math.max(1, Math.min(pass.count, parseInt(e.target.value) || 1)))}
-                    min="1"
-                    max={pass.count}
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="transferPrice">Transfer Price (HKD):</label>
-                  <input
-                    type="number"
-                    id="transferPrice"
-                    value={transferPrice}
-                    onChange={(e) => setTransferPrice(Math.max(0, parseInt(e.target.value) || 0))}
-                    min="0"
-                  />
-                </div>
+                <p><strong>Membership Id:</strong> {recipient.gymMemberId?.[adminGym]}</p>
               </div>
               <div className="modal-actions">
                 <button onClick={() => setRecipient(null)}>Back to Search</button>

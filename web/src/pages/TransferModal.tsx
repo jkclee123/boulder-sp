@@ -129,15 +129,25 @@ const TransferModal: React.FC<TransferModalProps> = ({ isOpen, onClose, pass, on
   };
 
   const proceedToDetails = () => {
+    // For admin passes, automatically set the full count and price
+    if (pass.type === 'admin') {
+      setTransferCount(pass.count);
+      setTransferPrice(pass.price || 0);
+    }
     setStep('details');
   };
 
   const executeTransfer = async () => {
-    if (!user || !recipient || transferCount <= 0 || !functions) return;
+    if (!user || !recipient || !functions) return;
 
-    if (transferCount > pass.count) {
-      alert('Transfer count cannot exceed available passes.');
-      return;
+    // For non-admin passes, validate the transfer count
+    if (pass.type !== 'admin') {
+      if (transferCount <= 0) return;
+
+      if (transferCount > pass.count) {
+        alert('Transfer count cannot exceed available passes.');
+        return;
+      }
     }
 
     setLoading(true);
@@ -266,39 +276,51 @@ const TransferModal: React.FC<TransferModalProps> = ({ isOpen, onClose, pass, on
               <h3>Transfer Details</h3>
 
               <div className="transfer-form">
-                <div className="form-group">
-                  <label>Number of passes to transfer:</label>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    value={transferCount.toString()}
-                    onChange={e => {
-                      const value = e.target.value.replace(/[^0-9]/g, '');
-                      const numValue = parseInt(value) || 0;
-                      setTransferCount(Math.min(pass.count, Math.max(0, numValue)));
-                    }}
-                  />
-                  <small>Maximum: {pass.count}</small>
-                </div>
+                {pass.type !== 'admin' && (
+                  <>
+                    <div className="form-group">
+                      <label>Number of passes to transfer:</label>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        value={transferCount.toString()}
+                        onChange={e => {
+                          const value = e.target.value.replace(/[^0-9]/g, '');
+                          const numValue = parseInt(value) || 0;
+                          setTransferCount(Math.min(pass.count, Math.max(0, numValue)));
+                        }}
+                      />
+                      <small>Maximum: {pass.count}</small>
+                    </div>
 
-                <div className="form-group">
-                  <label>Total transfer price (HKD):</label>
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    pattern="[0-9]*\.?[0-9]*"
-                    value={transferPrice.toString()}
-                    onChange={e => {
-                      const value = e.target.value.replace(/[^0-9.]/g, '');
-                      // Ensure only one decimal point
-                      const parts = value.split('.');
-                      const cleanValue = parts[0] + (parts[1] ? '.' + parts[1] : '');
-                      const numValue = parseFloat(cleanValue) || 0;
-                      setTransferPrice(Math.max(0, numValue));
-                    }}
-                  />
-                </div>
+                    <div className="form-group">
+                      <label>Total transfer price (HKD):</label>
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        pattern="[0-9]*\.?[0-9]*"
+                        value={transferPrice.toString()}
+                        onChange={e => {
+                          const value = e.target.value.replace(/[^0-9.]/g, '');
+                          // Ensure only one decimal point
+                          const parts = value.split('.');
+                          const cleanValue = parts[0] + (parts[1] ? '.' + parts[1] : '');
+                          const numValue = parseFloat(cleanValue) || 0;
+                          setTransferPrice(Math.max(0, numValue));
+                        }}
+                      />
+                    </div>
+                  </>
+                )}
+
+                {pass.type === 'admin' && (
+                  <div className="admin-pass-notice">
+                    <p><strong>Admin Pass Transfer:</strong></p>
+                    <p>Count: ({pass.count})</p>
+                    <p>Price: (${(pass.price || 0).toFixed(2)})</p>
+                  </div>
+                )}
 
                 <div className="transfer-summary">
                   <h4>Transfer Summary</h4>
@@ -314,7 +336,7 @@ const TransferModal: React.FC<TransferModalProps> = ({ isOpen, onClose, pass, on
                 <button onClick={() => setStep('confirm')}>Back</button>
                 <button
                   onClick={executeTransfer}
-                  disabled={loading || transferCount <= 0}
+                  disabled={loading || (pass.type !== 'admin' && transferCount <= 0)}
                   className="primary-button"
                 >
                   {loading ? 'Transferring...' : 'Confirm Transfer'}

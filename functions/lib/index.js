@@ -207,8 +207,8 @@ exports.transfer = functions.https.onCall(async (data, context) => {
                 updatedAt: firestore_1.FieldValue.serverTimestamp(),
                 gymDisplayName: sourcePassData === null || sourcePassData === void 0 ? void 0 : sourcePassData.gymDisplayName,
                 gymId: sourcePassData === null || sourcePassData === void 0 ? void 0 : sourcePassData.gymId,
-                purchasePrice: transferPrice,
-                purchaseCount: count,
+                purchasePrice: passType === 'admin' ? sourcePassData === null || sourcePassData === void 0 ? void 0 : sourcePassData.price : transferPrice,
+                purchaseCount: passType === 'admin' ? sourcePassData === null || sourcePassData === void 0 ? void 0 : sourcePassData.count : count,
                 count: count,
                 userRef: toUserRef,
                 lastDay: newPassLastDay,
@@ -570,10 +570,6 @@ exports.addAdminPass = functions.https.onCall(async (data, context) => {
         throw new functions.https.HttpsError('permission-denied', 'You can only add admin passes for your assigned gym');
     }
     try {
-        // Calculate lastDay based on duration
-        const now = new Date();
-        const lastDay = new Date(now.getTime() + duration * 24 * 60 * 60 * 1000);
-        lastDay.setHours(23, 59, 59, 999); // End of day
         // Get gym display name from existing admin pass or use gymId
         let gymDisplayName = gymId;
         const existingAdminPassQuery = db.collection('adminPass')
@@ -596,7 +592,6 @@ exports.addAdminPass = functions.https.onCall(async (data, context) => {
             count: count,
             price: price,
             duration: duration,
-            lastDay: firestore_1.Timestamp.fromDate(lastDay),
             active: true
         };
         await adminPassRef.set(adminPassData);
@@ -652,10 +647,6 @@ exports.transferAdminPass = functions.https.onCall(async (data, context) => {
             if ((adminPassData === null || adminPassData === void 0 ? void 0 : adminPassData.active) !== true) {
                 throw new functions.https.HttpsError('failed-precondition', 'Admin pass is not active');
             }
-            // Check if pass is expired
-            if ((adminPassData === null || adminPassData === void 0 ? void 0 : adminPassData.lastDay) && adminPassData.lastDay.toDate() < new Date()) {
-                throw new functions.https.HttpsError('failed-precondition', 'Cannot transfer expired admin pass');
-            }
             // Check if count is sufficient
             if ((adminPassData === null || adminPassData === void 0 ? void 0 : adminPassData.count) < count) {
                 throw new functions.https.HttpsError('failed-precondition', `Insufficient pass count. Available: ${adminPassData.count}, Requested: ${count}`);
@@ -673,9 +664,6 @@ exports.transferAdminPass = functions.https.onCall(async (data, context) => {
                 const newLastDay = new Date(now.getTime() + adminPassData.duration * 24 * 60 * 60 * 1000);
                 newLastDay.setHours(23, 59, 59, 999); // End of day
                 newPassLastDay = firestore_1.Timestamp.fromDate(newLastDay);
-            }
-            else if (adminPassData === null || adminPassData === void 0 ? void 0 : adminPassData.lastDay) {
-                newPassLastDay = adminPassData.lastDay;
             }
             // Create new private pass for recipient
             const newPassRef = db.collection('privatePass').doc();

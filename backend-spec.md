@@ -13,7 +13,7 @@ This document details the server-side logic for core application features, inten
     4.  **Execution**:
         - The sender's pass count is reduced (unless it's an `adminPass`).
         - A new `privatePass` is created for the recipient.
-        - The new pass's `lastDay` is calculated as `createdAt` + `duration` from the source pass, ending at 23:59:59 HKT. This is especially important for `adminPass` transfers.
+        - The new pass's `lastDay` is calculated as `createdAt` + `duration` from the source pass, ending at 23:59:59 HKT.
         - A `passLog` record is generated.
 - **Special Rule for `adminPass`**: The `count` of an `adminPass` is never reduced upon transfer.
 

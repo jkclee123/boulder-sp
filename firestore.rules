@@ -17,14 +17,35 @@ service cloud.firestore {
       return isAuthenticated() && getUserData(request.auth.uid).isAdmin == true;
     }
 
-    function isGymAdmin(gym) {
+    function isGymAdmin(gymId) {
       // Rewritten to be a single expression without 'if' or 'let'
       return isAuthenticated() && 
              getUserData(request.auth.uid).isAdmin == true && 
-             getUserData(request.auth.uid).adminGym == gym;
+             getUserData(request.auth.uid).adminGym == gymId;
     }
 
     // Collections Rules
+
+    // Collection-level rules for list operations
+    match /users {
+      allow list: if isAuthenticated();
+    }
+
+    match /privatePass {
+      allow list: if isAuthenticated() || getUserData(request.auth.uid).isAdmin == true;
+    }
+
+    match /marketPass {
+      allow list: if isAuthenticated();
+    }
+
+    match /adminPass {
+      allow list: if isAuthenticated() && getUserData(request.auth.uid).isAdmin == true;
+    }
+
+    match /passLog {
+      allow list: if isAuthenticated();
+    }
 
     // Gyms: Readable by any authenticated user, writable only by admins.
     match /gyms/{gymId} {
@@ -49,9 +70,9 @@ service cloud.firestore {
 
     // privatePass: Owned by a user. Readable/updatable by owner or a relevant gym admin.
     match /privatePass/{passId} {
-            allow read: if isAuthenticated() && resource.data.userRef == /databases/$(database)/documents/users/$(request.auth.uid);
+      allow read: if isAuthenticated() && (resource.data.userRef == /databases/$(database)/documents/users/$(request.auth.uid) || ('gymId' in resource.data && isGymAdmin(resource.data.gymId)));
       allow create: if isAuthenticated(); // Trust cloud function for validation.
-      allow update: if isAuthenticated() && (request.auth.uid == resource.data.userRef.id || isGymAdmin(resource.data.gym));
+      allow update: if isAuthenticated() && (request.auth.uid == resource.data.userRef.id || ('gymId' in resource.data && isGymAdmin(resource.data.gymId)));
       allow delete: if false; // Soft delete only
     }
 
@@ -65,16 +86,15 @@ service cloud.firestore {
 
     // adminPass: Only manageable by a gym admin of the specific gym.
     match /adminPass/{passId} {
-      function isPassGymAdmin() {
-        // Rewritten to be a single expression without 'let'
-        return isGymAdmin(request.method == 'create' ? request.resource.data.gym : resource.data.gym);
-      }
-      allow read, write: if isPassGymAdmin();
+      allow read, write: if
+        request.method == 'list'
+        ? isAuthenticated() && getUserData(request.auth.uid).isAdmin == true
+        : isGymAdmin(request.method == 'create' ? request.resource.data.gymId : resource.data.gymId);
     }
 
     // passLog: Immutable logs. Readable by participants or a relevant gym admin.
     match /passLog/{logId} {
-      allow read: if isAuthenticated() && (request.auth.uid in resource.data.participants || isGymAdmin(resource.data.gym));
+      allow read: if isAuthenticated() && (request.auth.uid in resource.data.participants || isGymAdmin(resource.data.gymId));
       allow create: if isAuthenticated(); // Trust cloud function for validation.
       allow update, delete: if false;
     }

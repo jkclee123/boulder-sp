@@ -186,10 +186,10 @@ const TransferModal: React.FC<TransferModalProps> = ({ isOpen, onClose, pass, on
 
   return (
     <div className="modal-overlay" onClick={handleClose}>
-      <div className="modal-content" onClick={e => e.stopPropagation()}>
+      <div className="modal" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <h2>Transfer Pass</h2>
-          <button className="close-button" onClick={handleClose}>×</button>
+          <button className="close-btn" onClick={handleClose}>×</button>
         </div>
 
         <div className="modal-body">

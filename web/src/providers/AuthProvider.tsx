@@ -15,6 +15,7 @@ type UserProfile = {
   updatedAt: any
   gymMemberId: Record<string, string>
   isAdmin?: boolean
+  adminGym: string | null
 }
 
 type AuthContextValue = {
@@ -43,7 +44,9 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
   const [hasCheckedRedirect, setHasCheckedRedirect] = useState(false)
 
   const userRef = useRef(user);
-  userRef.current = user;
+  useEffect(() => {
+    userRef.current = user;
+  }, [user]);
 
   const refreshProfile = useCallback(async () => {
     const currentUser = userRef.current;
@@ -73,6 +76,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
               updatedAt: userData.updatedAt,
               gymMemberId: userData.gymMemberId,
               isAdmin: userData.isAdmin,
+              adminGym: userData.adminGym,
             }
             setUserProfile(profile)
           }
@@ -81,7 +85,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
         }
       }
     }
-  }, [])
+  }, [user])
 
   const updateProfile = useCallback(async (name: string, phoneNumber?: string, telegramId?: string, gymMemberId?: Record<string, string>) => {
     const currentUser = userRef.current;
@@ -150,6 +154,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
                 updatedAt: null,
                 gymMemberId: {},
                 isAdmin: false,
+                adminGym: null,
               }
               setUserProfile(profile)
               
@@ -173,9 +178,10 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
                   phoneNumber: userData.phoneNumber,
                   telegramId: userData.telegramId,
                   createdAt: userData.createdAt,
-                  updatedAt: userData.updatedAt,  
+                  updatedAt: userData.updatedAt,
                   gymMemberId: userData.gymMemberId,
                   isAdmin: userData.isAdmin,
+                  adminGym: userData.adminGym,
                 }
                 setUserProfile(profile)
               }

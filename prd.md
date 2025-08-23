@@ -195,7 +195,7 @@ The Minimum Viable Product (MVP) will focus on core pass management, transfer, a
     * **As an** admin, **I want** to view, add, and deactivate `adminPass` records, **so that** I can manage the source of all passes for my gym.
     * **Acceptance Criteria**:
         1.  The Admin page shows a list of `active` `adminPass` records where the `gym` field matches the admin's `adminGym`.
-        2.  A form allows the admin to create a new `adminPass` with `count`, total `price`, `duration` (in days), and `lastDay`.
+        2.  A form allows the admin to create a new `adminPass` with `count`, total `price`, and `duration` (in days).
         3.  A "Deactivate" button on each pass sets its `active` flag to `false`.
 
 * **Story 4.2: Transfer Admin Pass to User**

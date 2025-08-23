@@ -23,7 +23,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.unlistPass = exports.listPassForMarket = exports.transfer = exports.getUserProfile = exports.updateUserProfile = void 0;
+exports.consumePass = exports.deactivateAdminPass = exports.transferAdminPass = exports.addAdminPass = exports.debugUserPasses = exports.unlistPass = exports.listPassForMarket = exports.transfer = exports.getUserProfile = exports.updateUserProfile = void 0;
 const functions = __importStar(require("firebase-functions"));
 const admin = __importStar(require("firebase-admin"));
 const firestore_1 = require("firebase-admin/firestore");
@@ -102,6 +102,7 @@ exports.getUserProfile = functions.https.onCall(async (data, context) => {
             updatedAt: userData === null || userData === void 0 ? void 0 : userData.updatedAt,
             gymMemberId: (userData === null || userData === void 0 ? void 0 : userData.gymMemberId) || {},
             isAdmin: (userData === null || userData === void 0 ? void 0 : userData.isAdmin) || false,
+            adminGym: userData === null || userData === void 0 ? void 0 : userData.adminGym,
         };
     }
     catch (error) {
@@ -190,7 +191,7 @@ exports.transfer = functions.https.onCall(async (data, context) => {
                     const now = new Date();
                     const newLastDay = new Date(now.getTime() + duration * 24 * 60 * 60 * 1000);
                     newLastDay.setHours(23, 59, 59, 999); // End of day
-                    newPassLastDay = admin.firestore.Timestamp.fromDate(newLastDay);
+                    newPassLastDay = firestore_1.Timestamp.fromDate(newLastDay);
                 }
             }
             else {
@@ -433,6 +434,435 @@ exports.unlistPass = functions.https.onCall(async (data, context) => {
             throw error;
         }
         throw new functions.https.HttpsError('internal', 'Failed to unlist pass. Please try again.');
+    }
+});
+// Helper function to sanitize Firestore data by removing circular references
+const sanitizeFirestoreData = (data) => {
+    if (data === null || typeof data !== 'object')
+        return data;
+    if (Array.isArray(data))
+        return data.map(sanitizeFirestoreData);
+    const sanitized = Object.assign({}, data);
+    // Remove problematic Firestore fields that contain circular references
+    delete sanitized.userRef;
+    delete sanitized.privatePassRef;
+    delete sanitized.fromUserRef;
+    delete sanitized.toUserRef;
+    // Convert Firestore Timestamps to ISO strings for better readability
+    if (data.createdAt && typeof data.createdAt.toDate === 'function') {
+        sanitized.createdAt = data.createdAt.toDate().toISOString();
+    }
+    if (data.updatedAt && typeof data.updatedAt.toDate === 'function') {
+        sanitized.updatedAt = data.updatedAt.toDate().toISOString();
+    }
+    if (data.lastDay && typeof data.lastDay.toDate === 'function') {
+        sanitized.lastDay = data.lastDay.toDate().toISOString();
+    }
+    // Recursively sanitize nested objects
+    for (const key in sanitized) {
+        if (typeof sanitized[key] === 'object' && sanitized[key] !== null) {
+            sanitized[key] = sanitizeFirestoreData(sanitized[key]);
+        }
+    }
+    return sanitized;
+};
+// Debug function to check user passes
+exports.debugUserPasses = functions.https.onCall(async (data, context) => {
+    console.log('debugUserPasses called with data:', JSON.stringify(data, null, 2));
+    try {
+        if (!context.auth) {
+            console.error('No auth context found');
+            throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
+        }
+        console.log('Auth context found, uid:', context.auth.uid);
+        const { userId, gymId } = data;
+        console.log('Extracted data - userId:', userId, 'gymId:', gymId);
+        // Only admins can debug
+        const adminId = context.auth.uid;
+        console.log('Checking admin status for adminId:', adminId);
+        const adminDoc = await db.collection('users').doc(adminId).get();
+        console.log('Admin doc exists:', adminDoc.exists);
+        const adminData = adminDoc.data();
+        console.log('Admin data:', JSON.stringify(adminData, null, 2));
+        if (!(adminData === null || adminData === void 0 ? void 0 : adminData.isAdmin)) {
+            console.error('User is not admin');
+            throw new functions.https.HttpsError('permission-denied', 'Only admins can debug');
+        }
+        console.log('Admin check passed, proceeding with debug');
+        const targetUserRef = db.collection('users').doc(userId);
+        console.log('Target user ref created for userId:', userId);
+        // Get all private passes for user
+        console.log('Querying all private passes for user');
+        const allPrivatePasses = await db.collection('privatePass')
+            .where('userRef', '==', targetUserRef)
+            .get();
+        console.log('All private passes query result - size:', allPrivatePasses.size);
+        const passesInfo = allPrivatePasses.docs.map(doc => ({
+            id: doc.id,
+            data: doc.data()
+        }));
+        console.log('Mapped passes info - count:', passesInfo.length);
+        // Get active passes for gym
+        console.log('Querying active passes for gym');
+        const activeGymPasses = await db.collection('privatePass')
+            .where('userRef', '==', targetUserRef)
+            .where('active', '==', true)
+            .where('gymId', '==', gymId)
+            .get();
+        console.log('Active gym passes query result - size:', activeGymPasses.size);
+        const activeGymPassesInfo = activeGymPasses.docs.map(doc => ({
+            id: doc.id,
+            data: doc.data()
+        }));
+        console.log('Mapped active gym passes info - count:', activeGymPassesInfo.length);
+        // Sanitize data to remove circular references
+        const result = {
+            userId,
+            gymId,
+            allPrivatePassesCount: passesInfo.length,
+            allPrivatePasses: passesInfo.map(item => ({
+                id: item.id,
+                data: sanitizeFirestoreData(item.data)
+            })),
+            activeGymPassesCount: activeGymPassesInfo.length,
+            activeGymPasses: activeGymPassesInfo.map(item => ({
+                id: item.id,
+                data: sanitizeFirestoreData(item.data)
+            }))
+        };
+        console.log('Returning result:', JSON.stringify(result, null, 2));
+        return result;
+    }
+    catch (error) {
+        console.error('Error in debugUserPasses:', error);
+        if (error instanceof functions.https.HttpsError) {
+            throw error;
+        }
+        throw new functions.https.HttpsError('internal', 'Failed to debug user passes. Please try again.');
+    }
+});
+// Add admin pass function
+exports.addAdminPass = functions.https.onCall(async (data, context) => {
+    // Check if user is authenticated
+    if (!context.auth) {
+        throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
+    }
+    const { gymId, count, price, duration } = data;
+    // Validate input
+    if (!gymId || !count || typeof count !== 'number' || count <= 0) {
+        throw new functions.https.HttpsError('invalid-argument', 'Invalid admin pass parameters');
+    }
+    if (typeof price !== 'number' || price < 0) {
+        throw new functions.https.HttpsError('invalid-argument', 'Price must be a non-negative number');
+    }
+    if (typeof duration !== 'number' || duration <= 0) {
+        throw new functions.https.HttpsError('invalid-argument', 'Duration must be a positive number');
+    }
+    // Only admins can add admin passes
+    const adminId = context.auth.uid;
+    const adminDoc = await db.collection('users').doc(adminId).get();
+    const adminData = adminDoc.data();
+    if (!(adminData === null || adminData === void 0 ? void 0 : adminData.isAdmin)) {
+        throw new functions.https.HttpsError('permission-denied', 'Only admins can add admin passes');
+    }
+    // Verify admin has permission for this gym
+    if (adminData.adminGym !== gymId) {
+        throw new functions.https.HttpsError('permission-denied', 'You can only add admin passes for your assigned gym');
+    }
+    try {
+        // Calculate lastDay based on duration
+        const now = new Date();
+        const lastDay = new Date(now.getTime() + duration * 24 * 60 * 60 * 1000);
+        lastDay.setHours(23, 59, 59, 999); // End of day
+        // Get gym display name from existing admin pass or use gymId
+        let gymDisplayName = gymId;
+        const existingAdminPassQuery = db.collection('adminPass')
+            .where('gymId', '==', gymId)
+            .limit(1);
+        const existingPasses = await existingAdminPassQuery.get();
+        if (!existingPasses.empty) {
+            const existingPass = existingPasses.docs[0].data();
+            if (existingPass) {
+                gymDisplayName = existingPass.gymDisplayName || gymId;
+            }
+        }
+        // Create new admin pass
+        const adminPassRef = db.collection('adminPass').doc();
+        const adminPassData = {
+            createdAt: firestore_1.FieldValue.serverTimestamp(),
+            updatedAt: firestore_1.FieldValue.serverTimestamp(),
+            gymDisplayName: gymDisplayName,
+            gymId: gymId,
+            count: count,
+            price: price,
+            duration: duration,
+            lastDay: firestore_1.Timestamp.fromDate(lastDay),
+            active: true
+        };
+        await adminPassRef.set(adminPassData);
+        return {
+            success: true,
+            message: 'Admin pass added successfully',
+            adminPassId: adminPassRef.id
+        };
+    }
+    catch (error) {
+        console.error('Error in addAdminPass:', error);
+        if (error instanceof functions.https.HttpsError) {
+            throw error;
+        }
+        throw new functions.https.HttpsError('internal', 'Failed to add admin pass. Please try again.');
+    }
+});
+// Transfer admin pass function
+exports.transferAdminPass = functions.https.onCall(async (data, context) => {
+    // Check if user is authenticated
+    if (!context.auth) {
+        throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
+    }
+    const { adminPassId, recipientUserId, count, price } = data;
+    // Validate input
+    if (!adminPassId || !recipientUserId || !count || typeof count !== 'number' || count <= 0) {
+        throw new functions.https.HttpsError('invalid-argument', 'Invalid transfer parameters');
+    }
+    if (typeof price !== 'number' || price < 0) {
+        throw new functions.https.HttpsError('invalid-argument', 'Price must be a non-negative number');
+    }
+    // Only admins can transfer admin passes
+    const adminId = context.auth.uid;
+    const adminDoc = await db.collection('users').doc(adminId).get();
+    const adminData = adminDoc.data();
+    if (!(adminData === null || adminData === void 0 ? void 0 : adminData.isAdmin)) {
+        throw new functions.https.HttpsError('permission-denied', 'Only admins can transfer admin passes');
+    }
+    try {
+        return await db.runTransaction(async (transaction) => {
+            // Get admin pass document
+            const adminPassRef = db.collection('adminPass').doc(adminPassId);
+            const adminPassDoc = await transaction.get(adminPassRef);
+            if (!adminPassDoc.exists) {
+                throw new functions.https.HttpsError('not-found', 'Admin pass not found');
+            }
+            const adminPassData = adminPassDoc.data();
+            // Verify admin has permission for this gym
+            if (adminData.adminGym !== (adminPassData === null || adminPassData === void 0 ? void 0 : adminPassData.gymId)) {
+                throw new functions.https.HttpsError('permission-denied', 'You can only transfer admin passes from your assigned gym');
+            }
+            // Verify pass is active
+            if ((adminPassData === null || adminPassData === void 0 ? void 0 : adminPassData.active) !== true) {
+                throw new functions.https.HttpsError('failed-precondition', 'Admin pass is not active');
+            }
+            // Check if pass is expired
+            if ((adminPassData === null || adminPassData === void 0 ? void 0 : adminPassData.lastDay) && adminPassData.lastDay.toDate() < new Date()) {
+                throw new functions.https.HttpsError('failed-precondition', 'Cannot transfer expired admin pass');
+            }
+            // Check if count is sufficient
+            if ((adminPassData === null || adminPassData === void 0 ? void 0 : adminPassData.count) < count) {
+                throw new functions.https.HttpsError('failed-precondition', `Insufficient pass count. Available: ${adminPassData.count}, Requested: ${count}`);
+            }
+            // Get recipient user
+            const recipientUserRef = db.collection('users').doc(recipientUserId);
+            const recipientUserDoc = await transaction.get(recipientUserRef);
+            if (!recipientUserDoc.exists) {
+                throw new functions.https.HttpsError('not-found', 'Recipient user not found');
+            }
+            // Calculate new lastDay for transferred pass based on duration from now
+            let newPassLastDay = null;
+            if ((adminPassData === null || adminPassData === void 0 ? void 0 : adminPassData.duration) && adminPassData.duration > 0) {
+                const now = new Date();
+                const newLastDay = new Date(now.getTime() + adminPassData.duration * 24 * 60 * 60 * 1000);
+                newLastDay.setHours(23, 59, 59, 999); // End of day
+                newPassLastDay = firestore_1.Timestamp.fromDate(newLastDay);
+            }
+            else if (adminPassData === null || adminPassData === void 0 ? void 0 : adminPassData.lastDay) {
+                newPassLastDay = adminPassData.lastDay;
+            }
+            // Create new private pass for recipient
+            const newPassRef = db.collection('privatePass').doc();
+            const newPassData = {
+                createdAt: firestore_1.FieldValue.serverTimestamp(),
+                updatedAt: firestore_1.FieldValue.serverTimestamp(),
+                gymDisplayName: adminPassData === null || adminPassData === void 0 ? void 0 : adminPassData.gymDisplayName,
+                gymId: adminPassData === null || adminPassData === void 0 ? void 0 : adminPassData.gymId,
+                purchasePrice: price,
+                purchaseCount: count,
+                count: count,
+                userRef: recipientUserRef,
+                lastDay: newPassLastDay,
+                active: true
+            };
+            transaction.set(newPassRef, newPassData);
+            // Reduce count from admin pass
+            transaction.update(adminPassRef, {
+                count: firestore_1.FieldValue.increment(-count),
+                updatedAt: firestore_1.FieldValue.serverTimestamp()
+            });
+            // Create pass log entry
+            const passLogRef = db.collection('passLog').doc();
+            const passLogData = {
+                createdAt: firestore_1.FieldValue.serverTimestamp(),
+                gym: adminPassData === null || adminPassData === void 0 ? void 0 : adminPassData.gymDisplayName,
+                count: count,
+                price: price,
+                fromUserRef: db.collection('users').doc(adminId),
+                toUserRef: recipientUserRef,
+                action: 'transfer_admin',
+                participants: [adminId, recipientUserId]
+            };
+            transaction.set(passLogRef, passLogData);
+            return {
+                success: true,
+                message: 'Admin pass transferred successfully',
+                newPassId: newPassRef.id
+            };
+        });
+    }
+    catch (error) {
+        console.error('Error in transferAdminPass:', error);
+        if (error instanceof functions.https.HttpsError) {
+            throw error;
+        }
+        throw new functions.https.HttpsError('internal', 'Failed to transfer admin pass. Please try again.');
+    }
+});
+// Deactivate admin pass function
+exports.deactivateAdminPass = functions.https.onCall(async (data, context) => {
+    // Check if user is authenticated
+    if (!context.auth) {
+        throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
+    }
+    const { adminPassId } = data;
+    // Validate input
+    if (!adminPassId) {
+        throw new functions.https.HttpsError('invalid-argument', 'Admin pass ID is required');
+    }
+    // Only admins can deactivate admin passes
+    const adminId = context.auth.uid;
+    const adminDoc = await db.collection('users').doc(adminId).get();
+    const adminData = adminDoc.data();
+    if (!(adminData === null || adminData === void 0 ? void 0 : adminData.isAdmin)) {
+        throw new functions.https.HttpsError('permission-denied', 'Only admins can deactivate admin passes');
+    }
+    try {
+        return await db.runTransaction(async (transaction) => {
+            // Get admin pass document
+            const adminPassRef = db.collection('adminPass').doc(adminPassId);
+            const adminPassDoc = await transaction.get(adminPassRef);
+            if (!adminPassDoc.exists) {
+                throw new functions.https.HttpsError('not-found', 'Admin pass not found');
+            }
+            const adminPassData = adminPassDoc.data();
+            // Verify admin has permission for this gym
+            if (adminData.adminGym !== (adminPassData === null || adminPassData === void 0 ? void 0 : adminPassData.gymId)) {
+                throw new functions.https.HttpsError('permission-denied', 'You can only deactivate admin passes from your assigned gym');
+            }
+            // Verify pass is currently active
+            if ((adminPassData === null || adminPassData === void 0 ? void 0 : adminPassData.active) !== true) {
+                throw new functions.https.HttpsError('failed-precondition', 'Admin pass is already deactivated');
+            }
+            // Deactivate the admin pass
+            transaction.update(adminPassRef, {
+                active: false,
+                updatedAt: firestore_1.FieldValue.serverTimestamp()
+            });
+            return {
+                success: true,
+                message: 'Admin pass deactivated successfully'
+            };
+        });
+    }
+    catch (error) {
+        console.error('Error in deactivateAdminPass:', error);
+        if (error instanceof functions.https.HttpsError) {
+            throw error;
+        }
+        throw new functions.https.HttpsError('internal', 'Failed to deactivate admin pass. Please try again.');
+    }
+});
+// Consume pass function
+exports.consumePass = functions.https.onCall(async (data, context) => {
+    // Check if user is authenticated
+    if (!context.auth) {
+        throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
+    }
+    const { userId, passId, count } = data;
+    // Validate input
+    if (!userId || !passId || !count || typeof count !== 'number' || count <= 0) {
+        throw new functions.https.HttpsError('invalid-argument', 'Invalid consume parameters');
+    }
+    // Only admins can consume passes
+    const adminId = context.auth.uid;
+    const adminDoc = await db.collection('users').doc(adminId).get();
+    const adminData = adminDoc.data();
+    if (!(adminData === null || adminData === void 0 ? void 0 : adminData.isAdmin)) {
+        throw new functions.https.HttpsError('permission-denied', 'Only admins can consume passes');
+    }
+    try {
+        return await db.runTransaction(async (transaction) => {
+            var _a;
+            // Get target user
+            const targetUserRef = db.collection('users').doc(userId);
+            const targetUserDoc = await transaction.get(targetUserRef);
+            if (!targetUserDoc.exists) {
+                throw new functions.https.HttpsError('not-found', 'Target user not found');
+            }
+            // Get the specific private pass to consume from
+            const privatePassRef = db.collection('privatePass').doc(passId);
+            const privatePassDoc = await transaction.get(privatePassRef);
+            if (!privatePassDoc.exists) {
+                throw new functions.https.HttpsError('not-found', 'Private pass not found');
+            }
+            const privatePassData = privatePassDoc.data();
+            // Verify pass ownership
+            if (((_a = privatePassData === null || privatePassData === void 0 ? void 0 : privatePassData.userRef) === null || _a === void 0 ? void 0 : _a.id) !== userId) {
+                throw new functions.https.HttpsError('permission-denied', 'Pass does not belong to the user');
+            }
+            // Check if pass is active
+            if ((privatePassData === null || privatePassData === void 0 ? void 0 : privatePassData.active) !== true) {
+                throw new functions.https.HttpsError('failed-precondition', 'Pass is not active');
+            }
+            // Check if pass is expired
+            if ((privatePassData === null || privatePassData === void 0 ? void 0 : privatePassData.lastDay) && privatePassData.lastDay.toDate() < new Date()) {
+                throw new functions.https.HttpsError('failed-precondition', 'Cannot consume expired pass');
+            }
+            // Check if sufficient count is available
+            if ((privatePassData === null || privatePassData === void 0 ? void 0 : privatePassData.count) < count) {
+                throw new functions.https.HttpsError('failed-precondition', `Insufficient pass count. Available: ${privatePassData.count}, Requested: ${count}`);
+            }
+            // Calculate new count
+            const newCount = privatePassData.count - count;
+            // Update the pass count
+            transaction.update(privatePassRef, {
+                count: newCount,
+                updatedAt: firestore_1.FieldValue.serverTimestamp()
+            });
+            // Create pass log entry
+            const passLogRef = db.collection('passLog').doc();
+            const passLogData = {
+                createdAt: firestore_1.FieldValue.serverTimestamp(),
+                gym: (privatePassData === null || privatePassData === void 0 ? void 0 : privatePassData.gymDisplayName) || (privatePassData === null || privatePassData === void 0 ? void 0 : privatePassData.gymId) || 'Unknown Gym',
+                count: count,
+                price: 0,
+                fromUserRef: targetUserRef,
+                toUserRef: targetUserRef,
+                action: 'consume',
+                participants: [userId]
+            };
+            transaction.set(passLogRef, passLogData);
+            return {
+                success: true,
+                message: `Successfully consumed ${count} pass(es) from ${(privatePassData === null || privatePassData === void 0 ? void 0 : privatePassData.gymDisplayName) || (privatePassData === null || privatePassData === void 0 ? void 0 : privatePassData.gymId)}`,
+                consumedCount: count,
+                remainingCount: newCount
+            };
+        });
+    }
+    catch (error) {
+        console.error('Error in consumePass:', error);
+        if (error instanceof functions.https.HttpsError) {
+            throw error;
+        }
+        throw new functions.https.HttpsError('internal', 'Failed to consume pass. Please try again.');
     }
 });
 //# sourceMappingURL=index.js.map

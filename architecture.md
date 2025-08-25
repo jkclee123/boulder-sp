@@ -66,7 +66,7 @@ This document outlines the technical architecture, primarily focusing on the Fir
 - **`gymDisplayName`**: `string` (displayName of gym)
 - **`gymId`**: `string` (name of gym)
 - **`price`**: `number` (total price for the batch)
-- **`duration`**: `number` (in days, used to calculate `lastDay` for transferred passes)
+- **`duration`**: `number` (in months, used to calculate `lastDay` for transferred passes)
 - **`lastDay`**: `timestamp` (expiration date for the admin pass itself)
 - **`active`**: `boolean`
 

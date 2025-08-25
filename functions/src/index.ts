@@ -198,7 +198,8 @@ export const transfer = functions.https.onCall(async (data, context) => {
         if (duration > 0) {
           // Set lastDay to end of day at 23:59:59 HKT (UTC+8)
           const now = new Date()
-          const newLastDay = new Date(now.getTime() + duration * 24 * 60 * 60 * 1000)
+          const newLastDay = new Date(now)
+          newLastDay.setMonth(newLastDay.getMonth() + duration)
           newLastDay.setHours(23, 59, 59, 999) // End of day
           newPassLastDay = Timestamp.fromDate(newLastDay)
         }
@@ -800,7 +801,8 @@ export const transferAdminPass = functions.https.onCall(async (data, context) =>
       let newPassLastDay = null
       if (adminPassData?.duration && adminPassData.duration > 0) {
         const now = new Date()
-        const newLastDay = new Date(now.getTime() + adminPassData.duration * 24 * 60 * 60 * 1000)
+        const newLastDay = new Date(now)
+        newLastDay.setMonth(newLastDay.getMonth() + adminPassData.duration)
         newLastDay.setHours(23, 59, 59, 999) // End of day
         newPassLastDay = Timestamp.fromDate(newLastDay)
       }

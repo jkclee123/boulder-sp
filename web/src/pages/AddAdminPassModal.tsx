@@ -13,7 +13,7 @@ const AddAdminPassModal: React.FC<AddAdminPassModalProps> = ({ isOpen, onClose, 
   const [passName, setPassName] = useState<string>('');
   const [count, setCount] = useState<number | string>('');
   const [price, setPrice] = useState<number | string>('');
-  const [duration, setDuration] = useState(30);
+  const [duration, setDuration] = useState(3);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -37,7 +37,7 @@ const AddAdminPassModal: React.FC<AddAdminPassModalProps> = ({ isOpen, onClose, 
       setPassName('');
       setCount('');
       setPrice('');
-      setDuration(30);
+      setDuration(3);
     } catch (error: any) {
       console.error('Error adding admin pass:', error);
       alert(`Failed to add admin pass: ${error.message || 'Unknown error'}`);
@@ -65,7 +65,7 @@ const AddAdminPassModal: React.FC<AddAdminPassModalProps> = ({ isOpen, onClose, 
                   id="modal-passname"
                   value={passName}
                   onChange={(e) => setPassName(e.target.value)}
-                  placeholder="e.g., 10-Day Pass, Monthly Pass"
+                  placeholder="e.g., 3-Month Pass, 6-Month Pass"
                   required
                 />
               </div>
@@ -106,7 +106,7 @@ const AddAdminPassModal: React.FC<AddAdminPassModalProps> = ({ isOpen, onClose, 
                 />
               </div>
               <div className="form-group">
-                <label htmlFor="modal-duration">Duration (days):</label>
+                <label htmlFor="modal-duration">Duration (months):</label>
                 <input
                   type="number"
                   id="modal-duration"

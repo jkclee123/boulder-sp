@@ -122,7 +122,7 @@ const TransferAdminPassModal: React.FC<{
           <div className="pass-info">
             <p><strong>Pass:</strong> {pass.gymDisplayName}</p>
             <p><strong>Available Count:</strong> {pass.count}</p>
-            <p><strong>Duration:</strong> {pass.duration} days</p>
+            <p><strong>Duration:</strong> {pass.duration} months</p>
           </div>
 
           {!recipient ? (
@@ -547,7 +547,7 @@ const AdminPage: React.FC = () => {
                     <div key={pass.id} className="admin-pass-card">
                       <div className="admin-pass-body">
                         <p>Price: HKD {pass.price}</p>
-                        <p>Duration: {pass.duration} days</p>
+                        <p>Duration: {pass.duration} months</p>
                       </div>
                       <div className="admin-pass-actions">
                         <button

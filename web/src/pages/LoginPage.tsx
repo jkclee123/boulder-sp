@@ -15,12 +15,17 @@ function GoogleIcon() {
 }
 
 export default function LoginPage() {
-  const { signInWithGoogle, loading, user, isAuthReady } = useAuth()
+  const { signInWithGoogle, loading, user, isAuthReady, userProfile } = useAuth()
   const navigate = useNavigate()
 
   useEffect(() => {
-    if (user) navigate('/')
-  }, [user, navigate])
+    if (user && userProfile !== null) {
+      // Redirect admin users to /admin, regular users to /
+      const redirectTo = userProfile?.isAdmin ? "/admin" : "/"
+      console.log('userProfile?.isAdmin:', userProfile?.isAdmin)
+      navigate(redirectTo)
+    }
+  }, [user, userProfile, navigate])
 
   return (
     <div className="login-hero" style={{ width: '100%', display: 'grid', justifyItems: 'center', gap: 20 }}>

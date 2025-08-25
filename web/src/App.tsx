@@ -10,9 +10,19 @@ import PassLogPage from './pages/PassLogPage'
 import AdminPage from './pages/AdminPage'
 
 function RedirectIfAuthed({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth()
+  const { user, loading, userProfile } = useAuth()
   if (loading) return children
-  if (user) return <Navigate to="/" replace />
+  if (user) {
+    // Wait for userProfile to be loaded before redirecting
+    if (userProfile === null) {
+      return children // Still loading profile
+    }
+
+    // Redirect admin users to /admin, regular users to /
+    const redirectTo = userProfile?.isAdmin ? "/admin" : "/"
+    console.log('userProfile?.isAdmin:', userProfile?.isAdmin)
+    return <Navigate to={redirectTo} replace />
+  }
   return children
 }
 

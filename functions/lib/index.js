@@ -208,6 +208,7 @@ exports.transfer = functions.https.onCall(async (data, context) => {
                 updatedAt: firestore_1.FieldValue.serverTimestamp(),
                 gymDisplayName: sourcePassData === null || sourcePassData === void 0 ? void 0 : sourcePassData.gymDisplayName,
                 gymId: sourcePassData === null || sourcePassData === void 0 ? void 0 : sourcePassData.gymId,
+                passName: sourcePassData === null || sourcePassData === void 0 ? void 0 : sourcePassData.passName,
                 purchasePrice: passType === 'admin' ? sourcePassData === null || sourcePassData === void 0 ? void 0 : sourcePassData.price : transferPrice,
                 purchaseCount: passType === 'admin' ? sourcePassData === null || sourcePassData === void 0 ? void 0 : sourcePassData.count : count,
                 count: count,
@@ -228,6 +229,7 @@ exports.transfer = functions.https.onCall(async (data, context) => {
             const passLogData = {
                 createdAt: firestore_1.FieldValue.serverTimestamp(),
                 gym: sourcePassData === null || sourcePassData === void 0 ? void 0 : sourcePassData.gymDisplayName,
+                passName: sourcePassData === null || sourcePassData === void 0 ? void 0 : sourcePassData.passName,
                 count: count,
                 price: transferPrice,
                 fromUserRef: db.collection('users').doc(fromUserId),
@@ -308,6 +310,7 @@ exports.listPassForMarket = functions.https.onCall(async (data, context) => {
                 updatedAt: firestore_1.FieldValue.serverTimestamp(),
                 gymDisplayName: privatePassData === null || privatePassData === void 0 ? void 0 : privatePassData.gymDisplayName,
                 gymId: privatePassData === null || privatePassData === void 0 ? void 0 : privatePassData.gymId,
+                passName: privatePassData === null || privatePassData === void 0 ? void 0 : privatePassData.passName,
                 price: price,
                 count: count,
                 userRef: userRef,
@@ -327,6 +330,7 @@ exports.listPassForMarket = functions.https.onCall(async (data, context) => {
             const passLogData = {
                 createdAt: firestore_1.FieldValue.serverTimestamp(),
                 gym: privatePassData === null || privatePassData === void 0 ? void 0 : privatePassData.gymDisplayName,
+                passName: privatePassData === null || privatePassData === void 0 ? void 0 : privatePassData.passName,
                 count: count,
                 price: price,
                 fromUserRef: userRef,
@@ -414,6 +418,7 @@ exports.unlistPass = functions.https.onCall(async (data, context) => {
             const passLogData = {
                 createdAt: firestore_1.FieldValue.serverTimestamp(),
                 gym: marketPassData === null || marketPassData === void 0 ? void 0 : marketPassData.gymDisplayName,
+                passName: marketPassData === null || marketPassData === void 0 ? void 0 : marketPassData.passName,
                 count: countToAddBack,
                 price: 0,
                 fromUserRef: db.collection('users').doc(userId),
@@ -548,10 +553,13 @@ exports.addAdminPass = functions.https.onCall(async (data, context) => {
     if (!context.auth) {
         throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
     }
-    const { gymId, count, price, duration } = data;
+    const { gymId, passName, count, price, duration } = data;
     // Validate input
-    if (!gymId || !count || typeof count !== 'number' || count <= 0) {
+    if (!gymId || !passName || !count || typeof count !== 'number' || count <= 0) {
         throw new functions.https.HttpsError('invalid-argument', 'Invalid admin pass parameters');
+    }
+    if (typeof passName !== 'string' || passName.trim().length === 0) {
+        throw new functions.https.HttpsError('invalid-argument', 'Pass name is required and must be a non-empty string');
     }
     if (typeof price !== 'number' || price < 0) {
         throw new functions.https.HttpsError('invalid-argument', 'Price must be a non-negative number');
@@ -590,6 +598,7 @@ exports.addAdminPass = functions.https.onCall(async (data, context) => {
             updatedAt: firestore_1.FieldValue.serverTimestamp(),
             gymDisplayName: gymDisplayName,
             gymId: gymId,
+            passName: passName.trim(),
             count: count,
             price: price,
             duration: duration,
@@ -674,6 +683,7 @@ exports.transferAdminPass = functions.https.onCall(async (data, context) => {
                 updatedAt: firestore_1.FieldValue.serverTimestamp(),
                 gymDisplayName: adminPassData === null || adminPassData === void 0 ? void 0 : adminPassData.gymDisplayName,
                 gymId: adminPassData === null || adminPassData === void 0 ? void 0 : adminPassData.gymId,
+                passName: adminPassData === null || adminPassData === void 0 ? void 0 : adminPassData.passName,
                 purchasePrice: price,
                 purchaseCount: count,
                 count: count,
@@ -692,6 +702,7 @@ exports.transferAdminPass = functions.https.onCall(async (data, context) => {
             const passLogData = {
                 createdAt: firestore_1.FieldValue.serverTimestamp(),
                 gym: adminPassData === null || adminPassData === void 0 ? void 0 : adminPassData.gymDisplayName,
+                passName: adminPassData === null || adminPassData === void 0 ? void 0 : adminPassData.passName,
                 count: count,
                 price: price,
                 fromUserRef: db.collection('users').doc(adminId),
@@ -831,6 +842,7 @@ exports.consumePass = functions.https.onCall(async (data, context) => {
             const passLogData = {
                 createdAt: firestore_1.FieldValue.serverTimestamp(),
                 gym: (privatePassData === null || privatePassData === void 0 ? void 0 : privatePassData.gymDisplayName) || (privatePassData === null || privatePassData === void 0 ? void 0 : privatePassData.gymId) || 'Unknown Gym',
+                passName: privatePassData === null || privatePassData === void 0 ? void 0 : privatePassData.passName,
                 count: count,
                 price: 0,
                 fromUserRef: targetUserRef,

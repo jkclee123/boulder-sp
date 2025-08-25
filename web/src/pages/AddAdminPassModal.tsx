@@ -22,14 +22,24 @@ const AddAdminPassModal: React.FC<AddAdminPassModalProps> = ({ isOpen, onClose, 
 
     setLoading(true);
     try {
-      const addAdminPassFunction = httpsCallable(functions, 'addAdminPass');
-      await addAdminPassFunction({
+      console.log('Submitting admin pass with data:', {
         gymId: adminGym,
         passName,
         count,
         price,
         duration
       });
+
+      const addAdminPassFunction = httpsCallable(functions, 'addAdminPass');
+      const result = await addAdminPassFunction({
+        gymId: adminGym,
+        passName,
+        count,
+        price,
+        duration
+      });
+
+      console.log('Admin pass added successfully:', result);
       alert('Admin pass added successfully!');
       onSuccess();
       onClose();
@@ -40,6 +50,7 @@ const AddAdminPassModal: React.FC<AddAdminPassModalProps> = ({ isOpen, onClose, 
       setDuration(3);
     } catch (error: any) {
       console.error('Error adding admin pass:', error);
+      console.error('Error details:', error.message, error.code, error.details);
       alert(`Failed to add admin pass: ${error.message || 'Unknown error'}`);
     } finally {
       setLoading(false);
@@ -65,7 +76,7 @@ const AddAdminPassModal: React.FC<AddAdminPassModalProps> = ({ isOpen, onClose, 
                   id="modal-passname"
                   value={passName}
                   onChange={(e) => setPassName(e.target.value)}
-                  placeholder="e.g., 3-Month Pass, 6-Month Pass"
+                  placeholder="e.g., 30 Share Pass, 50 Share Pass"
                   required
                 />
               </div>

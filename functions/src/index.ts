@@ -639,6 +639,8 @@ export const debugUserPasses = functions.https.onCall(async (data, context) => {
 
 // Add admin pass function
 export const addAdminPass = functions.https.onCall(async (data, context) => {
+  console.log('addAdminPass called with data:', JSON.stringify(data, null, 2))
+
   // Check if user is authenticated
   if (!context.auth) {
     throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated')
@@ -651,6 +653,8 @@ export const addAdminPass = functions.https.onCall(async (data, context) => {
     price,
     duration
   } = data
+
+  console.log('Extracted parameters:', { gymId, passName, count, price, duration })
 
   // Validate input
   if (!gymId || !passName || !count || typeof count !== 'number' || count <= 0) {
@@ -711,6 +715,12 @@ export const addAdminPass = functions.https.onCall(async (data, context) => {
       duration: duration,
       active: true
     }
+
+    console.log('Saving admin pass data:', JSON.stringify({
+      ...adminPassData,
+      createdAt: '[serverTimestamp]',
+      updatedAt: '[serverTimestamp]'
+    }, null, 2))
 
     await adminPassRef.set(adminPassData)
 

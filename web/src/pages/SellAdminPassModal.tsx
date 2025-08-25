@@ -61,10 +61,6 @@ const SellAdminPassModal: React.FC<{
   const handleSell = async () => {
     if (!recipient || !pass || !functions) return;
 
-    // For admin passes, use the full count and admin pass price
-    const finalCount = pass.count;
-    const finalPrice = pass.price;
-
     setLoading(true);
     try {
       const sellAdminPassFunction = httpsCallable(functions, 'sellAdminPass');
@@ -73,7 +69,7 @@ const SellAdminPassModal: React.FC<{
         recipientUserId: recipient.id,
       });
 
-      alert(`Successfully sold ${finalCount} pass(es) to ${recipient.name}!`);
+      alert(`Successfully sold share passes to ${recipient.name}!`);
       onSuccess();
       onClose();
       // Reset form

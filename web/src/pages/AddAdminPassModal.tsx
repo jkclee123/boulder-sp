@@ -5,11 +5,12 @@ import { httpsCallable } from 'firebase/functions';
 interface AddAdminPassModalProps {
   isOpen: boolean;
   onClose: () => void;
-  adminGym: string;
+  gymId: string;
+  gymDisplayName: string;
   onSuccess: () => void;
 }
 
-const AddAdminPassModal: React.FC<AddAdminPassModalProps> = ({ isOpen, onClose, adminGym, onSuccess }) => {
+const AddAdminPassModal: React.FC<AddAdminPassModalProps> = ({ isOpen, onClose, gymId, gymDisplayName, onSuccess }) => {
   const [passName, setPassName] = useState<string>('');
   const [count, setCount] = useState<number | string>('');
   const [price, setPrice] = useState<number | string>('');
@@ -21,26 +22,18 @@ const AddAdminPassModal: React.FC<AddAdminPassModalProps> = ({ isOpen, onClose, 
     if (!functions) return;
 
     setLoading(true);
+
     try {
-      console.log('Submitting admin pass with data:', {
-        gymId: adminGym,
-        passName,
-        count,
-        price,
-        duration
-      });
-
       const addAdminPassFunction = httpsCallable(functions, 'addAdminPass');
-      const result = await addAdminPassFunction({
-        gymId: adminGym,
+      await addAdminPassFunction({
+        gymId,
+        gymDisplayName,
         passName,
         count,
         price,
         duration
       });
 
-      console.log('Admin pass added successfully:', result);
-      // alert('Admin pass added successfully!');
       onSuccess();
       onClose();
       // Reset form
@@ -49,8 +42,6 @@ const AddAdminPassModal: React.FC<AddAdminPassModalProps> = ({ isOpen, onClose, 
       setPrice('');
       setDuration(3);
     } catch (error: any) {
-      console.error('Error adding admin pass:', error);
-      console.error('Error details:', error.message, error.code, error.details);
       alert(`Failed to add admin pass: ${error.message || 'Unknown error'}`);
     } finally {
       setLoading(false);
@@ -81,7 +72,7 @@ const AddAdminPassModal: React.FC<AddAdminPassModalProps> = ({ isOpen, onClose, 
                 />
               </div>
               <div className="form-group">
-                <label htmlFor="modal-count">Count:</label>
+                <label htmlFor="modal-count">Punches:</label>
                 <input
                   type="number"
                   id="modal-count"
@@ -117,7 +108,7 @@ const AddAdminPassModal: React.FC<AddAdminPassModalProps> = ({ isOpen, onClose, 
                 />
               </div>
               <div className="form-group">
-                <label htmlFor="modal-duration">Duration (months):</label>
+                <label htmlFor="modal-duration">Valid for (months):</label>
                 <input
                   type="number"
                   id="modal-duration"

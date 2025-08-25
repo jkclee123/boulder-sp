@@ -1,0 +1,107 @@
+import * as functions from 'firebase-functions';
+import * as admin from 'firebase-admin';
+import { FieldValue, Timestamp } from 'firebase-admin/firestore';
+
+if (!admin.apps.length) {
+  admin.initializeApp();
+}
+const db = admin.firestore();
+
+// Sell admin pass function
+export const sellAdminPass = functions.https.onCall(async (data, context) => {
+    // Check if user is authenticated
+    if (!context.auth) {
+        throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
+    }
+    const { adminPassId, recipientUserId } = data;
+    // Validate input
+    if (!adminPassId || !recipientUserId) {
+        throw new functions.https.HttpsError('invalid-argument', 'Invalid sell parameters');
+    }
+    // Only admins can sell admin passes
+    const adminId = context.auth.uid;
+    const adminDoc = await db.collection('users').doc(adminId).get();
+    const adminData = adminDoc.data();
+    if (!(adminData === null || adminData === void 0 ? void 0 : adminData.isAdmin)) {
+        throw new functions.https.HttpsError('permission-denied', 'Only admins can sell admin passes');
+    }
+    try {
+        return await db.runTransaction(async (transaction) => {
+            // Get admin pass document
+            const adminPassRef = db.collection('adminPass').doc(adminPassId);
+            const adminPassDoc = await transaction.get(adminPassRef);
+            if (!adminPassDoc.exists) {
+                throw new functions.https.HttpsError('not-found', 'Admin pass not found');
+            }
+            const adminPassData = adminPassDoc.data();
+            if (!adminPassData) {
+                throw new functions.https.HttpsError('not-found', 'Admin pass data is empty or invalid');
+            }
+            // Verify admin has permission for this gym
+            if (!adminData?.adminGym || adminData.adminGym !== adminPassData.gymId) {
+                throw new functions.https.HttpsError('permission-denied', 'You can only sell admin passes from your assigned gym');
+            }
+            // Verify pass is active
+            if (adminPassData.active !== true) {
+                throw new functions.https.HttpsError('failed-precondition', 'Admin pass is not active');
+            }
+            // Get recipient user
+            const recipientUserRef = db.collection('users').doc(recipientUserId);
+            const recipientUserDoc = await transaction.get(recipientUserRef);
+            if (!recipientUserDoc.exists) {
+                throw new functions.https.HttpsError('not-found', 'Recipient user not found');
+            }
+            // Calculate new lastDay for transferred pass based on duration from now
+            let newPassLastDay = null;
+            if (adminPassData.duration && adminPassData.duration > 0) {
+                const now = new Date();
+                const newLastDay = new Date(now);
+                newLastDay.setMonth(newLastDay.getMonth() + adminPassData.duration);
+                newLastDay.setHours(23, 59, 59, 999); // End of day
+                newPassLastDay = Timestamp.fromDate(newLastDay);
+            }
+            // Create new private pass for recipient
+            const newPassRef = db.collection('privatePass').doc();
+            const newPassData = {
+                createdAt: FieldValue.serverTimestamp(),
+                updatedAt: FieldValue.serverTimestamp(),
+                gymDisplayName: adminPassData.gymDisplayName,
+                gymId: adminPassData.gymId,
+                passName: adminPassData.passName,
+                purchasePrice: adminPassData.price || 0,
+                purchaseCount: adminPassData.count || 0,
+                count: adminPassData.count || 0,
+                userRef: recipientUserRef,
+                lastDay: newPassLastDay,
+                active: true
+            };
+            transaction.set(newPassRef, newPassData);
+            // Create pass log entry
+            const passLogRef = db.collection('passLog').doc();
+            const passLogData = {
+                createdAt: FieldValue.serverTimestamp(),
+                gym: adminPassData.gymDisplayName,
+                passName: adminPassData.passName,
+                count: adminPassData.count || 0,
+                price: adminPassData.price || 0,
+                fromUserRef: db.collection('users').doc(adminId),
+                toUserRef: recipientUserRef,
+                action: 'sell_admin',
+                participants: [adminId, recipientUserId]
+            };
+            transaction.set(passLogRef, passLogData);
+            return {
+                success: true,
+                message: 'Admin pass sold successfully',
+                newPassId: newPassRef.id
+            };
+        });
+    }
+    catch (error) {
+        console.error('Error in sellAdminPass:', error);
+        if (error instanceof functions.https.HttpsError) {
+            throw error;
+        }
+        throw new functions.https.HttpsError('internal', 'Failed to sell admin pass. Please try again.');
+    }
+});

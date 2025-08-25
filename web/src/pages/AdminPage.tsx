@@ -273,13 +273,12 @@ const AdminPage: React.FC = () => {
         if (!querySnapshot.empty) {
           const gymDoc = querySnapshot.docs[0];
           const gymData = gymDoc.data();
-          setGymDisplayName(gymData.displayName || userProfile.adminGym);
+          setGymDisplayName(gymData.displayName || '[No Gym Assigned]');
         } else {
-          setGymDisplayName(userProfile.adminGym);
+          setGymDisplayName('[No Gym Assigned]');
         }
       } catch (error) {
-        console.error('Error fetching gym display name:', error);
-        setGymDisplayName(userProfile.adminGym);
+        setGymDisplayName('[No Gym Assigned]');
       }
     };
 
@@ -372,9 +371,9 @@ const AdminPage: React.FC = () => {
                     <div key={pass.id} className="admin-pass-card">
                       <div className="admin-pass-body">
                         <h3>{pass.passName}</h3>
-                        <p>Count: {pass.count}</p>
-                        <p>Price: HKD {pass.price}</p>
-                        <p>Duration: {pass.duration} months</p>
+                        <p>Punches: {pass.count}</p>
+                        <p>Price: ${pass.price}</p>
+                        <p>Valid for: {pass.duration} months</p>
                       </div>
                       <div className="admin-pass-actions">
                         <button
@@ -405,7 +404,8 @@ const AdminPage: React.FC = () => {
       <AddAdminPassModal
         isOpen={addPassModalOpen}
         onClose={() => setAddPassModalOpen(false)}
-        adminGym={userProfile?.adminGym || ''}
+        gymId={userProfile?.adminGym || ''}
+        gymDisplayName={gymDisplayName}
         onSuccess={handleSuccess}
       />
 

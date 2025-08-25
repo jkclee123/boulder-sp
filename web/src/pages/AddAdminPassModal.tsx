@@ -13,7 +13,7 @@ const AddAdminPassModal: React.FC<AddAdminPassModalProps> = ({ isOpen, onClose, 
   const [passName, setPassName] = useState<string>('');
   const [count, setCount] = useState<number | string>('');
   const [price, setPrice] = useState<number | string>('');
-  const [duration, setDuration] = useState(3);
+  const [duration, setDuration] = useState<number | string>('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -122,7 +122,14 @@ const AddAdminPassModal: React.FC<AddAdminPassModalProps> = ({ isOpen, onClose, 
                   type="number"
                   id="modal-duration"
                   value={duration}
-                  onChange={(e) => setDuration(Math.max(1, parseInt(e.target.value) || 1))}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === '') {
+                      setDuration(''); // Allow empty temporarily
+                    } else {
+                      setDuration(Math.max(1, parseInt(value) || 1));
+                    }
+                  }}
                   min="1"
                   required
                 />

@@ -133,9 +133,7 @@ const MyPassPage: React.FC = () => {
         setMarketModalOpen(true);
         break;
       case 'unlist':
-        if (window.confirm('Are you sure you want to unlist this pass? The remaining count will be merged back to your private pass.')) {
-          handleUnlist(pass);
-        }
+        handleUnlist(pass);
         break;
       case 'deactivate':
         // TODO: Implement deactivate functionality
@@ -169,7 +167,7 @@ const MyPassPage: React.FC = () => {
         userId: user.uid
       });
 
-      alert('Pass unlisted successfully! The count has been merged back to your private pass.');
+      // alert('Pass unlisted successfully! The count has been merged back to your private pass.');
     } catch (error: any) {
       console.error('Error unlisting pass:', error);
       alert(`Failed to unlist pass: ${error.message || 'Unknown error'}`);

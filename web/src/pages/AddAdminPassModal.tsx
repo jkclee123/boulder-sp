@@ -40,7 +40,7 @@ const AddAdminPassModal: React.FC<AddAdminPassModalProps> = ({ isOpen, onClose, 
       });
 
       console.log('Admin pass added successfully:', result);
-      alert('Admin pass added successfully!');
+      // alert('Admin pass added successfully!');
       onSuccess();
       onClose();
       // Reset form

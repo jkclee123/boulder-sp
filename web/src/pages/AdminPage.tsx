@@ -469,9 +469,7 @@ const AdminPage: React.FC = () => {
         setTransferModalOpen(true);
         break;
       case 'delete':
-        if (window.confirm('Are you sure you want to delete this admin pass? This action cannot be undone.')) {
-          handleDelete(pass);
-        }
+        handleDelete(pass);
         break;
       default:
         alert(`Action: ${action} on pass ${pass.id}`);
@@ -487,7 +485,7 @@ const AdminPage: React.FC = () => {
       await deleteAdminPassFunction({
         adminPassId: pass.id
       });
-      alert('Admin pass deleted successfully!');
+      // alert('Admin pass deleted successfully!');
     } catch (error: any) {
       console.error('Error deleting admin pass:', error);
       alert(`Failed to delete admin pass: ${error.message || 'Unknown error'}`);
@@ -566,7 +564,7 @@ const AdminPage: React.FC = () => {
                           disabled={processingPassId === pass.id}
                           className="delete-btn"
                         >
-                          {processingPassId === pass.id ? 'Removing...' : 'Remove'}
+                          {processingPassId === pass.id ? 'Deleting...' : 'Delete'}
                         </button>
                       </div>
                     </div>

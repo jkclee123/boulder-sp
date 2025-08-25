@@ -522,14 +522,8 @@ const AdminPage: React.FC = () => {
     <div className="admin-page">
       <div className="profile-card">
         <div className="profile-card-header">
-          <h2>Admin Portal - {gymDisplayName || '[No Gym Assigned]'}</h2>
+          <h1>Admin Portal - {gymDisplayName || '[No Gym Assigned]'}</h1>
           <div className="admin-actions">
-            <button
-              onClick={() => setAddPassModalOpen(true)}
-              className="btn add-admin-pass-btn"
-            >
-              Add Pass
-            </button>
             <button
               onClick={() => setConsumeModalOpen(true)}
               className="btn consume-pass-btn"
@@ -541,7 +535,15 @@ const AdminPage: React.FC = () => {
         <div className="profile-card-body">
           <div className="admin-content">
             <div className="admin-pass-list-section">
-              <h2>Admin Passes</h2>
+              <div className="admin-pass-section-header">
+                <h3>Admin Passes</h3>
+                <button
+                  onClick={() => setAddPassModalOpen(true)}
+                  className="btn add-admin-pass-btn"
+                >
+                  Add Pass
+                </button>
+              </div>
               <div className="admin-pass-list">
                 {adminPasses.length > 0 ? (
                   adminPasses.map(pass => (

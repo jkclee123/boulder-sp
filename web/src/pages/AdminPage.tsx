@@ -588,8 +588,10 @@ const AdminPage: React.FC = () => {
   };
 
   const handleSuccess = () => {
-    // The useEffect will automatically refresh the data due to onSnapshot
+    // Force a refresh by temporarily clearing and re-setting the loading state
+    // This ensures the onSnapshot listener gets properly re-established
     setLoading(true);
+    setTimeout(() => setLoading(false), 100);
   };
 
   if (!userProfile?.isAdmin) {

@@ -216,6 +216,7 @@ export const transfer = functions.https.onCall(async (data, context) => {
         updatedAt: FieldValue.serverTimestamp(),
         gymDisplayName: sourcePassData?.gymDisplayName,
         gymId: sourcePassData?.gymId,
+        passName: sourcePassData?.passName,
         purchasePrice: passType === 'admin' ? sourcePassData?.price : transferPrice,
         purchaseCount: passType === 'admin' ? sourcePassData?.count : count,
         count: count,
@@ -239,6 +240,7 @@ export const transfer = functions.https.onCall(async (data, context) => {
       const passLogData = {
         createdAt: FieldValue.serverTimestamp(),
         gym: sourcePassData?.gymDisplayName,
+        passName: sourcePassData?.passName,
         count: count,
         price: transferPrice,
         fromUserRef: db.collection('users').doc(fromUserId),
@@ -342,6 +344,7 @@ export const listPassForMarket = functions.https.onCall(async (data, context) =>
         updatedAt: FieldValue.serverTimestamp(),
         gymDisplayName: privatePassData?.gymDisplayName,
         gymId: privatePassData?.gymId,
+        passName: privatePassData?.passName,
         price: price,
         count: count,
         userRef: userRef,
@@ -364,6 +367,7 @@ export const listPassForMarket = functions.https.onCall(async (data, context) =>
       const passLogData = {
         createdAt: FieldValue.serverTimestamp(),
         gym: privatePassData?.gymDisplayName,
+        passName: privatePassData?.passName,
         count: count,
         price: price,
         fromUserRef: userRef,
@@ -475,6 +479,7 @@ export const unlistPass = functions.https.onCall(async (data, context) => {
       const passLogData = {
         createdAt: FieldValue.serverTimestamp(),
         gym: marketPassData?.gymDisplayName,
+        passName: marketPassData?.passName,
         count: countToAddBack,
         price: 0, // No price for unlist
         fromUserRef: db.collection('users').doc(userId),
@@ -640,14 +645,19 @@ export const addAdminPass = functions.https.onCall(async (data, context) => {
 
   const {
     gymId,
+    passName,
     count,
     price,
     duration
   } = data
 
   // Validate input
-  if (!gymId || !count || typeof count !== 'number' || count <= 0) {
+  if (!gymId || !passName || !count || typeof count !== 'number' || count <= 0) {
     throw new functions.https.HttpsError('invalid-argument', 'Invalid admin pass parameters')
+  }
+
+  if (typeof passName !== 'string' || passName.trim().length === 0) {
+    throw new functions.https.HttpsError('invalid-argument', 'Pass name is required and must be a non-empty string')
   }
 
   if (typeof price !== 'number' || price < 0) {
@@ -694,6 +704,7 @@ export const addAdminPass = functions.https.onCall(async (data, context) => {
       updatedAt: FieldValue.serverTimestamp(),
       gymDisplayName: gymDisplayName,
       gymId: gymId,
+      passName: passName.trim(),
       count: count,
       price: price,
       duration: duration,
@@ -801,6 +812,7 @@ export const transferAdminPass = functions.https.onCall(async (data, context) =>
         updatedAt: FieldValue.serverTimestamp(),
         gymDisplayName: adminPassData?.gymDisplayName,
         gymId: adminPassData?.gymId,
+        passName: adminPassData?.passName,
         purchasePrice: price,
         purchaseCount: count,
         count: count,
@@ -822,6 +834,7 @@ export const transferAdminPass = functions.https.onCall(async (data, context) =>
       const passLogData = {
         createdAt: FieldValue.serverTimestamp(),
         gym: adminPassData?.gymDisplayName,
+        passName: adminPassData?.passName,
         count: count,
         price: price,
         fromUserRef: db.collection('users').doc(adminId),
@@ -997,6 +1010,7 @@ export const consumePass = functions.https.onCall(async (data, context) => {
       const passLogData = {
         createdAt: FieldValue.serverTimestamp(),
         gym: privatePassData?.gymDisplayName || privatePassData?.gymId || 'Unknown Gym',
+        passName: privatePassData?.passName,
         count: count,
         price: 0, // Consumed passes don't have a price
         fromUserRef: targetUserRef,

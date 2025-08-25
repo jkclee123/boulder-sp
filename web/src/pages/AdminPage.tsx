@@ -8,6 +8,7 @@ interface AdminPass {
   id: string;
   gymDisplayName: string;
   gymId: string;
+  passName: string;
   count: number;
   price: number;
   duration: number;
@@ -185,6 +186,7 @@ const AddAdminPassModal: React.FC<{
   adminGym: string;
   onSuccess: () => void;
 }> = ({ isOpen, onClose, adminGym, onSuccess }) => {
+  const [passName, setPassName] = useState<string>('');
   const [count, setCount] = useState<number | string>('');
   const [price, setPrice] = useState<number | string>('');
   const [duration, setDuration] = useState(30);
@@ -199,6 +201,7 @@ const AddAdminPassModal: React.FC<{
       const addAdminPassFunction = httpsCallable(functions, 'addAdminPass');
       await addAdminPassFunction({
         gymId: adminGym,
+        passName,
         count,
         price,
         duration
@@ -207,6 +210,7 @@ const AddAdminPassModal: React.FC<{
       onSuccess();
       onClose();
       // Reset form
+      setPassName('');
       setCount('');
       setPrice('');
       setDuration(30);
@@ -230,6 +234,17 @@ const AddAdminPassModal: React.FC<{
         <div className="modal-body">
           <div className="add-admin-pass-section">
             <form onSubmit={handleSubmit}>
+              <div className="form-group">
+                <label htmlFor="modal-passname">Pass Name:</label>
+                <input
+                  type="text"
+                  id="modal-passname"
+                  value={passName}
+                  onChange={(e) => setPassName(e.target.value)}
+                  placeholder="e.g., 10-Day Pass, Monthly Pass"
+                  required
+                />
+              </div>
               <div className="form-group">
                 <label htmlFor="modal-count">Count:</label>
                 <input
@@ -620,10 +635,6 @@ const AdminPage: React.FC = () => {
                 {adminPasses.length > 0 ? (
                   adminPasses.map(pass => (
                     <div key={pass.id} className="admin-pass-card">
-                      <div className="admin-pass-header">
-                        <h3>{pass.gymDisplayName}</h3>
-                        <span className="pass-count">Count: {pass.count}</span>
-                      </div>
                       <div className="admin-pass-body">
                         <p>Price: HKD {pass.price}</p>
                         <p>Duration: {pass.duration} days</p>
@@ -633,14 +644,14 @@ const AdminPage: React.FC = () => {
                           onClick={() => handleAction('transfer', pass)}
                           disabled={processingPassId === pass.id}
                         >
-                          Transfer to User
+                          Sell
                         </button>
                         <button
                           onClick={() => handleAction('deactivate', pass)}
                           disabled={processingPassId === pass.id}
                           className="deactivate-btn"
                         >
-                          {processingPassId === pass.id ? 'Deactivating...' : 'De-activate'}
+                          {processingPassId === pass.id ? 'Removing...' : 'Remove'}
                         </button>
                       </div>
                     </div>

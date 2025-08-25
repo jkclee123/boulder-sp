@@ -34,6 +34,7 @@ This document outlines the technical architecture, primarily focusing on the Fir
 ### `privatePass` collection
 - **`createdAt`**: `timestamp`
 - **`updatedAt`**: `timestamp`
+- **`passName`**: `string` 
 - **`gymDisplayName`**: `string` (displayName of gym)
 - **`gymId`**: `string` (name of gym)
 - **`purchasePrice`**: `number` (total price for the batch)
@@ -46,6 +47,7 @@ This document outlines the technical architecture, primarily focusing on the Fir
 ### `marketPass` collection
 - **`createdAt`**: `timestamp`
 - **`updatedAt`**: `timestamp`
+- **`passName`**: `string` 
 - **`gymDisplayName`**: `string` (displayName of gym)
 - **`gymId`**: `string` (name of gym)
 - **`price`**: `number` (price per pass)
@@ -59,6 +61,7 @@ This document outlines the technical architecture, primarily focusing on the Fir
 ### `adminPass` collection
 - **`createdAt`**: `timestamp`
 - **`updatedAt`**: `timestamp`
+- **`passName`**: `string` 
 - **`count`**: `number` (*Note: This count does not decrease upon transfer*)
 - **`gymDisplayName`**: `string` (displayName of gym)
 - **`gymId`**: `string` (name of gym)
@@ -70,6 +73,7 @@ This document outlines the technical architecture, primarily focusing on the Fir
 ### `passLog` collection
 - **`createdAt`**: `timestamp`
 - **`gym`**: `string` (name of gym)
+- **`passName`**: `string` 
 - **`count`**: `number`
 - **`price`**: `number`
 - **`fromUserRef`**: `reference` to `user` collection

@@ -23,7 +23,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.consumePass = exports.deleteAdminPass = exports.transferAdminPass = exports.addAdminPass = exports.debugUserPasses = exports.unlistPass = exports.listPassForMarket = exports.transfer = exports.getUserProfile = exports.updateUserProfile = void 0;
+exports.consumePass = exports.deleteAdminPass = exports.sellAdminPass = exports.addAdminPass = exports.debugUserPasses = exports.unlistPass = exports.listPassForMarket = exports.transfer = exports.getUserProfile = exports.updateUserProfile = void 0;
 const functions = __importStar(require("firebase-functions"));
 const admin = __importStar(require("firebase-admin"));
 const firestore_1 = require("firebase-admin/firestore");
@@ -549,11 +549,13 @@ exports.debugUserPasses = functions.https.onCall(async (data, context) => {
 });
 // Add admin pass function
 exports.addAdminPass = functions.https.onCall(async (data, context) => {
+    console.log('addAdminPass called with data:', JSON.stringify(data, null, 2));
     // Check if user is authenticated
     if (!context.auth) {
         throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
     }
     const { gymId, passName, count, price, duration } = data;
+    console.log('Extracted parameters:', { gymId, passName, count, price, duration });
     // Validate input
     if (!gymId || !passName || !count || typeof count !== 'number' || count <= 0) {
         throw new functions.https.HttpsError('invalid-argument', 'Invalid admin pass parameters');
@@ -604,6 +606,7 @@ exports.addAdminPass = functions.https.onCall(async (data, context) => {
             duration: duration,
             active: true
         };
+        console.log('Saving admin pass data:', JSON.stringify(Object.assign(Object.assign({}, adminPassData), { createdAt: '[serverTimestamp]', updatedAt: '[serverTimestamp]' }), null, 2));
         await adminPassRef.set(adminPassData);
         return {
             success: true,
@@ -619,26 +622,23 @@ exports.addAdminPass = functions.https.onCall(async (data, context) => {
         throw new functions.https.HttpsError('internal', 'Failed to add admin pass. Please try again.');
     }
 });
-// Transfer admin pass function
-exports.transferAdminPass = functions.https.onCall(async (data, context) => {
+// Sell admin pass function
+exports.sellAdminPass = functions.https.onCall(async (data, context) => {
     // Check if user is authenticated
     if (!context.auth) {
         throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
     }
-    const { adminPassId, recipientUserId, count, price } = data;
+    const { adminPassId, recipientUserId } = data;
     // Validate input
-    if (!adminPassId || !recipientUserId || !count || typeof count !== 'number' || count <= 0) {
-        throw new functions.https.HttpsError('invalid-argument', 'Invalid transfer parameters');
+    if (!adminPassId || !recipientUserId) {
+        throw new functions.https.HttpsError('invalid-argument', 'Invalid sell parameters');
     }
-    if (typeof price !== 'number' || price < 0) {
-        throw new functions.https.HttpsError('invalid-argument', 'Price must be a non-negative number');
-    }
-    // Only admins can transfer admin passes
+    // Only admins can sell admin passes
     const adminId = context.auth.uid;
     const adminDoc = await db.collection('users').doc(adminId).get();
     const adminData = adminDoc.data();
     if (!(adminData === null || adminData === void 0 ? void 0 : adminData.isAdmin)) {
-        throw new functions.https.HttpsError('permission-denied', 'Only admins can transfer admin passes');
+        throw new functions.https.HttpsError('permission-denied', 'Only admins can sell admin passes');
     }
     try {
         return await db.runTransaction(async (transaction) => {
@@ -649,17 +649,16 @@ exports.transferAdminPass = functions.https.onCall(async (data, context) => {
                 throw new functions.https.HttpsError('not-found', 'Admin pass not found');
             }
             const adminPassData = adminPassDoc.data();
+            if (!adminPassData) {
+                throw new functions.https.HttpsError('not-found', 'Admin pass data is empty or invalid');
+            }
             // Verify admin has permission for this gym
-            if (adminData.adminGym !== (adminPassData === null || adminPassData === void 0 ? void 0 : adminPassData.gymId)) {
-                throw new functions.https.HttpsError('permission-denied', 'You can only transfer admin passes from your assigned gym');
+            if (adminData.adminGym !== adminPassData.gymId) {
+                throw new functions.https.HttpsError('permission-denied', 'You can only sell admin passes from your assigned gym');
             }
             // Verify pass is active
-            if ((adminPassData === null || adminPassData === void 0 ? void 0 : adminPassData.active) !== true) {
+            if (adminPassData.active !== true) {
                 throw new functions.https.HttpsError('failed-precondition', 'Admin pass is not active');
-            }
-            // Check if count is sufficient
-            if ((adminPassData === null || adminPassData === void 0 ? void 0 : adminPassData.count) < count) {
-                throw new functions.https.HttpsError('failed-precondition', `Insufficient pass count. Available: ${adminPassData.count}, Requested: ${count}`);
             }
             // Get recipient user
             const recipientUserRef = db.collection('users').doc(recipientUserId);
@@ -669,7 +668,7 @@ exports.transferAdminPass = functions.https.onCall(async (data, context) => {
             }
             // Calculate new lastDay for transferred pass based on duration from now
             let newPassLastDay = null;
-            if ((adminPassData === null || adminPassData === void 0 ? void 0 : adminPassData.duration) && adminPassData.duration > 0) {
+            if (adminPassData.duration && adminPassData.duration > 0) {
                 const now = new Date();
                 const newLastDay = new Date(now);
                 newLastDay.setMonth(newLastDay.getMonth() + adminPassData.duration);
@@ -681,49 +680,44 @@ exports.transferAdminPass = functions.https.onCall(async (data, context) => {
             const newPassData = {
                 createdAt: firestore_1.FieldValue.serverTimestamp(),
                 updatedAt: firestore_1.FieldValue.serverTimestamp(),
-                gymDisplayName: adminPassData === null || adminPassData === void 0 ? void 0 : adminPassData.gymDisplayName,
-                gymId: adminPassData === null || adminPassData === void 0 ? void 0 : adminPassData.gymId,
-                passName: adminPassData === null || adminPassData === void 0 ? void 0 : adminPassData.passName,
-                purchasePrice: price,
-                purchaseCount: count,
-                count: count,
+                gymDisplayName: adminPassData.gymDisplayName,
+                gymId: adminPassData.gymId,
+                passName: adminPassData.passName,
+                purchasePrice: adminPassData.price || 0,
+                purchaseCount: adminPassData.count || 0,
+                count: adminPassData.count || 0,
                 userRef: recipientUserRef,
                 lastDay: newPassLastDay,
                 active: true
             };
             transaction.set(newPassRef, newPassData);
-            // Reduce count from admin pass
-            transaction.update(adminPassRef, {
-                count: firestore_1.FieldValue.increment(-count),
-                updatedAt: firestore_1.FieldValue.serverTimestamp()
-            });
             // Create pass log entry
             const passLogRef = db.collection('passLog').doc();
             const passLogData = {
                 createdAt: firestore_1.FieldValue.serverTimestamp(),
-                gym: adminPassData === null || adminPassData === void 0 ? void 0 : adminPassData.gymDisplayName,
-                passName: adminPassData === null || adminPassData === void 0 ? void 0 : adminPassData.passName,
-                count: count,
-                price: price,
+                gym: adminPassData.gymDisplayName,
+                passName: adminPassData.passName,
+                count: adminPassData.count || 0,
+                price: adminPassData.price || 0,
                 fromUserRef: db.collection('users').doc(adminId),
                 toUserRef: recipientUserRef,
-                action: 'transfer_admin',
+                action: 'sell_admin',
                 participants: [adminId, recipientUserId]
             };
             transaction.set(passLogRef, passLogData);
             return {
                 success: true,
-                message: 'Admin pass transferred successfully',
+                message: 'Admin pass sold successfully',
                 newPassId: newPassRef.id
             };
         });
     }
     catch (error) {
-        console.error('Error in transferAdminPass:', error);
+        console.error('Error in sellAdminPass:', error);
         if (error instanceof functions.https.HttpsError) {
             throw error;
         }
-        throw new functions.https.HttpsError('internal', 'Failed to transfer admin pass. Please try again.');
+        throw new functions.https.HttpsError('internal', 'Failed to sell admin pass. Please try again.');
     }
 });
 // Delete admin pass function

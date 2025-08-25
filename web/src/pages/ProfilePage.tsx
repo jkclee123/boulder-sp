@@ -170,7 +170,7 @@ const ProfileFormCard = ({ isEditing, setIsEditing }: ProfileFormCardProps) => {
           <FormGroup label="Email">
             <input type="email" value={user?.email || ''} disabled className="form-input" />
           </FormGroup>
-          <FormGroup label="Name *">
+          <FormGroup label="Nickname *">
             <input type="text" name="name" value={formData.name} onChange={handleInputChange} disabled={!isEditing} required className="form-input" />
           </FormGroup>
           <FormGroup label="Phone Number">

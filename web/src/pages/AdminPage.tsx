@@ -1,188 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../providers/AuthProvider';
 import { db, functions } from '../firebase';
-import { collection, query, where, onSnapshot, Timestamp, getDocs, doc } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, getDocs, doc } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
+import type { AdminPass, User } from '../types/admin';
 import AddAdminPassModal from './AddAdminPassModal';
+import SellAdminPassModal from './SellAdminPassModal';
 import '../css/AdminPage.css';
-
-interface AdminPass {
-  id: string;
-  gymDisplayName: string;
-  gymId: string;
-  passName: string;
-  count: number;
-  price: number;
-  duration: number;
-  active: boolean;
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
-}
-
-interface User {
-  id: string;
-  name: string;
-  phoneNumber: string;
-  gymMemberId?: { [gymId: string]: string };
-}
-
-const TransferAdminPassModal: React.FC<{
-  isOpen: boolean;
-  onClose: () => void;
-  pass: AdminPass | null;
-  adminGym: string;
-  onSuccess: () => void;
-}> = ({ isOpen, onClose, pass, adminGym, onSuccess }) => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [searchType, setSearchType] = useState<'phone' | 'memberId'>('phone');
-  const [recipient, setRecipient] = useState<User | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [searchLoading, setSearchLoading] = useState(false);
-
-  const searchRecipient = async () => {
-    if (!searchTerm.trim() || !db) return;
-
-    setSearchLoading(true);
-    try {
-      let queryField: string;
-      let queryValue: string;
-
-      if (searchType === 'phone') {
-        queryField = 'phoneNumber';
-        queryValue = searchTerm.trim();
-      } else {
-        queryField = `gymMemberId.${adminGym}`;
-        queryValue = searchTerm.trim();
-      }
-
-      const usersQuery = query(collection(db, 'users'), where(queryField, '==', queryValue));
-      const querySnapshot = await getDocs(usersQuery);
-
-      if (querySnapshot.empty) {
-        alert('No user found with that search criteria.');
-        return;
-      }
-
-      const userDoc = querySnapshot.docs[0];
-      const userData = userDoc.data();
-      setRecipient({
-        id: userDoc.id,
-        name: userData.name || 'Unknown',
-        phoneNumber: userData.phoneNumber || '',
-        gymMemberId: userData.gymMemberId || {}
-      });
-    } catch (error: any) {
-      console.error('Error searching for user:', error);
-      alert(`Error searching for user: ${error.message || 'Unknown error'}`);
-    } finally {
-      setSearchLoading(false);
-    }
-  };
-
-  const handleTransfer = async () => {
-    if (!recipient || !pass || !functions) return;
-
-    // For admin passes, use the full count and admin pass price
-    const finalCount = pass.count;
-    const finalPrice = pass.price;
-
-    setLoading(true);
-    try {
-      const transferAdminPassFunction = httpsCallable(functions, 'transferAdminPass');
-      await transferAdminPassFunction({
-        adminPassId: pass.id,
-        recipientUserId: recipient.id,
-        count: finalCount,
-        price: finalPrice
-      });
-
-      alert(`Successfully transferred ${finalCount} pass(es) to ${recipient.name}!`);
-      onSuccess();
-      onClose();
-      // Reset form
-      setSearchTerm('');
-      setRecipient(null);
-    } catch (error: any) {
-      console.error('Error transferring admin pass:', error);
-      alert(`Failed to transfer admin pass: ${error.message || 'Unknown error'}`);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (!isOpen || !pass) return null;
-
-  return (
-    <div className="modal-overlay">
-      <div className="modal">
-        <div className="modal-header">
-          <h2>Transfer Admin Pass</h2>
-          <button onClick={onClose} className="close-btn">×</button>
-        </div>
-        <div className="modal-body">
-          <div className="pass-info">
-            <p><strong>Pass:</strong> {pass.gymDisplayName}</p>
-            <p><strong>Available Count:</strong> {pass.count}</p>
-            <p><strong>Duration:</strong> {pass.duration} months</p>
-          </div>
-
-          {!recipient ? (
-            <div className="search-section">
-              <div className="search-type-selector">
-                <label>
-                  <input
-                    type="radio"
-                    value="phone"
-                    checked={searchType === 'phone'}
-                    onChange={(e) => setSearchType(e.target.value as 'phone' | 'memberId')}
-                  />
-                  Phone Number
-                </label>
-                <label>
-                  <input
-                    type="radio"
-                    value="memberId"
-                    checked={searchType === 'memberId'}
-                    onChange={(e) => setSearchType(e.target.value as 'phone' | 'memberId')}
-                  />
-                  Member ID
-                </label>
-              </div>
-              <div className="search-input">
-                <input
-                  type="text"
-                  placeholder={searchType === 'phone' ? 'Enter phone number' : 'Enter member ID'}
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && searchRecipient()}
-                />
-                <button onClick={searchRecipient} disabled={searchLoading}>
-                  {searchLoading ? 'Searching...' : 'Search'}
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="transfer-section">
-              <div className="user-info">
-                <p><strong>Recipient:</strong> {recipient.name}</p>
-                <p><strong>Phone:</strong> {recipient.phoneNumber}</p>
-                <p><strong>Membership Id:</strong> {recipient.gymMemberId?.[adminGym]}</p>
-              </div>
-              <div className="modal-actions">
-                <button onClick={() => setRecipient(null)}>Back to Search</button>
-                <button onClick={handleTransfer} disabled={loading} className="transfer-btn">
-                  {loading ? 'Transferring...' : 'Transfer Pass'}
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-
 
 const ConsumePassModal: React.FC<{
   isOpen: boolean;
@@ -585,7 +409,7 @@ const AdminPage: React.FC = () => {
         onSuccess={handleSuccess}
       />
 
-      <TransferAdminPassModal
+      <SellAdminPassModal
         isOpen={transferModalOpen}
         onClose={() => setTransferModalOpen(false)}
         pass={selectedPass}

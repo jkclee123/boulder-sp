@@ -72,7 +72,8 @@ This document outlines the technical architecture, primarily focusing on the Fir
 
 ### `passLog` collection
 - **`createdAt`**: `timestamp`
-- **`gym`**: `string` (name of gym)
+- **`gymDisplayName`**: `string` 
+- **`gymId`**: `string`
 - **`passName`**: `string` 
 - **`count`**: `number`
 - **`price`**: `number`

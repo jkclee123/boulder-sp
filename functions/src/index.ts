@@ -740,8 +740,8 @@ export const addAdminPass = functions.https.onCall(async (data, context) => {
   }
 })
 
-// Transfer admin pass function
-export const transferAdminPass = functions.https.onCall(async (data, context) => {
+// Sell admin pass function
+export const sellAdminPass = functions.https.onCall(async (data, context) => {
   // Check if user is authenticated
   if (!context.auth) {
     throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated')
@@ -749,27 +749,21 @@ export const transferAdminPass = functions.https.onCall(async (data, context) =>
 
   const {
     adminPassId,
-    recipientUserId,
-    count,
-    price
+    recipientUserId
   } = data
 
   // Validate input
-  if (!adminPassId || !recipientUserId || !count || typeof count !== 'number' || count <= 0) {
-    throw new functions.https.HttpsError('invalid-argument', 'Invalid transfer parameters')
+  if (!adminPassId || !recipientUserId) {
+    throw new functions.https.HttpsError('invalid-argument', 'Invalid sell parameters')
   }
 
-  if (typeof price !== 'number' || price < 0) {
-    throw new functions.https.HttpsError('invalid-argument', 'Price must be a non-negative number')
-  }
-
-  // Only admins can transfer admin passes
+  // Only admins can sell admin passes
   const adminId = context.auth.uid
   const adminDoc = await db.collection('users').doc(adminId).get()
   const adminData = adminDoc.data()
 
   if (!adminData?.isAdmin) {
-    throw new functions.https.HttpsError('permission-denied', 'Only admins can transfer admin passes')
+    throw new functions.https.HttpsError('permission-denied', 'Only admins can sell admin passes')
   }
 
   try {
@@ -786,17 +780,12 @@ export const transferAdminPass = functions.https.onCall(async (data, context) =>
 
       // Verify admin has permission for this gym
       if (adminData.adminGym !== adminPassData?.gymId) {
-        throw new functions.https.HttpsError('permission-denied', 'You can only transfer admin passes from your assigned gym')
+        throw new functions.https.HttpsError('permission-denied', 'You can only sell admin passes from your assigned gym')
       }
 
       // Verify pass is active
       if (adminPassData?.active !== true) {
         throw new functions.https.HttpsError('failed-precondition', 'Admin pass is not active')
-      }
-
-      // Check if count is sufficient
-      if (adminPassData?.count < count) {
-        throw new functions.https.HttpsError('failed-precondition', `Insufficient pass count. Available: ${adminPassData.count}, Requested: ${count}`)
       }
 
       // Get recipient user
@@ -825,9 +814,9 @@ export const transferAdminPass = functions.https.onCall(async (data, context) =>
         gymDisplayName: adminPassData?.gymDisplayName,
         gymId: adminPassData?.gymId,
         passName: adminPassData?.passName,
-        purchasePrice: price,
-        purchaseCount: count,
-        count: count,
+        purchasePrice: adminPassData?.price || 0,
+        purchaseCount: adminPassData?.count || 0,
+        count: adminPassData?.count || 0,
         userRef: recipientUserRef,
         lastDay: newPassLastDay,
         active: true
@@ -835,23 +824,17 @@ export const transferAdminPass = functions.https.onCall(async (data, context) =>
 
       transaction.set(newPassRef, newPassData)
 
-      // Reduce count from admin pass
-      transaction.update(adminPassRef, {
-        count: FieldValue.increment(-count),
-        updatedAt: FieldValue.serverTimestamp()
-      })
-
       // Create pass log entry
       const passLogRef = db.collection('passLog').doc()
       const passLogData = {
         createdAt: FieldValue.serverTimestamp(),
         gym: adminPassData?.gymDisplayName,
         passName: adminPassData?.passName,
-        count: count,
-        price: price,
+        count: adminPassData?.count || 0,
+        price: adminPassData?.price || 0,
         fromUserRef: db.collection('users').doc(adminId),
         toUserRef: recipientUserRef,
-        action: 'transfer_admin',
+        action: 'sell_admin',
         participants: [adminId, recipientUserId]
       }
 
@@ -859,18 +842,18 @@ export const transferAdminPass = functions.https.onCall(async (data, context) =>
 
       return {
         success: true,
-        message: 'Admin pass transferred successfully',
+        message: 'Admin pass sold successfully',
         newPassId: newPassRef.id
       }
     })
   } catch (error) {
-    console.error('Error in transferAdminPass:', error)
+    console.error('Error in sellAdminPass:', error)
 
     if (error instanceof functions.https.HttpsError) {
       throw error
     }
 
-    throw new functions.https.HttpsError('internal', 'Failed to transfer admin pass. Please try again.')
+    throw new functions.https.HttpsError('internal', 'Failed to sell admin pass. Please try again.')
   }
 })
 

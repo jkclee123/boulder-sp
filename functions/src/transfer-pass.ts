@@ -138,7 +138,7 @@ export const transferPass = functions.https.onCall(async (data, context) => {
             const passLogRef = db.collection('passLog').doc();
             const passLogData = {
                 createdAt: FieldValue.serverTimestamp(),
-                gym: sourcePassData.gymDisplayName,
+                gymDisplayName: sourcePassData.gymDisplayName,
                 passName: sourcePassData.passName,
                 count: count,
                 price: transferPrice,

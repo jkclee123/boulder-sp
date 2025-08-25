@@ -21,7 +21,7 @@ This document details the user interface and user experience for each page of th
     - `name`: `string`
     - `telegramId`: `string`
     - `phoneNumber`: `string` (input restricted to 8 digits, no verification needed)
-    - `gymMemberId`: A section to add membership IDs for different gyms.
+    - `gymMemberId`: A section to add member IDs for different gyms.
 - **Routing**: Users are forced to this page if `name` or `phoneNumber` is not set.
 
 ### My Pass Page

@@ -188,7 +188,7 @@ const ProfileFormCard = ({ isEditing, setIsEditing }: ProfileFormCardProps) => {
                     <option value="">Select Gym</option>
                     {gyms.map(g => <option key={g.id} value={g.id}>{g.displayName}</option>)}
                   </select>
-                  <input type="text" placeholder="Membership ID" value={mem.membershipId} onChange={e => handleMembershipChange(i, 'membershipId', e.target.value)} disabled={!isEditing} className="form-input" />
+                  <input type="text" placeholder="Member ID" value={mem.membershipId} onChange={e => handleMembershipChange(i, 'membershipId', e.target.value)} disabled={!isEditing} className="form-input" />
                   {isEditing && <button type="button" onClick={() => removeMembershipRow(i)} className="btn-icon">&times;</button>}
                 </div>
               ))}

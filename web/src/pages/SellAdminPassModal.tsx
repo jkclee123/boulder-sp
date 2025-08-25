@@ -140,7 +140,7 @@ const SellAdminPassModal: React.FC<{
               <div className="user-info">
                 <p><strong>Recipient:</strong> {recipient.name}</p>
                 <p><strong>Phone Number:</strong> {recipient.phoneNumber}</p>
-                <p><strong>Membership Id:</strong> {recipient.gymMemberId?.[adminGym]}</p>
+                <p><strong>Member Id:</strong> {recipient.gymMemberId?.[adminGym]}</p>
               </div>
               <div className="modal-actions">
                 <button onClick={() => setRecipient(null)}>Back to Search</button>

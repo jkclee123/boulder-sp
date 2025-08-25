@@ -76,7 +76,7 @@ export const unlistPass = functions.https.onCall(async (data, context) => {
             const passLogRef = db.collection('passLog').doc();
             const passLogData = {
                 createdAt: FieldValue.serverTimestamp(),
-                gym: marketPassData.gymDisplayName,
+                gymDisplayName: marketPassData.gymDisplayName,
                 passName: marketPassData.passName,
                 count: countToAddBack,
                 price: 0,

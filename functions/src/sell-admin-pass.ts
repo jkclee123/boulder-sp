@@ -100,7 +100,7 @@ export const sellAdminPass = functions.https.onCall(async (data, context) => {
             const passLogRef = db.collection('passLog').doc();
             const passLogData = {
                 createdAt: FieldValue.serverTimestamp(),
-                gym: adminPassData.gymDisplayName,
+                gymDisplayName: adminPassData.gymDisplayName,
                 passName: adminPassData.passName,
                 count: adminPassData.count || 0,
                 price: adminPassData.price || 0,

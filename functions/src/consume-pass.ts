@@ -71,7 +71,7 @@ export const consumePass = functions.https.onCall(async (data, context) => {
             const passLogRef = db.collection('passLog').doc();
             const passLogData = {
                 createdAt: FieldValue.serverTimestamp(),
-                gym: (privatePassData === null || privatePassData === void 0 ? void 0 : privatePassData.gymDisplayName) || (privatePassData === null || privatePassData === void 0 ? void 0 : privatePassData.gymId) || 'Unknown Gym',
+                gymDisplayName: privatePassData.gymDisplayName || 'Unknown Gym',
                 passName: privatePassData === null || privatePassData === void 0 ? void 0 : privatePassData.passName,
                 count: count,
                 price: 0,

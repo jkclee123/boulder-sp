@@ -523,6 +523,7 @@ const AdminPage: React.FC = () => {
   const { user, userProfile } = useAuth();
   const [adminPasses, setAdminPasses] = useState<AdminPass[]>([]);
   const [loading, setLoading] = useState(true);
+  const [gymDisplayName, setGymDisplayName] = useState<string>('');
   const [processingPassId, setProcessingPassId] = useState<string | null>(null);
   const [transferModalOpen, setTransferModalOpen] = useState(false);
   const [consumeModalOpen, setConsumeModalOpen] = useState(false);
@@ -552,6 +553,33 @@ const AdminPage: React.FC = () => {
 
     return () => unsub();
   }, [user, userProfile?.adminGym]);
+
+  useEffect(() => {
+    const fetchGymDisplayName = async () => {
+      if (!db || !userProfile?.adminGym) {
+        setGymDisplayName('[No Gym Assigned]');
+        return;
+      }
+
+      try {
+        const gymsQuery = query(collection(db, 'gyms'), where('id', '==', userProfile.adminGym));
+        const querySnapshot = await getDocs(gymsQuery);
+
+        if (!querySnapshot.empty) {
+          const gymDoc = querySnapshot.docs[0];
+          const gymData = gymDoc.data();
+          setGymDisplayName(gymData.displayName || userProfile.adminGym);
+        } else {
+          setGymDisplayName(userProfile.adminGym);
+        }
+      } catch (error) {
+        console.error('Error fetching gym display name:', error);
+        setGymDisplayName(userProfile.adminGym);
+      }
+    };
+
+    fetchGymDisplayName();
+  }, [db, userProfile?.adminGym]);
 
   const handleAction = (action: string, pass: AdminPass) => {
     switch (action) {
@@ -613,7 +641,7 @@ const AdminPage: React.FC = () => {
     <div className="admin-page">
       <div className="profile-card">
         <div className="profile-card-header">
-          <h2>Admin Portal - {userProfile.adminGym || '[No Gym Assigned]'}</h2>
+          <h2>Admin Portal - {gymDisplayName || '[No Gym Assigned]'}</h2>
           <div className="admin-actions">
             <button
               onClick={() => setAddPassModalOpen(true)}

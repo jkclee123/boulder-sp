@@ -117,6 +117,13 @@ const ProfileFormCard = ({ isEditing, setIsEditing }: ProfileFormCardProps) => {
     setError(null);
     setSuccess(null);
 
+    // Validate phone number is exactly 8 digits
+    if (formData.phoneNumber && (!/^\d{8}$/.test(formData.phoneNumber))) {
+      alert('Phone number must be exactly 8 digits.');
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       const gymMemberId = gymMemberships.reduce((acc, curr) => {
         if (curr.gymId && curr.membershipId) acc[curr.gymId] = curr.membershipId;

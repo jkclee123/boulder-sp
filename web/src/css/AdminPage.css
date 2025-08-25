@@ -84,22 +84,30 @@
 }
 
 .add-admin-pass-btn {
+  background-color: #3b82f6; /* Fallback blue */
   background-color: var(--primary-color);
+  border-color: #3b82f6; /* Fallback blue */
   border-color: var(--primary-color);
 }
 
 .add-admin-pass-btn:hover {
+  background-color: #2563eb; /* Fallback blue hover */
   background-color: var(--primary-hover);
+  border-color: #2563eb; /* Fallback blue hover */
   border-color: var(--primary-hover);
 }
 
 .consume-pass-btn {
+  background-color: #28a745; /* Fallback green */
   background-color: var(--success-color);
+  border-color: #28a745; /* Fallback green */
   border-color: var(--success-color);
 }
 
 .consume-pass-btn:hover {
+  background-color: #218838; /* Fallback green hover */
   background-color: var(--success-hover);
+  border-color: #218838; /* Fallback green hover */
   border-color: var(--success-hover);
 }
 
@@ -445,6 +453,7 @@
 .modal-actions button.transfer-btn,
 .modal-actions button.consume-btn,
 .add-admin-pass-section button {
+  background: #28a745; /* Solid green fallback */
   background: linear-gradient(135deg, var(--success-color) 0%, #20c997 100%);
   color: white;
   box-shadow: 0 2px 4px rgba(40, 167, 69, 0.2);
@@ -453,6 +462,7 @@
 .modal-actions button.transfer-btn:hover,
 .modal-actions button.consume-btn:hover,
 .add-admin-pass-section button:hover:not(:disabled) {
+  background: #218838; /* Solid green hover fallback */
   background: linear-gradient(135deg, var(--success-hover) 0%, #1aa085 100%);
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
@@ -486,6 +496,7 @@
 
 .add-admin-pass-section button {
   width: 100%;
+  background: #3b82f6; /* Solid blue fallback */
   background: linear-gradient(135deg, var(--primary-color) 0%, #1d4ed8 100%);
   color: white;
   box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
@@ -499,6 +510,7 @@
 }
 
 .add-admin-pass-section button:hover:not(:disabled) {
+  background: #2563eb; /* Solid blue hover fallback */
   background: linear-gradient(135deg, var(--primary-hover) 0%, #1e40af 100%);
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);

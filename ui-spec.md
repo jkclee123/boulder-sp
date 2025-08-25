@@ -40,7 +40,7 @@ This document details the user interface and user experience for each page of th
         - `Transfer`: Initiates the transfer process.
         - `Unlist`: Removes the pass from the market and merges the count back to the parent `privatePass`.
     - **Expired Pass**:
-        - `De-activate`: Sets the `active` flag to `false`.
+        - `De-activate`: Sets the `active` flag to `false` (Note: This applies to `privatePass` and `marketPass` records only; `adminPass` records are permanently deleted).
 
 ### Market Page
 - **Objective**: Display all passes available for sale.
@@ -57,7 +57,7 @@ This document details the user interface and user experience for each page of th
     - A list of active `adminPass` records for the admin's associated gym.
 - **Actions**:
     - **Add Admin Pass**: A form to create new `adminPass` records.
-    - **De-activate Admin Pass**: A button on each list item to set `active` to `false`.
+    - **Remove Admin Pass**: A button on each list item to permanently delete the `adminPass` record from the database.
     - **Transfer Admin Pass**: Initiates a transfer to a normal user, creating a `privatePass` for them.
     - **Consume Pass**: A dedicated button to start the pass consumption process for a user.
 

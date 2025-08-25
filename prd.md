@@ -35,7 +35,7 @@ The Minimum Viable Product (MVP) will focus on core pass management, transfer, a
 * **FR14**: The Market page shall include a button on each listing that links to the owner's Telegram profile.
 * **FR15**: Users must set their `phoneNumber` number before they can contact a seller on Telegram from the market page.
 * **FR16**: The Admin page shall display a list of active `adminPass` records associated with the admin's gym.
-* **FR17**: Admins shall be able to add and deactivate `adminPass` records.
+* **FR17**: Admins shall be able to add and remove `adminPass` records.
 * **FR18**: Admins can transfer an `adminPass` to a normal user, which creates a `privatePass` for that user. An `adminPass`'s count is not reduced upon transfer.
 * **FR19**: Admins can consume passes from users belonging to their gym by searching for the user via `phoneNumber` or `gymMemberId`.
 * **FR20**: The consume process shall default to consuming a `privatePass` before consuming a `marketPass`. A transaction attempting to consume from both types simultaneously shall fail.
@@ -45,7 +45,7 @@ The Minimum Viable Product (MVP) will focus on core pass management, transfer, a
 ### Non-Functional
 * **NFR1**: All timestamps stored and displayed in the application must be in Hong Kong Time (UTC+8).
 * **NFR2**: All currency values must be stored and displayed in Hong Kong Dollars (HKD).
-* **NFR3**: Records in the database will not be physically deleted. A boolean `active` flag will be used to manage visibility and status (soft-delete).
+* **NFR3**: Records in the database will not be physically deleted (except `adminPass` records). A boolean `active` flag will be used to manage visibility and status (soft-delete) for all record types except `adminPass`.
 * **NFR4**: The application will be a responsive web app built with React.
 * **NFR5**: The backend infrastructure will exclusively use Firebase services: Authentication, Hosting, Firestore, and Cloud Functions.
 * **NFR6**: The `phoneNumber` field in the `user` collection must be unique across all users.
@@ -192,11 +192,11 @@ The Minimum Viable Product (MVP) will focus on core pass management, transfer, a
 **Goal**: To provide administrators with the tools to manage the entire lifecycle of passes for their gym, including creation, distribution, and consumption.
 
 * **Story 4.1: Admin Pass Management**
-    * **As an** admin, **I want** to view, add, and deactivate `adminPass` records, **so that** I can manage the source of all passes for my gym.
+    * **As an** admin, **I want** to view, add, and remove `adminPass` records, **so that** I can manage the source of all passes for my gym.
     * **Acceptance Criteria**:
         1.  The Admin page shows a list of `active` `adminPass` records where the `gym` field matches the admin's `adminGym`.
         2.  A form allows the admin to create a new `adminPass` with `count`, total `price`, and `duration` (in months).
-        3.  A "Deactivate" button on each pass sets its `active` flag to `false`.
+        3.  A "Remove" button on each pass permanently deletes the `adminPass` record from the database.
 
 * **Story 4.2: Transfer Admin Pass to User**
     * **As an** admin, **I want** to transfer passes to a user, **so that** I can distribute passes they have purchased.

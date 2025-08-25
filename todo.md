@@ -29,6 +29,6 @@ This document outlines the development tasks based on the PRD.
 ## Epic 4: Admin Portal & Pass Lifecycle Management
 **Goal**: To provide administrators with the tools to manage the entire lifecycle of passes for their gym, including creation, distribution, and consumption.
 
-- [ ] **Story 4.1: Admin Pass Management**: As an admin, I want to view, add, and deactivate `adminPass` records, so that I can manage the source of all passes for my gym.
+- [ ] **Story 4.1: Admin Pass Management**: As an admin, I want to view, add, and remove `adminPass` records, so that I can manage the source of all passes for my gym.
 - [ ] **Story 4.2: Transfer Admin Pass to User**: As an admin, I want to transfer passes to a user, so that I can distribute passes they have purchased.
 - [ ] **Story 4.3: Consume User Pass**: As an admin, I want to consume a pass from a user who is visiting the gym, so that I can redeem their entry.

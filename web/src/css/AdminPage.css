@@ -219,13 +219,13 @@
   transform: translateY(-1px);
 }
 
-.admin-pass-actions button.deactivate-btn {
+.admin-pass-actions button.delete-btn {
   background-color: var(--danger-color);
   color: white;
   border-color: var(--danger-color);
 }
 
-.admin-pass-actions button.deactivate-btn:hover {
+.admin-pass-actions button.delete-btn:hover {
   background-color: var(--danger-hover);
   border-color: var(--danger-hover);
   transform: translateY(-1px);

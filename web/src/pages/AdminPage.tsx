@@ -468,9 +468,9 @@ const AdminPage: React.FC = () => {
         setSelectedPass(pass);
         setTransferModalOpen(true);
         break;
-      case 'deactivate':
-        if (window.confirm('Are you sure you want to deactivate this admin pass? This action cannot be undone.')) {
-          handleDeactivate(pass);
+      case 'delete':
+        if (window.confirm('Are you sure you want to delete this admin pass? This action cannot be undone.')) {
+          handleDelete(pass);
         }
         break;
       default:
@@ -478,19 +478,19 @@ const AdminPage: React.FC = () => {
     }
   };
 
-  const handleDeactivate = async (pass: AdminPass) => {
+  const handleDelete = async (pass: AdminPass) => {
     if (!functions) return;
 
     setProcessingPassId(pass.id);
     try {
-      const deactivateAdminPassFunction = httpsCallable(functions, 'deactivateAdminPass');
-      await deactivateAdminPassFunction({
+      const deleteAdminPassFunction = httpsCallable(functions, 'deleteAdminPass');
+      await deleteAdminPassFunction({
         adminPassId: pass.id
       });
-      alert('Admin pass deactivated successfully!');
+      alert('Admin pass deleted successfully!');
     } catch (error: any) {
-      console.error('Error deactivating admin pass:', error);
-      alert(`Failed to deactivate admin pass: ${error.message || 'Unknown error'}`);
+      console.error('Error deleting admin pass:', error);
+      alert(`Failed to delete admin pass: ${error.message || 'Unknown error'}`);
     } finally {
       setProcessingPassId(null);
     }
@@ -562,9 +562,9 @@ const AdminPage: React.FC = () => {
                           Sell
                         </button>
                         <button
-                          onClick={() => handleAction('deactivate', pass)}
+                          onClick={() => handleAction('delete', pass)}
                           disabled={processingPassId === pass.id}
-                          className="deactivate-btn"
+                          className="delete-btn"
                         >
                           {processingPassId === pass.id ? 'Removing...' : 'Remove'}
                         </button>

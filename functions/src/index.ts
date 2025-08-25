@@ -874,8 +874,8 @@ export const transferAdminPass = functions.https.onCall(async (data, context) =>
   }
 })
 
-// Deactivate admin pass function
-export const deactivateAdminPass = functions.https.onCall(async (data, context) => {
+// Delete admin pass function
+export const deleteAdminPass = functions.https.onCall(async (data, context) => {
   // Check if user is authenticated
   if (!context.auth) {
     throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated')
@@ -888,13 +888,13 @@ export const deactivateAdminPass = functions.https.onCall(async (data, context) 
     throw new functions.https.HttpsError('invalid-argument', 'Admin pass ID is required')
   }
 
-  // Only admins can deactivate admin passes
+  // Only admins can delete admin passes
   const adminId = context.auth.uid
   const adminDoc = await db.collection('users').doc(adminId).get()
   const adminData = adminDoc.data()
 
   if (!adminData?.isAdmin) {
-    throw new functions.https.HttpsError('permission-denied', 'Only admins can deactivate admin passes')
+    throw new functions.https.HttpsError('permission-denied', 'Only admins can delete admin passes')
   }
 
   try {
@@ -911,33 +911,25 @@ export const deactivateAdminPass = functions.https.onCall(async (data, context) 
 
       // Verify admin has permission for this gym
       if (adminData.adminGym !== adminPassData?.gymId) {
-        throw new functions.https.HttpsError('permission-denied', 'You can only deactivate admin passes from your assigned gym')
+        throw new functions.https.HttpsError('permission-denied', 'You can only delete admin passes from your assigned gym')
       }
 
-      // Verify pass is currently active
-      if (adminPassData?.active !== true) {
-        throw new functions.https.HttpsError('failed-precondition', 'Admin pass is already deactivated')
-      }
-
-      // Deactivate the admin pass
-      transaction.update(adminPassRef, {
-        active: false,
-        updatedAt: FieldValue.serverTimestamp()
-      })
+      // Delete the admin pass permanently
+      transaction.delete(adminPassRef)
 
       return {
         success: true,
-        message: 'Admin pass deactivated successfully'
+        message: 'Admin pass deleted successfully'
       }
     })
   } catch (error) {
-    console.error('Error in deactivateAdminPass:', error)
+    console.error('Error in deleteAdminPass:', error)
 
     if (error instanceof functions.https.HttpsError) {
       throw error
     }
 
-    throw new functions.https.HttpsError('internal', 'Failed to deactivate admin pass. Please try again.')
+    throw new functions.https.HttpsError('internal', 'Failed to delete admin pass. Please try again.')
   }
 })
 

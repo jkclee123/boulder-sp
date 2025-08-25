@@ -179,160 +179,14 @@ const TransferAdminPassModal: React.FC<{
   );
 };
 
-const DebugUserModal: React.FC<{
-  isOpen: boolean;
-  onClose: () => void;
-  adminGym: string;
-  onSuccess: () => void;
-}> = ({ isOpen, onClose, adminGym }) => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [searchType, setSearchType] = useState<'phone' | 'memberId'>('phone');
-  const [recipient, setRecipient] = useState<User | null>(null);
-  const [debugResult, setDebugResult] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
-  const [searchLoading, setSearchLoading] = useState(false);
-
-  const searchRecipient = async () => {
-    if (!searchTerm.trim() || !db) return;
-
-    setSearchLoading(true);
-    try {
-      let queryField: string;
-      let queryValue: string;
-
-      if (searchType === 'phone') {
-        queryField = 'phoneNumber';
-        queryValue = searchTerm.trim();
-      } else {
-        queryField = `gymMemberId.${adminGym}`;
-        queryValue = searchTerm.trim();
-      }
-
-      const usersQuery = query(collection(db, 'users'), where(queryField, '==', queryValue));
-      const querySnapshot = await getDocs(usersQuery);
-
-      if (querySnapshot.empty) {
-        alert('No user found with that search criteria.');
-        return;
-      }
-
-      const userDoc = querySnapshot.docs[0];
-      const userData = userDoc.data();
-      setRecipient({
-        id: userDoc.id,
-        name: userData.name || 'Unknown',
-        phoneNumber: userData.phoneNumber || '',
-        gymMemberId: userData.gymMemberId || {}
-      });
-    } catch (error: any) {
-      console.error('Error searching for user:', error);
-      alert(`Error searching for user: ${error.message || 'Unknown error'}`);
-    } finally {
-      setSearchLoading(false);
-    }
-  };
-
-  const handleDebug = async () => {
-    if (!recipient || !functions) return;
-
-    setLoading(true);
-    try {
-      const debugUserPassesFunction = httpsCallable(functions, 'debugUserPasses');
-      const result = await debugUserPassesFunction({
-        userId: recipient.id,
-        gymId: adminGym
-      });
-
-      setDebugResult(result.data);
-    } catch (error: any) {
-      console.error('Error debugging user passes:', error);
-      alert(`Failed to debug user passes: ${error.message || 'Unknown error'}`);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (!isOpen) return null;
-
-  return (
-    <div className="modal-overlay">
-      <div className="modal" style={{ maxWidth: '800px', maxHeight: '80vh', overflow: 'auto' }}>
-        <div className="modal-header">
-          <h2>Debug User Passes</h2>
-          <button onClick={onClose} className="close-btn">×</button>
-        </div>
-        <div className="modal-body">
-          {!recipient ? (
-            <div className="search-section">
-              <div className="search-type-selector">
-                <label>
-                  <input
-                    type="radio"
-                    value="phone"
-                    checked={searchType === 'phone'}
-                    onChange={(e) => setSearchType(e.target.value as 'phone' | 'memberId')}
-                  />
-                  Phone Number
-                </label>
-                <label>
-                  <input
-                    type="radio"
-                    value="memberId"
-                    checked={searchType === 'memberId'}
-                    onChange={(e) => setSearchType(e.target.value as 'phone' | 'memberId')}
-                  />
-                  Member ID
-                </label>
-              </div>
-              <div className="search-input">
-                <input
-                  type="text"
-                  placeholder={searchType === 'phone' ? 'Enter phone number' : 'Enter member ID'}
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && searchRecipient()}
-                />
-                <button onClick={searchRecipient} disabled={searchLoading}>
-                  {searchLoading ? 'Searching...' : 'Search'}
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="debug-section">
-              <div className="user-info">
-                <p><strong>User:</strong> {recipient.name}</p>
-                <p><strong>Phone:</strong> {recipient.phoneNumber}</p>
-              </div>
-              <div className="modal-actions">
-                <button onClick={() => setRecipient(null)}>Back to Search</button>
-                <button onClick={handleDebug} disabled={loading} className="debug-btn">
-                  {loading ? 'Debugging...' : 'Debug User Passes'}
-                </button>
-              </div>
-              {debugResult && (
-                <div className="debug-results" style={{ marginTop: '20px', padding: '10px', background: '#f5f5f5', borderRadius: '5px' }}>
-                  <h3>Debug Results:</h3>
-                  <pre style={{ whiteSpace: 'pre-wrap', fontSize: '12px' }}>
-                    {JSON.stringify(debugResult, null, 2)}
-                  </pre>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
-
 const AddAdminPassModal: React.FC<{
   isOpen: boolean;
   onClose: () => void;
   adminGym: string;
   onSuccess: () => void;
 }> = ({ isOpen, onClose, adminGym, onSuccess }) => {
-  const [count, setCount] = useState(1);
-  const [price, setPrice] = useState(0);
+  const [count, setCount] = useState<number | string>('');
+  const [price, setPrice] = useState<number | string>('');
   const [duration, setDuration] = useState(30);
   const [loading, setLoading] = useState(false);
 
@@ -353,8 +207,8 @@ const AddAdminPassModal: React.FC<{
       onSuccess();
       onClose();
       // Reset form
-      setCount(1);
-      setPrice(0);
+      setCount('');
+      setPrice('');
       setDuration(30);
     } catch (error: any) {
       console.error('Error adding admin pass:', error);
@@ -382,7 +236,14 @@ const AddAdminPassModal: React.FC<{
                   type="number"
                   id="modal-count"
                   value={count}
-                  onChange={(e) => setCount(Math.max(1, parseInt(e.target.value) || 1))}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === '') {
+                      setCount(''); // Allow empty temporarily
+                    } else {
+                      setCount(parseInt(value) || 1);
+                    }
+                  }}
                   min="1"
                   required
                 />
@@ -393,7 +254,14 @@ const AddAdminPassModal: React.FC<{
                   type="number"
                   id="modal-price"
                   value={price}
-                  onChange={(e) => setPrice(Math.max(0, parseInt(e.target.value) || 0))}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === '') {
+                      setPrice(''); // Allow empty temporarily
+                    } else {
+                      setPrice(parseInt(value) || 0);
+                    }
+                  }}
                   min="0"
                   required
                 />
@@ -644,7 +512,6 @@ const AdminPage: React.FC = () => {
   const [transferModalOpen, setTransferModalOpen] = useState(false);
   const [consumeModalOpen, setConsumeModalOpen] = useState(false);
   const [addPassModalOpen, setAddPassModalOpen] = useState(false);
-  const [debugModalOpen, setDebugModalOpen] = useState(false);
   const [selectedPass, setSelectedPass] = useState<AdminPass | null>(null);
 
   useEffect(() => {
@@ -743,12 +610,6 @@ const AdminPage: React.FC = () => {
             >
               Consume Pass
             </button>
-            <button
-              onClick={() => setDebugModalOpen(true)}
-              className="btn debug-user-btn"
-            >
-              Debug User
-            </button>
           </div>
         </div>
         <div className="profile-card-body">
@@ -811,13 +672,6 @@ const AdminPage: React.FC = () => {
       <ConsumePassModal
         isOpen={consumeModalOpen}
         onClose={() => setConsumeModalOpen(false)}
-        adminGym={userProfile?.adminGym || ''}
-        onSuccess={handleSuccess}
-      />
-
-      <DebugUserModal
-        isOpen={debugModalOpen}
-        onClose={() => setDebugModalOpen(false)}
         adminGym={userProfile?.adminGym || ''}
         onSuccess={handleSuccess}
       />

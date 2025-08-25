@@ -546,6 +546,8 @@ const AdminPage: React.FC = () => {
                   adminPasses.map(pass => (
                     <div key={pass.id} className="admin-pass-card">
                       <div className="admin-pass-body">
+                        <h3>{pass.passName}</h3>
+                        <p>Count: {pass.count}</p>
                         <p>Price: HKD {pass.price}</p>
                         <p>Duration: {pass.duration} months</p>
                       </div>

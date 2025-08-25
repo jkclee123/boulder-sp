@@ -51,14 +51,34 @@ export const sellAdminPass = functions.https.onCall(async (data, context) => {
             if (!recipientUserDoc.exists) {
                 throw new functions.https.HttpsError('not-found', 'Recipient user not found');
             }
-            // Calculate new lastDay for transferred pass based on duration from now
+            // Calculate new lastDay for transferred pass based on admin pass creation time
             let newPassLastDay = null;
             if (adminPassData.duration && adminPassData.duration > 0) {
-                const now = new Date();
-                const newLastDay = new Date(now);
-                newLastDay.setMonth(newLastDay.getMonth() + adminPassData.duration);
-                newLastDay.setHours(23, 59, 59, 999); // End of day
-                newPassLastDay = Timestamp.fromDate(newLastDay);
+                // Use admin pass creation time as the base, or current time if not available
+                const baseTime = adminPassData.createdAt
+                    ? (adminPassData.createdAt.toDate ? adminPassData.createdAt.toDate() : new Date(adminPassData.createdAt))
+                    : new Date();
+
+                // Work in UTC to avoid timezone complications
+                const baseYear = baseTime.getUTCFullYear();
+                const baseMonth = baseTime.getUTCMonth();
+                const baseDay = baseTime.getUTCDate();
+
+                // Calculate target month and year
+                const totalMonths = baseMonth + adminPassData.duration;
+                const targetYear = baseYear + Math.floor(totalMonths / 12);
+                const targetMonth = totalMonths % 12;
+
+                // Get the number of days in the target month to prevent rollover
+                const daysInTargetMonth = new Date(targetYear, targetMonth + 1, 0).getDate();
+
+                // Use the minimum of the original day or the target month's max day
+                const targetDay = Math.min(baseDay, daysInTargetMonth);
+
+                // Create the target date in UTC (15:59:59.999 UTC = 23:59:59.999 HKT)
+                const targetDate = new Date(Date.UTC(targetYear, targetMonth, targetDay, 15, 59, 59, 999));
+
+                newPassLastDay = Timestamp.fromDate(targetDate);
             }
             // Create new private pass for recipient
             const newPassRef = db.collection('privatePass').doc();

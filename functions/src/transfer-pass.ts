@@ -8,7 +8,7 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 
 // Transfer pass function
-export const transfer = functions.https.onCall(async (data, context) => {
+export const transferPass = functions.https.onCall(async (data, context) => {
     // Check if user is authenticated
     if (!context.auth) {
         throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
@@ -75,15 +75,34 @@ export const transfer = functions.https.onCall(async (data, context) => {
             // Calculate lastDay for new pass
             let newPassLastDay = null;
             if (passType === 'admin') {
-                // For admin passes, calculate new lastDay based on duration from now
+                // For admin passes, calculate new lastDay based on source pass creation time
                 const duration = sourcePassData.duration || 0;
                 if (duration > 0) {
-                    // Set lastDay to end of day at 23:59:59 HKT (UTC+8)
-                    const now = new Date();
-                    const newLastDay = new Date(now);
-                    newLastDay.setMonth(newLastDay.getMonth() + duration);
-                    newLastDay.setHours(23, 59, 59, 999); // End of day
-                    newPassLastDay = Timestamp.fromDate(newLastDay);
+                    // Use source pass creation time as the base, or current time if not available
+                    const baseTime = sourcePassData.createdAt
+                        ? (sourcePassData.createdAt.toDate ? sourcePassData.createdAt.toDate() : new Date(sourcePassData.createdAt))
+                        : new Date();
+
+                    // Work in UTC to avoid timezone complications
+                    const baseYear = baseTime.getUTCFullYear();
+                    const baseMonth = baseTime.getUTCMonth();
+                    const baseDay = baseTime.getUTCDate();
+
+                    // Calculate target month and year
+                    const totalMonths = baseMonth + duration;
+                    const targetYear = baseYear + Math.floor(totalMonths / 12);
+                    const targetMonth = totalMonths % 12;
+
+                    // Get the number of days in the target month to prevent rollover
+                    const daysInTargetMonth = new Date(targetYear, targetMonth + 1, 0).getDate();
+
+                    // Use the minimum of the original day or the target month's max day
+                    const targetDay = Math.min(baseDay, daysInTargetMonth);
+
+                    // Create the target date in UTC (15:59:59.999 UTC = 23:59:59.999 HKT)
+                    const targetDate = new Date(Date.UTC(targetYear, targetMonth, targetDay, 15, 59, 59, 999));
+
+                    newPassLastDay = Timestamp.fromDate(targetDate);
                 }
             }
             else {

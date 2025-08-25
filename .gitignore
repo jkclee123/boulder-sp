@@ -27,6 +27,9 @@ dist-ssr
 # TypeScript build info
 *.tsbuildinfo
 
+# Functions build output
+functions/lib
+
 # Test coverage and reports
 coverage
 .nyc_output

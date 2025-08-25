@@ -156,7 +156,7 @@ const TransferModal: React.FC<TransferModalProps> = ({ isOpen, onClose, pass, on
         throw new Error('Firebase functions not initialized. Please check your configuration.');
       }
 
-      const transferFunction = httpsCallable(functions, 'transfer');
+      const transferFunction = httpsCallable(functions, 'transferPass');
       await transferFunction({
         fromUserId: user.uid,
         toUserId: recipient.id,

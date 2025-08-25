@@ -4,6 +4,7 @@ import { db, functions } from '../firebase';
 import { collection, query, where, onSnapshot, Timestamp, getDocs, doc } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import AddAdminPassModal from './AddAdminPassModal';
+import '../css/AdminPage.css';
 
 interface AdminPass {
   id: string;
@@ -527,7 +528,7 @@ const AdminPage: React.FC = () => {
               onClick={() => setAddPassModalOpen(true)}
               className="btn add-admin-pass-btn"
             >
-              Add Admin Pass
+              Add Pass
             </button>
             <button
               onClick={() => setConsumeModalOpen(true)}
@@ -540,7 +541,7 @@ const AdminPage: React.FC = () => {
         <div className="profile-card-body">
           <div className="admin-content">
             <div className="admin-pass-list-section">
-              <h2>Active Admin Passes</h2>
+              <h2>Admin Passes</h2>
               <div className="admin-pass-list">
                 {adminPasses.length > 0 ? (
                   adminPasses.map(pass => (

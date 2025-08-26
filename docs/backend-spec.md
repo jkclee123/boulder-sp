@@ -1,6 +1,14 @@
 # Boulder SP - Backend Specification
 
-This document details the server-side logic for core application features, intended to be implemented as Firebase Cloud Functions.
+This document details the server-side implementation logic for core application features as Firebase Cloud Functions. For high-level business rules and domain concepts, refer to [AGENTS.md](./AGENTS.md).
+
+## Implementation Notes
+
+- **Time Zone**: All timestamps use Hong Kong Time (UTC+8)
+- **Currency**: All monetary values are in HKD
+- **Consumption Priority**: privatePass before marketPass
+- **Transfer Validation**: Single pass type per transaction
+- **Soft Deletes**: Use `active` flag for pass lifecycle management
 
 ## Transfer Process
 

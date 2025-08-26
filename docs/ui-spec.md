@@ -20,7 +20,7 @@ This document details the user interface and user experience for each page of th
 - **Fields**:
     - `name`: `string`
     - `telegramId`: `string`
-    - `phoneNumber`: `string` (input restricted to 8 digits, no verification needed)
+    - `phoneNumber`: `string` (follows standard validation rules)
     - `gymMemberId`: A section to add member IDs for different gyms.
 - **Routing**: Users are forced to this page if `name` or `phoneNumber` is not set.
 
@@ -35,12 +35,12 @@ This document details the user interface and user experience for each page of th
 - **Actions (List Item Buttons)**:
     - **Private Pass**:
         - `Transfer`: Initiates the transfer process.
-        - `Market`: Opens a form to list the pass on the market. Requires `telegramId` to be set.
+        - `Market`: Opens a form to list the pass on the market.
     - **Market Pass**:
         - `Transfer`: Initiates the transfer process.
         - `Unlist`: Removes the pass from the market and merges the count back to the parent `privatePass`.
     - **Expired Pass**:
-        - `De-activate`: Sets the `active` flag to `false` (Note: This applies to `privatePass` and `marketPass` records only; `adminPass` records are permanently deleted).
+        - `De-activate`: Sets the `active` flag to `false`.
 
 ### Market Page
 - **Objective**: Display all passes available for sale.
@@ -48,7 +48,6 @@ This document details the user interface and user experience for each page of th
 - **Filtering**: A control to filter the list by `gym`.
 - **Actions**:
     - Each list item has a "Contact Seller" button.
-    - Before navigating, the app must check if the *current user's* `phoneNumber` is set.
     - The button links to `https://t.me/{owner-telegramId}`.
 
 ### Admin Page

@@ -1,17 +1,3 @@
-# Boulder SP - Architecture
-
-This document outlines the technical architecture, primarily focusing on the Firestore data model.
-
-## High-Level Requirements
-
-- **Framework**: React web app
-- **Backend**: Firebase (Auth, Hosting, Firestore, Functions)
-- **App Name**: Boulder SP
-- **Timezone**: Hong Kong Time (UTC+8)
-- **Currency**: Hong Kong Dollar (HKD)
-- **Data Management**: Records are soft-deleted using an `active` flag (except `adminPass` records which are physically deleted).
-- **Payments**: Handled off-platform via Telegram.
-
 ## Firestore Data Model
 
 ### `gyms` collection

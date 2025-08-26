@@ -1,4 +1,4 @@
-import * as functions from 'firebase-functions';
+import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import * as admin from 'firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
 import { isPassExpired } from './utils';
@@ -9,22 +9,22 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 
 // Consume pass function
-export const consumePass = functions.https.onCall(async (request) => {
+export const consumePass = onCall(async (request) => {
     // Check if user is authenticated
     if (!request.auth) {
-        throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
+        throw new HttpsError('unauthenticated', 'User must be authenticated');
     }
     const { userId, passId, count } = request.data;
     // Validate input
     if (!userId || !passId || !count || typeof count !== 'number' || count <= 0) {
-        throw new functions.https.HttpsError('invalid-argument', 'Invalid consume parameters');
+        throw new HttpsError('invalid-argument', 'Invalid consume parameters');
     }
     // Only admins can consume passes
     const adminId = request.auth.uid;
     const adminDoc = await db.collection('users').doc(adminId).get();
     const adminData = adminDoc.data();
     if (!(adminData === null || adminData === void 0 ? void 0 : adminData.isAdmin)) {
-        throw new functions.https.HttpsError('permission-denied', 'Only admins can consume passes');
+        throw new HttpsError('permission-denied', 'Only admins can consume passes');
     }
     try {
         return await db.runTransaction(async (transaction) => {
@@ -33,7 +33,7 @@ export const consumePass = functions.https.onCall(async (request) => {
             const targetUserRef = db.collection('users').doc(userId);
             const targetUserDoc = await transaction.get(targetUserRef);
             if (!targetUserDoc.exists) {
-                throw new functions.https.HttpsError('not-found', 'Target user not found');
+                throw new HttpsError('not-found', 'Target user not found');
             }
 
             // Try to find pass in privatePass collection first
@@ -48,38 +48,38 @@ export const consumePass = functions.https.onCall(async (request) => {
                 passType = 'market';
 
                 if (!passDoc.exists) {
-                    throw new functions.https.HttpsError('not-found', 'Pass not found in private or market collections');
+                    throw new HttpsError('not-found', 'Pass not found in private or market collections');
                 }
             }
 
             const passData = passDoc.data();
             if (!passData) {
-                throw new functions.https.HttpsError('not-found', 'Pass data is empty or invalid');
+                throw new HttpsError('not-found', 'Pass data is empty or invalid');
             }
 
             // Verify admin gym matches pass gym
             if (!adminData?.adminGym || adminData.adminGym !== passData.gymId) {
-                throw new functions.https.HttpsError('permission-denied', 'Admin can only consume passes from their assigned gym');
+                throw new HttpsError('permission-denied', 'Admin can only consume passes from their assigned gym');
             }
 
             // Verify pass ownership
             if (((_a = passData.userRef) === null || _a === void 0 ? void 0 : _a.id) !== userId) {
-                throw new functions.https.HttpsError('permission-denied', 'Pass does not belong to the user');
+                throw new HttpsError('permission-denied', 'Pass does not belong to the user');
             }
 
             // Check if pass is active
             if (passData.active !== true) {
-                throw new functions.https.HttpsError('failed-precondition', 'Pass is not active');
+                throw new HttpsError('failed-precondition', 'Pass is not active');
             }
 
             // Check if pass is expired
             if (isPassExpired(passData.lastDay)) {
-                throw new functions.https.HttpsError('failed-precondition', 'Cannot consume expired pass');
+                throw new HttpsError('failed-precondition', 'Cannot consume expired pass');
             }
 
             // Check if sufficient count is available
             if (passData.count < count) {
-                throw new functions.https.HttpsError('failed-precondition', `Insufficient pass count. Available: ${passData.count}, Requested: ${count}`);
+                throw new HttpsError('failed-precondition', `Insufficient pass count. Available: ${passData.count}, Requested: ${count}`);
             }
 
             // Calculate new count
@@ -118,9 +118,9 @@ export const consumePass = functions.https.onCall(async (request) => {
     }
     catch (error) {
         console.error('Error in consumePass:', error);
-        if (error instanceof functions.https.HttpsError) {
+        if (error instanceof HttpsError) {
             throw error;
         }
-        throw new functions.https.HttpsError('internal', 'Failed to consume pass. Please try again.');
+        throw new HttpsError('internal', 'Failed to consume pass. Please try again.');
     }
 });

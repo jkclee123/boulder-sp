@@ -1,4 +1,4 @@
-import * as functions from 'firebase-functions';
+import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import * as admin from 'firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
 
@@ -8,25 +8,25 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 
 // Update user profile
-export const updateUserProfile = functions.https.onCall(async (request) => {
+export const updateUserProfile = onCall(async (request) => {
     // Check if user is authenticated
     if (!request.auth) {
-        throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
+        throw new HttpsError('unauthenticated', 'User must be authenticated');
     }
     const { name, phoneNumber, telegramId, gymMemberId } = request.data;
     const uid = request.auth.uid;
     // Validate input
     if (!name || typeof name !== 'string' || name.trim().length === 0) {
-        throw new functions.https.HttpsError('invalid-argument', 'Name is required and must be a non-empty string');
+        throw new HttpsError('invalid-argument', 'Name is required and must be a non-empty string');
     }
     if (phoneNumber && typeof phoneNumber !== 'string') {
-        throw new functions.https.HttpsError('invalid-argument', 'Phone number must be a string');
+        throw new HttpsError('invalid-argument', 'Phone number must be a string');
     }
     if (telegramId && typeof telegramId !== 'string') {
-        throw new functions.https.HttpsError('invalid-argument', 'Telegram ID must be a string');
+        throw new HttpsError('invalid-argument', 'Telegram ID must be a string');
     }
     if (gymMemberId && typeof gymMemberId !== 'object') {
-        throw new functions.https.HttpsError('invalid-argument', 'Gym member ID must be an object');
+        throw new HttpsError('invalid-argument', 'Gym member ID must be an object');
     }
     try {
         // Update user profile in Firestore - using 'users' collection to match security rules
@@ -44,15 +44,15 @@ export const updateUserProfile = functions.https.onCall(async (request) => {
         // Provide more specific error messages
         if (error instanceof Error) {
             if (error.message.includes('permission-denied')) {
-                throw new functions.https.HttpsError('permission-denied', 'You do not have permission to update this profile');
+                throw new HttpsError('permission-denied', 'You do not have permission to update this profile');
             }
             else if (error.message.includes('not-found')) {
-                throw new functions.https.HttpsError('not-found', 'User profile not found');
+                throw new HttpsError('not-found', 'User profile not found');
             }
             else if (error.message.includes('unavailable')) {
-                throw new functions.https.HttpsError('unavailable', 'Firestore is temporarily unavailable');
+                throw new HttpsError('unavailable', 'Firestore is temporarily unavailable');
             }
         }
-        throw new functions.https.HttpsError('internal', 'Failed to update profile. Please try again.');
+        throw new HttpsError('internal', 'Failed to update profile. Please try again.');
     }
 });

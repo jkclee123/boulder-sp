@@ -1,4 +1,4 @@
-import * as functions from 'firebase-functions';
+import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import * as admin from 'firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
 
@@ -8,36 +8,36 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 
 // Add admin pass function
-export const addAdminPass = functions.https.onCall(async (request) => {
+export const addAdminPass = onCall(async (request) => {
     console.log('addAdminPass called with data:', JSON.stringify(request.data, null, 2));
     // Check if user is authenticated
     if (!request.auth) {
-        throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
+        throw new HttpsError('unauthenticated', 'User must be authenticated');
     }
     const { gymId, gymDisplayName, passName, count, price, duration } = request.data;
     // Validate input
     if (!gymId || !gymDisplayName || !passName || !count || typeof count !== 'number' || count <= 0) {
-        throw new functions.https.HttpsError('invalid-argument', 'Invalid admin pass parameters');
+        throw new HttpsError('invalid-argument', 'Invalid admin pass parameters');
     }
     if (typeof passName !== 'string' || passName.trim().length === 0) {
-        throw new functions.https.HttpsError('invalid-argument', 'Pass name is required and must be a non-empty string');
+        throw new HttpsError('invalid-argument', 'Pass name is required and must be a non-empty string');
     }
     if (typeof price !== 'number' || price < 0) {
-        throw new functions.https.HttpsError('invalid-argument', 'Price must be a non-negative number');
+        throw new HttpsError('invalid-argument', 'Price must be a non-negative number');
     }
     if (typeof duration !== 'number' || duration <= 0) {
-        throw new functions.https.HttpsError('invalid-argument', 'Duration must be a positive number');
+        throw new HttpsError('invalid-argument', 'Duration must be a positive number');
     }
     // Only admins can add admin passes
     const adminId = request.auth.uid;
     const adminDoc = await db.collection('users').doc(adminId).get();
     const adminData = adminDoc.data();
     if (!(adminData === null || adminData === void 0 ? void 0 : adminData.isAdmin)) {
-        throw new functions.https.HttpsError('permission-denied', 'Only admins can add admin passes');
+        throw new HttpsError('permission-denied', 'Only admins can add admin passes');
     }
     // Verify admin has permission for this gym
     if (!adminData?.adminGym || adminData.adminGym !== gymId) {
-        throw new functions.https.HttpsError('permission-denied', 'You can only add admin passes for your assigned gym');
+        throw new HttpsError('permission-denied', 'You can only add admin passes for your assigned gym');
     }
     try {
         // Create new admin pass
@@ -63,9 +63,9 @@ export const addAdminPass = functions.https.onCall(async (request) => {
     }
     catch (error) {
         console.error('Error in addAdminPass:', error);
-        if (error instanceof functions.https.HttpsError) {
+        if (error instanceof HttpsError) {
             throw error;
         }
-        throw new functions.https.HttpsError('internal', 'Failed to add admin pass. Please try again.');
+        throw new HttpsError('internal', 'Failed to add admin pass. Please try again.');
     }
 });

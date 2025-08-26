@@ -1,4 +1,4 @@
-import * as functions from 'firebase-functions';
+import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import * as admin from 'firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
 import { isPassExpired } from './utils';
@@ -9,18 +9,18 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 
 // List private pass for market function
-export const listPassForMarket = functions.https.onCall(async (request) => {
+export const listPassForMarket = onCall(async (request) => {
     // Check if user is authenticated
     if (!request.auth) {
-        throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
+        throw new HttpsError('unauthenticated', 'User must be authenticated');
     }
     const { privatePassId, count, price, remarks } = request.data;
     // Validate input
     if (!privatePassId || !count || typeof count !== 'number' || count <= 0) {
-        throw new functions.https.HttpsError('invalid-argument', 'Invalid market listing parameters');
+        throw new HttpsError('invalid-argument', 'Invalid market listing parameters');
     }
     if (typeof price !== 'number' || price <= 0) {
-        throw new functions.https.HttpsError('invalid-argument', 'Price must be a positive number');
+        throw new HttpsError('invalid-argument', 'Price must be a positive number');
     }
     const userId = request.auth.uid;
     try {
@@ -30,36 +30,36 @@ export const listPassForMarket = functions.https.onCall(async (request) => {
             const userRef = db.collection('users').doc(userId);
             const userDoc = await transaction.get(userRef);
             if (!userDoc.exists) {
-                throw new functions.https.HttpsError('not-found', 'User not found');
+                throw new HttpsError('not-found', 'User not found');
             }
             const userData = userDoc.data();
             if (!(userData === null || userData === void 0 ? void 0 : userData.telegramId)) {
-                throw new functions.https.HttpsError('failed-precondition', 'You must set your Telegram ID before listing passes for sale');
+                throw new HttpsError('failed-precondition', 'You must set your Telegram ID before listing passes for sale');
             }
             // Get private pass document
             const privatePassRef = db.collection('privatePass').doc(privatePassId);
             const privatePassDoc = await transaction.get(privatePassRef);
             if (!privatePassDoc.exists) {
-                throw new functions.https.HttpsError('not-found', 'Private pass not found');
+                throw new HttpsError('not-found', 'Private pass not found');
             }
             const privatePassData = privatePassDoc.data();
             if (!privatePassData) {
-                throw new functions.https.HttpsError('not-found', 'Private pass data is empty or invalid');
+                throw new HttpsError('not-found', 'Private pass data is empty or invalid');
             }
             // Verify ownership and active status
             if (((_a = privatePassData.userRef) === null || _a === void 0 ? void 0 : _a.id) !== userId) {
-                throw new functions.https.HttpsError('permission-denied', 'You do not own this pass');
+                throw new HttpsError('permission-denied', 'You do not own this pass');
             }
             if (privatePassData.active !== true) {
-                throw new functions.https.HttpsError('failed-precondition', 'Pass is not active');
+                throw new HttpsError('failed-precondition', 'Pass is not active');
             }
             // Check if pass is expired
             if (isPassExpired(privatePassData.lastDay)) {
-                throw new functions.https.HttpsError('failed-precondition', 'Cannot list expired pass for sale');
+                throw new HttpsError('failed-precondition', 'Cannot list expired pass for sale');
             }
             // Check if count is sufficient
             if (privatePassData.count < count) {
-                throw new functions.https.HttpsError('failed-precondition', `Insufficient pass count. Available: ${privatePassData.count}, Requested: ${count}`);
+                throw new HttpsError('failed-precondition', `Insufficient pass count. Available: ${privatePassData.count}, Requested: ${count}`);
             }
             // Create new market pass
             const marketPassRef = db.collection('marketPass').doc();
@@ -92,9 +92,9 @@ export const listPassForMarket = functions.https.onCall(async (request) => {
     }
     catch (error) {
         console.error('Error in listPassForMarket:', error);
-        if (error instanceof functions.https.HttpsError) {
+        if (error instanceof HttpsError) {
             throw error;
         }
-        throw new functions.https.HttpsError('internal', 'Failed to list pass for sale. Please try again.');
+        throw new HttpsError('internal', 'Failed to list pass for sale. Please try again.');
     }
 });

@@ -1,4 +1,4 @@
-import * as functions from 'firebase-functions';
+import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import * as admin from 'firebase-admin';
 
 if (!admin.apps.length) {
@@ -7,17 +7,17 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 
 // Get user profile
-export const getUserProfile = functions.https.onCall(async (request) => {
+export const getUserProfile = onCall(async (request) => {
     // Check if user is authenticated
     if (!request.auth) {
-        throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
+        throw new HttpsError('unauthenticated', 'User must be authenticated');
     }
     const uid = request.auth.uid;
     try {
         // Use 'users' collection to match security rules
         const userDoc = await db.collection('users').doc(uid).get();
         if (!userDoc.exists) {
-            throw new functions.https.HttpsError('not-found', 'User profile not found');
+            throw new HttpsError('not-found', 'User profile not found');
         }
         const userData = userDoc.data();
         return {
@@ -38,12 +38,12 @@ export const getUserProfile = functions.https.onCall(async (request) => {
         // Provide more specific error messages
         if (error instanceof Error) {
             if (error.message.includes('permission-denied')) {
-                throw new functions.https.HttpsError('permission-denied', 'You do not have permission to read this profile');
+                throw new HttpsError('permission-denied', 'You do not have permission to read this profile');
             }
             else if (error.message.includes('unavailable')) {
-                throw new functions.https.HttpsError('unavailable', 'Firestore is temporarily unavailable');
+                throw new HttpsError('unavailable', 'Firestore is temporarily unavailable');
             }
         }
-        throw new functions.https.HttpsError('internal', 'Failed to get profile. Please try again.');
+        throw new HttpsError('internal', 'Failed to get profile. Please try again.');
     }
 });

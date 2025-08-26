@@ -1,4 +1,4 @@
-import * as functions from 'firebase-functions';
+import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import * as admin from 'firebase-admin';
 
 if (!admin.apps.length) {
@@ -7,22 +7,22 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 
 // Delete admin pass function
-export const deleteAdminPass = functions.https.onCall(async (request) => {
+export const deleteAdminPass = onCall(async (request) => {
     // Check if user is authenticated
     if (!request.auth) {
-        throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
+        throw new HttpsError('unauthenticated', 'User must be authenticated');
     }
     const { adminPassId } = request.data;
     // Validate input
     if (!adminPassId) {
-        throw new functions.https.HttpsError('invalid-argument', 'Admin pass ID is required');
+        throw new HttpsError('invalid-argument', 'Admin pass ID is required');
     }
     // Only admins can delete admin passes
     const adminId = request.auth.uid;
     const adminDoc = await db.collection('users').doc(adminId).get();
     const adminData = adminDoc.data();
     if (!(adminData === null || adminData === void 0 ? void 0 : adminData.isAdmin)) {
-        throw new functions.https.HttpsError('permission-denied', 'Only admins can delete admin passes');
+        throw new HttpsError('permission-denied', 'Only admins can delete admin passes');
     }
     try {
         return await db.runTransaction(async (transaction) => {
@@ -30,12 +30,12 @@ export const deleteAdminPass = functions.https.onCall(async (request) => {
             const adminPassRef = db.collection('adminPass').doc(adminPassId);
             const adminPassDoc = await transaction.get(adminPassRef);
             if (!adminPassDoc.exists) {
-                throw new functions.https.HttpsError('not-found', 'Admin pass not found');
+                throw new HttpsError('not-found', 'Admin pass not found');
             }
             const adminPassData = adminPassDoc.data();
             // Verify admin has permission for this gym
             if (!adminData?.adminGym || adminData.adminGym !== (adminPassData === null || adminPassData === void 0 ? void 0 : adminPassData.gymId)) {
-                throw new functions.https.HttpsError('permission-denied', 'You can only delete admin passes from your assigned gym');
+                throw new HttpsError('permission-denied', 'You can only delete admin passes from your assigned gym');
             }
             // Delete the admin pass permanently
             transaction.delete(adminPassRef);
@@ -47,9 +47,9 @@ export const deleteAdminPass = functions.https.onCall(async (request) => {
     }
     catch (error) {
         console.error('Error in deleteAdminPass:', error);
-        if (error instanceof functions.https.HttpsError) {
+        if (error instanceof HttpsError) {
             throw error;
         }
-        throw new functions.https.HttpsError('internal', 'Failed to delete admin pass. Please try again.');
+        throw new HttpsError('internal', 'Failed to delete admin pass. Please try again.');
     }
 });

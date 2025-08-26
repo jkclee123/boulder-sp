@@ -1,4 +1,4 @@
-import * as functions from 'firebase-functions';
+import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import * as admin from 'firebase-admin';
 import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 import { isPassExpired } from './utils';
@@ -9,21 +9,21 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 
 // Transfer pass function
-export const transferPass = functions.https.onCall(async (request) => {
+export const transferPass = onCall(async (request) => {
     // Check if user is authenticated
     if (!request.auth) {
-        throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
+        throw new HttpsError('unauthenticated', 'User must be authenticated');
     }
     const { fromUserId, toUserId, passId, passType, count, price } = request.data;
     // Validate input
     if (!fromUserId || !toUserId || !passId || !passType || !count || typeof count !== 'number' || count <= 0) {
-        throw new functions.https.HttpsError('invalid-argument', 'Invalid transfer parameters');
+        throw new HttpsError('invalid-argument', 'Invalid transfer parameters');
     }
     if (fromUserId !== request.auth.uid) {
-        throw new functions.https.HttpsError('permission-denied', 'You can only transfer your own passes');
+        throw new HttpsError('permission-denied', 'You can only transfer your own passes');
     }
     if (fromUserId === toUserId) {
-        throw new functions.https.HttpsError('invalid-argument', 'Cannot transfer to yourself');
+        throw new HttpsError('invalid-argument', 'Cannot transfer to yourself');
     }
     const transferPrice = price || 0;
     try {
@@ -42,36 +42,36 @@ export const transferPass = functions.https.onCall(async (request) => {
                 sourcePassRef = db.collection('adminPass').doc(passId);
             }
             else {
-                throw new functions.https.HttpsError('invalid-argument', 'Invalid pass type');
+                throw new HttpsError('invalid-argument', 'Invalid pass type');
             }
             const sourcePassDoc = await transaction.get(sourcePassRef);
             if (!sourcePassDoc.exists) {
-                throw new functions.https.HttpsError('not-found', 'Source pass not found');
+                throw new HttpsError('not-found', 'Source pass not found');
             }
             sourcePassData = sourcePassDoc.data();
             if (!sourcePassData) {
-                throw new functions.https.HttpsError('not-found', 'Source pass data is empty or invalid');
+                throw new HttpsError('not-found', 'Source pass data is empty or invalid');
             }
             // Verify ownership and active status
             if (((_a = sourcePassData.userRef) === null || _a === void 0 ? void 0 : _a.id) !== fromUserId) {
-                throw new functions.https.HttpsError('permission-denied', 'You do not own this pass');
+                throw new HttpsError('permission-denied', 'You do not own this pass');
             }
             if (sourcePassData.active !== true) {
-                throw new functions.https.HttpsError('failed-precondition', 'Pass is not active');
+                throw new HttpsError('failed-precondition', 'Pass is not active');
             }
             // Check if pass is expired
             if (isPassExpired(sourcePassData.lastDay)) {
-                throw new functions.https.HttpsError('failed-precondition', 'Cannot transfer expired pass');
+                throw new HttpsError('failed-precondition', 'Cannot transfer expired pass');
             }
             // Check if count is sufficient
             if (sourcePassData.count < count) {
-                throw new functions.https.HttpsError('failed-precondition', `Insufficient pass count. Available: ${sourcePassData.count}, Requested: ${count}`);
+                throw new HttpsError('failed-precondition', `Insufficient pass count. Available: ${sourcePassData.count}, Requested: ${count}`);
             }
             // Get recipient user
             const toUserRef = db.collection('users').doc(toUserId);
             const toUserDoc = await transaction.get(toUserRef);
             if (!toUserDoc.exists) {
-                throw new functions.https.HttpsError('not-found', 'Recipient user not found');
+                throw new HttpsError('not-found', 'Recipient user not found');
             }
             // Calculate lastDay for new pass
             let newPassLastDay = null;
@@ -158,9 +158,9 @@ export const transferPass = functions.https.onCall(async (request) => {
     }
     catch (error) {
         console.error('Error in transfer:', error);
-        if (error instanceof functions.https.HttpsError) {
+        if (error instanceof HttpsError) {
             throw error;
         }
-        throw new functions.https.HttpsError('internal', 'Transfer failed. Please try again.');
+        throw new HttpsError('internal', 'Transfer failed. Please try again.');
     }
 });

@@ -7,12 +7,12 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 
 // Get user profile
-export const getUserProfile = functions.https.onCall(async (data, context) => {
+export const getUserProfile = functions.https.onCall(async (request) => {
     // Check if user is authenticated
-    if (!context.auth) {
+    if (!request.auth) {
         throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
     }
-    const uid = context.auth.uid;
+    const uid = request.auth.uid;
     try {
         // Use 'users' collection to match security rules
         const userDoc = await db.collection('users').doc(uid).get();

@@ -1,6 +1,7 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
+import { isPassExpired } from './utils';
 
 if (!admin.apps.length) {
   admin.initializeApp();
@@ -8,12 +9,12 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 
 // List private pass for market function
-export const listPassForMarket = functions.https.onCall(async (data, context) => {
+export const listPassForMarket = functions.https.onCall(async (request) => {
     // Check if user is authenticated
-    if (!context.auth) {
+    if (!request.auth) {
         throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
     }
-    const { privatePassId, count, price, remarks } = data;
+    const { privatePassId, count, price, remarks } = request.data;
     // Validate input
     if (!privatePassId || !count || typeof count !== 'number' || count <= 0) {
         throw new functions.https.HttpsError('invalid-argument', 'Invalid market listing parameters');
@@ -21,7 +22,7 @@ export const listPassForMarket = functions.https.onCall(async (data, context) =>
     if (typeof price !== 'number' || price <= 0) {
         throw new functions.https.HttpsError('invalid-argument', 'Price must be a positive number');
     }
-    const userId = context.auth.uid;
+    const userId = request.auth.uid;
     try {
         return await db.runTransaction(async (transaction) => {
             var _a;
@@ -53,7 +54,7 @@ export const listPassForMarket = functions.https.onCall(async (data, context) =>
                 throw new functions.https.HttpsError('failed-precondition', 'Pass is not active');
             }
             // Check if pass is expired
-            if (privatePassData.lastDay && privatePassData.lastDay.toDate() < new Date()) {
+            if (isPassExpired(privatePassData.lastDay)) {
                 throw new functions.https.HttpsError('failed-precondition', 'Cannot list expired pass for sale');
             }
             // Check if count is sufficient
@@ -82,20 +83,6 @@ export const listPassForMarket = functions.https.onCall(async (data, context) =>
                 count: FieldValue.increment(-count),
                 updatedAt: FieldValue.serverTimestamp()
             });
-            // Create pass log entry
-            const passLogRef = db.collection('passLog').doc();
-            const passLogData = {
-                createdAt: FieldValue.serverTimestamp(),
-                gymDisplayName: privatePassData === null || privatePassData === void 0 ? void 0 : privatePassData.gymDisplayName,
-                passName: privatePassData === null || privatePassData === void 0 ? void 0 : privatePassData.passName,
-                count: count,
-                price: price,
-                fromUserRef: userRef,
-                toUserRef: userRef,
-                action: 'market',
-                participants: [userId]
-            };
-            transaction.set(passLogRef, passLogData);
             return {
                 success: true,
                 message: 'Pass listed for sale successfully',

@@ -8,13 +8,13 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 
 // Add admin pass function
-export const addAdminPass = functions.https.onCall(async (data, context) => {
-    console.log('addAdminPass called with data:', JSON.stringify(data, null, 2));
+export const addAdminPass = functions.https.onCall(async (request) => {
+    console.log('addAdminPass called with data:', JSON.stringify(request.data, null, 2));
     // Check if user is authenticated
-    if (!context.auth) {
+    if (!request.auth) {
         throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
     }
-    const { gymId, gymDisplayName, passName, count, price, duration } = data;
+    const { gymId, gymDisplayName, passName, count, price, duration } = request.data;
     // Validate input
     if (!gymId || !gymDisplayName || !passName || !count || typeof count !== 'number' || count <= 0) {
         throw new functions.https.HttpsError('invalid-argument', 'Invalid admin pass parameters');
@@ -29,7 +29,7 @@ export const addAdminPass = functions.https.onCall(async (data, context) => {
         throw new functions.https.HttpsError('invalid-argument', 'Duration must be a positive number');
     }
     // Only admins can add admin passes
-    const adminId = context.auth.uid;
+    const adminId = request.auth.uid;
     const adminDoc = await db.collection('users').doc(adminId).get();
     const adminData = adminDoc.data();
     if (!(adminData === null || adminData === void 0 ? void 0 : adminData.isAdmin)) {

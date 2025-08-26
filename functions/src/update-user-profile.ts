@@ -8,13 +8,13 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 
 // Update user profile
-export const updateUserProfile = functions.https.onCall(async (data, context) => {
+export const updateUserProfile = functions.https.onCall(async (request) => {
     // Check if user is authenticated
-    if (!context.auth) {
+    if (!request.auth) {
         throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
     }
-    const { name, phoneNumber, telegramId, gymMemberId } = data;
-    const uid = context.auth.uid;
+    const { name, phoneNumber, telegramId, gymMemberId } = request.data;
+    const uid = request.auth.uid;
     // Validate input
     if (!name || typeof name !== 'string' || name.trim().length === 0) {
         throw new functions.https.HttpsError('invalid-argument', 'Name is required and must be a non-empty string');

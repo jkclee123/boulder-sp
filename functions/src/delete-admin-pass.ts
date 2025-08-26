@@ -7,18 +7,18 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 
 // Delete admin pass function
-export const deleteAdminPass = functions.https.onCall(async (data, context) => {
+export const deleteAdminPass = functions.https.onCall(async (request) => {
     // Check if user is authenticated
-    if (!context.auth) {
+    if (!request.auth) {
         throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
     }
-    const { adminPassId } = data;
+    const { adminPassId } = request.data;
     // Validate input
     if (!adminPassId) {
         throw new functions.https.HttpsError('invalid-argument', 'Admin pass ID is required');
     }
     // Only admins can delete admin passes
-    const adminId = context.auth.uid;
+    const adminId = request.auth.uid;
     const adminDoc = await db.collection('users').doc(adminId).get();
     const adminData = adminDoc.data();
     if (!(adminData === null || adminData === void 0 ? void 0 : adminData.isAdmin)) {

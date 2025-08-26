@@ -1,3 +1,21 @@
+// Helper function to check if a pass is expired
+// Pass is valid until the end of the lastDay (23:59:59 HKT)
+export const isPassExpired = (lastDay: any): boolean => {
+    if (!lastDay || typeof lastDay.toDate !== 'function') {
+        return false; // No expiration date means pass never expires
+    }
+
+    const lastDayDate = lastDay.toDate();
+    const now = new Date();
+
+    // Compare dates (not exact timestamps) since pass is valid until end of day
+    // Set both dates to start of day for comparison
+    const lastDayStartOfDay = new Date(lastDayDate.getFullYear(), lastDayDate.getMonth(), lastDayDate.getDate());
+    const nowStartOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    return nowStartOfDay > lastDayStartOfDay;
+};
+
 // Helper function to sanitize Firestore data by removing circular references
 export const sanitizeFirestoreData = (data: any): any => {
     if (data === null || typeof data !== 'object')

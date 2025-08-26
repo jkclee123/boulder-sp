@@ -8,18 +8,18 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 
 // Sell admin pass function
-export const sellAdminPass = functions.https.onCall(async (data, context) => {
+export const sellAdminPass = functions.https.onCall(async (request) => {
     // Check if user is authenticated
-    if (!context.auth) {
+    if (!request.auth) {
         throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
     }
-    const { adminPassId, recipientUserId } = data;
+    const { adminPassId, recipientUserId } = request.data;
     // Validate input
     if (!adminPassId || !recipientUserId) {
         throw new functions.https.HttpsError('invalid-argument', 'Invalid sell parameters');
     }
     // Only admins can sell admin passes
-    const adminId = context.auth.uid;
+    const adminId = request.auth.uid;
     const adminDoc = await db.collection('users').doc(adminId).get();
     const adminData = adminDoc.data();
     if (!(adminData === null || adminData === void 0 ? void 0 : adminData.isAdmin)) {

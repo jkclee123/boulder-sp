@@ -1,6 +1,7 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import { FieldValue, Timestamp } from 'firebase-admin/firestore';
+import { isPassExpired } from './utils';
 
 if (!admin.apps.length) {
   admin.initializeApp();
@@ -8,17 +9,17 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 
 // Transfer pass function
-export const transferPass = functions.https.onCall(async (data, context) => {
+export const transferPass = functions.https.onCall(async (request) => {
     // Check if user is authenticated
-    if (!context.auth) {
+    if (!request.auth) {
         throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
     }
-    const { fromUserId, toUserId, passId, passType, count, price } = data;
+    const { fromUserId, toUserId, passId, passType, count, price } = request.data;
     // Validate input
     if (!fromUserId || !toUserId || !passId || !passType || !count || typeof count !== 'number' || count <= 0) {
         throw new functions.https.HttpsError('invalid-argument', 'Invalid transfer parameters');
     }
-    if (fromUserId !== context.auth.uid) {
+    if (fromUserId !== request.auth.uid) {
         throw new functions.https.HttpsError('permission-denied', 'You can only transfer your own passes');
     }
     if (fromUserId === toUserId) {
@@ -59,7 +60,7 @@ export const transferPass = functions.https.onCall(async (data, context) => {
                 throw new functions.https.HttpsError('failed-precondition', 'Pass is not active');
             }
             // Check if pass is expired
-            if (sourcePassData.lastDay && sourcePassData.lastDay.toDate() < new Date()) {
+            if (isPassExpired(sourcePassData.lastDay)) {
                 throw new functions.https.HttpsError('failed-precondition', 'Cannot transfer expired pass');
             }
             // Check if count is sufficient

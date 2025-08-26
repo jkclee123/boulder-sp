@@ -1,6 +1,7 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
+import { isPassExpired } from './utils';
 
 if (!admin.apps.length) {
   admin.initializeApp();
@@ -8,17 +9,17 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 
 // Unlist market pass function
-export const unlistPass = functions.https.onCall(async (data, context) => {
+export const unlistPass = functions.https.onCall(async (request) => {
     // Check if user is authenticated
-    if (!context.auth) {
+    if (!request.auth) {
         throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
     }
-    const { marketPassId } = data;
+    const { marketPassId } = request.data;
     // Validate input
     if (!marketPassId) {
         throw new functions.https.HttpsError('invalid-argument', 'Market pass ID is required');
     }
-    const userId = context.auth.uid;
+    const userId = request.auth.uid;
     try {
         return await db.runTransaction(async (transaction) => {
             var _a, _b;
@@ -40,7 +41,7 @@ export const unlistPass = functions.https.onCall(async (data, context) => {
                 throw new functions.https.HttpsError('failed-precondition', 'Market pass is not active');
             }
             // Check if pass is expired
-            if (marketPassData.lastDay && marketPassData.lastDay.toDate() < new Date()) {
+            if (isPassExpired(marketPassData.lastDay)) {
                 throw new functions.https.HttpsError('failed-precondition', 'Cannot unlist expired pass');
             }
             // Get the parent private pass

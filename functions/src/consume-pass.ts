@@ -10,6 +10,11 @@ const db = admin.firestore();
 
 // Consume pass function
 export const consumePass = onCall(async (request) => {
+    console.log('consumePass called with request data:', {
+        hasAuth: !!request.auth,
+        authUid: request.auth?.uid,
+        data: request.data
+    });
     // Check if user is authenticated
     if (!request.auth) {
         throw new HttpsError('unauthenticated', 'User must be authenticated');

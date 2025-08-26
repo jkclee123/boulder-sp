@@ -179,7 +179,7 @@ const ConsumePassModal: React.FC<{
       setSelectedPass(null);
       setConsumeCount(1);
     } catch (error: any) {
-      console.error('Error consuming pass:', error);
+      console.error('Consume error:', error?.code, error?.message);
       alert(`Failed to consume pass: ${error.message || 'Unknown error'}`);
     } finally {
       setLoading(false);

@@ -157,7 +157,7 @@ const AdminPage: React.FC = () => {
                       <div className="admin-pass-body">
                         <h3>{pass.passName}</h3>
                         <p>Punches: {pass.count}</p>
-                        <p>Price: $ {pass.price}</p>
+                        <p>Price: ${pass.price}</p>
                         <p>Valid for: {pass.duration} months</p>
                       </div>
                       <div className="admin-pass-actions">

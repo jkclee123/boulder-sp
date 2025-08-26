@@ -26,7 +26,8 @@ export const consumePass = onCall(async (request) => {
     }
     // Only admins can consume passes
     const adminId = request.auth.uid;
-    const adminDoc = await db.collection('users').doc(adminId).get();
+    const adminRef = db.collection('users').doc(adminId);
+    const adminDoc = await adminRef.get();
     const adminData = adminDoc.data();
     if (!(adminData === null || adminData === void 0 ? void 0 : adminData.isAdmin)) {
         throw new HttpsError('permission-denied', 'Only admins can consume passes');
@@ -105,10 +106,10 @@ export const consumePass = onCall(async (request) => {
                 count: count,
                 price: passType === 'market' ? (passData.price || 0) : 0,
                 fromUserRef: targetUserRef,
-                toUserRef: adminData.id,
+                toUserRef: adminRef,
                 action: 'consume',
                 passType: passType,
-                participants: [userId, adminData.id]
+                participants: [userId, adminId]
             };
             transaction.set(passLogRef, passLogData);
 

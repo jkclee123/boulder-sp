@@ -1,9 +1,6 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import * as admin from 'firebase-admin';
 
-// Check if we're running in emulator
-const isEmulator = process.env.FUNCTIONS_EMULATOR === 'true';
-
 if (!admin.apps.length) {
   admin.initializeApp();
 }
@@ -11,17 +8,8 @@ const db = admin.firestore();
 
 // Get user profile
 export const getUserProfile = onCall(async (request) => {
-    console.log('getUserProfile called:', {
-        hasAuth: !!request.auth,
-        uid: request.auth?.uid,
-        isEmulator,
-        authToken: request.auth?.token ? 'present' : 'missing',
-        headers: request.rawRequest?.headers?.authorization ? 'auth header present' : 'no auth header'
-    });
-
     // Check if user is authenticated
     if (!request.auth) {
-        console.log('No authentication found in request');
         throw new HttpsError('unauthenticated', 'User must be authenticated');
     }
     const uid = request.auth.uid;

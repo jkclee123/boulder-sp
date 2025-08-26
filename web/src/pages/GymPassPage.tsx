@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../providers/AuthProvider';
 import { db } from '../firebase';
-import { collection, query, where, onSnapshot, Timestamp, doc } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, Timestamp } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../firebase';
-import '../css/MyPassPage.css';
+import '../css/GymPassPage.css';
 import TransferModal from './TransferModal';
 import MarketModal from './MarketModal';
 
@@ -65,7 +65,7 @@ const PassCard: React.FC<{ pass: AnyPass; onAction: (action: string, pass: AnyPa
   );
 };
 
-const MyPassPage: React.FC = () => {
+const GymPassPage: React.FC = () => {
   const { user, userProfile } = useAuth();
   const [privatePasses, setPrivatePasses] = useState<PrivatePass[]>([]);
   const [marketPasses, setMarketPasses] = useState<MarketPass[]>([]);
@@ -77,19 +77,19 @@ const MyPassPage: React.FC = () => {
   const [unlistingPassId, setUnlistingPassId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user || !db) {
+    if (!user || !db || !userProfile) {
       setLoading(false);
       return;
     }
 
-    const userRef = doc(db, 'users', user.uid);
+    console.log('userProfile:', userProfile);
+    console.log('userProfile.adminGym:', userProfile?.adminGym);
 
-    const privatePassQuery = query(collection(db, 'privatePass'), where('userRef', '==', userRef), where('active', '==', true));
-    const marketPassQuery = query(collection(db, 'marketPass'), where('userRef', '==', userRef), where('active', '==', true));
+    const privatePassQuery = query(collection(db, 'privatePass'), where('gymId', '==', userProfile?.adminGym), where('active', '==', true));
+    const marketPassQuery = query(collection(db, 'marketPass'), where('gymId', '==', userProfile?.adminGym), where('active', '==', true));
 
     const unsubPrivate = onSnapshot(privatePassQuery, snapshot => {
       const passes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), type: 'private' } as PrivatePass));
-      // Use UTC-preserving approach to match backend UTC handling
       const now = new Date();
       const active = passes.filter(p => p.lastDay.toDate().getTime() >= now.getTime());
       const expired = passes.filter(p => p.lastDay.toDate().getTime() < now.getTime());
@@ -113,7 +113,7 @@ const MyPassPage: React.FC = () => {
       unsubPrivate();
       unsubMarket();
     };
-  }, [user]);
+  }, [user, userProfile]);
 
   const handleAction = (action: string, pass: AnyPass) => {
     console.log(`Action: ${action} on pass:`, pass);
@@ -191,8 +191,8 @@ const MyPassPage: React.FC = () => {
   }
 
   return (
-    <div className="my-pass-page">
-            <h1 className="page-header">My Passes</h1>
+    <div className="gym-pass-page">
+            <h1 className="page-header">Gym Passes</h1>
 
       <div className="pass-list-section">
         <h2>Private Passes</h2>
@@ -262,4 +262,4 @@ const MyPassPage: React.FC = () => {
   );
 };
 
-export default MyPassPage;
+export default GymPassPage;

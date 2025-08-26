@@ -203,11 +203,11 @@ const PassLogPage: React.FC = () => {
     return (
       <div className="pass-log-page">
         <div className="page-header">
-          <h1>Pass Log</h1>
+          <h1>Pass Records</h1>
         </div>
         <div className="loading-container">
           <div className="loading-spinner"></div>
-          <p>Loading your pass logs...</p>
+          <p>Loading your pass records...</p>
         </div>
       </div>
     );
@@ -217,7 +217,7 @@ const PassLogPage: React.FC = () => {
     return (
       <div className="pass-log-page">
         <div className="page-header">
-          <h1>Pass Log</h1>
+          <h1>Pass Records</h1>
         </div>
         <div className="error-container">
           <p>{error}</p>
@@ -235,7 +235,7 @@ const PassLogPage: React.FC = () => {
   return (
     <div className="pass-log-page">
       <div className="page-header">
-        <h1>Pass Log</h1>
+        <h1>Pass Records</h1>
         <p className="page-subtitle">Your complete history of pass transactions</p>
       </div>
 
@@ -253,7 +253,7 @@ const PassLogPage: React.FC = () => {
         ) : (
           <div className="empty-state">
             <div className="empty-state-icon">📋</div>
-            <h3>No Pass Logs Yet</h3>
+            <h3>No Pass Records Yet</h3>
             <p>Your pass transaction history will appear here once you start transferring or consuming passes.</p>
           </div>
         )}

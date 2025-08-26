@@ -91,7 +91,9 @@ const ConsumePassModal: React.FC<{
     try {
       console.log('Fetching user passes for user:', userId, 'at gym:', adminGym);
       const userRef = doc(db!, 'users', userId);
-      const currentDate = Timestamp.fromDate(new Date());
+      // Use UTC-preserving approach to match backend UTC handling
+      const now = new Date();
+      const currentDate = Timestamp.fromMillis(now.getTime());
 
       // Query private passes first
       const privatePassesQuery = query(

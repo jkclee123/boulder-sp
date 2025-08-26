@@ -101,10 +101,11 @@ export const consumePass = onCall(async (request) => {
             const passLogRef = db.collection('passLog').doc();
             const passLogData = {
                 createdAt: FieldValue.serverTimestamp(),
-                gymDisplayName: passData.gymDisplayName || 'Unknown Gym',
-                passName: passData === null || passData === void 0 ? void 0 : passData.passName,
+                gymDisplayName: passData.gymDisplayName,
+                gymId: passData.gymId,
+                passName: passData.passName,
                 count: count,
-                price: passType === 'market' ? (passData.price || 0) : 0,
+                price: 0,
                 fromUserRef: targetUserRef,
                 toUserRef: adminRef,
                 action: 'consume',

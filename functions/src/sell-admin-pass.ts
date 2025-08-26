@@ -101,6 +101,7 @@ export const sellAdminPass = onCall(async (request) => {
             const passLogData = {
                 createdAt: FieldValue.serverTimestamp(),
                 gymDisplayName: adminPassData.gymDisplayName,
+                gymId: adminPassData.gymId,
                 passName: adminPassData.passName,
                 count: adminPassData.count || 0,
                 price: adminPassData.price || 0,

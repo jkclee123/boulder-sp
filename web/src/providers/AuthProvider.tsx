@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useMemo, useState, useCallback, useRef } from 'react'
-import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, OAuthProvider, signOut as fbSignOut, signInWithRedirect, getRedirectResult } from 'firebase/auth'
+import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut as fbSignOut, signInWithRedirect, getRedirectResult } from 'firebase/auth'
 import { doc, getDocFromServer, serverTimestamp, setDoc } from 'firebase/firestore'
 import { httpsCallable } from 'firebase/functions'
 import { auth, canInitializeFirebase, db, functions } from '../firebase'
@@ -227,30 +227,14 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
     }
   }, [])
 
-  const signInWithApple = useCallback(async () => {
-    if (!auth) throw new Error('Firebase is not configured')
-    const provider = new OAuthProvider('apple.com')
-    setLoading(true)
-    try {
-      if (isLikelyMobile()) {
-        await signInWithRedirect(auth, provider)
-      } else {
-        await signInWithPopup(auth, provider)
-      }
-    } catch (error) {
-      setLoading(false)
-      throw error
-    }
-  }, [])
-
   const signOut = useCallback(async () => {
     if (!auth) return
     await fbSignOut(auth)
   }, [])
 
   const value = useMemo(
-    () => ({ user, loading, isAuthReady: Boolean(auth && canInitializeFirebase), signInWithGoogle, signInWithApple, signOut, userProfile, updateProfile, refreshProfile }),
-    [user, loading, userProfile, signInWithGoogle, signInWithApple, signOut, updateProfile, refreshProfile]
+    () => ({ user, loading, isAuthReady: Boolean(auth && canInitializeFirebase), signInWithGoogle, signOut, userProfile, updateProfile, refreshProfile }),
+    [user, loading, userProfile, signInWithGoogle, signOut, updateProfile, refreshProfile]
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

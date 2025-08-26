@@ -54,7 +54,7 @@ const AddAdminPassModal: React.FC<AddAdminPassModalProps> = ({ isOpen, onClose, 
     <div className="modal-overlay">
       <div className="modal">
         <div className="modal-header">
-          <h2>Add New Admin Pass</h2>
+          <h2>Add New Share Pass</h2>
           <button onClick={onClose} className="close-btn">×</button>
         </div>
         <div className="modal-body">
@@ -126,7 +126,7 @@ const AddAdminPassModal: React.FC<AddAdminPassModalProps> = ({ isOpen, onClose, 
                 />
               </div>
               <button type="submit" disabled={loading}>
-                {loading ? 'Adding...' : 'Add Admin Pass'}
+                {loading ? 'Adding...' : 'Add Pass'}
               </button>
             </form>
           </div>

@@ -35,3 +35,69 @@
   justify-content: flex-end;
   gap: 1rem;
 }
+
+/* Consume Pass Modal Styles */
+.consume-count {
+  margin: 1rem 0;
+}
+
+.consume-count label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.count-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.count-btn {
+  width: 40px;
+  height: 40px;
+  border: 1px solid #d1d5db;
+  background-color: white;
+  border-radius: 0.375rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+}
+
+.count-btn:hover:not(:disabled) {
+  background-color: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.count-btn:active {
+  background-color: #f3f4f6;
+}
+
+.count-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.count-btn-decrement {
+  color: #dc2626;
+}
+
+.count-btn-increment {
+  color: #059669;
+}
+
+.count-display {
+  min-width: 60px;
+  text-align: center;
+  font-size: 1.125rem;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  background-color: #f9fafb;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+}

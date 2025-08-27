@@ -73,20 +73,6 @@ export const unlistPass = onCall(async (request) => {
             });
             // Delete the market pass
             transaction.delete(marketPassRef);
-            // Create pass log entry (optional - unlist action)
-            const passLogRef = db.collection('passLog').doc();
-            const passLogData = {
-                createdAt: FieldValue.serverTimestamp(),
-                gymDisplayName: marketPassData.gymDisplayName,
-                passName: marketPassData.passName,
-                count: countToAddBack,
-                price: 0,
-                fromUserRef: db.collection('users').doc(userId),
-                toUserRef: db.collection('users').doc(userId),
-                action: 'unlist',
-                participants: [userId]
-            };
-            transaction.set(passLogRef, passLogData);
             return {
                 success: true,
                 message: 'Pass unlisted successfully',

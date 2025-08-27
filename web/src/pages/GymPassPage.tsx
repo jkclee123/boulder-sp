@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../providers/AuthProvider';
 import { db } from '../firebase';
-import { collection, query, where, onSnapshot, Timestamp } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, Timestamp, getDoc, getDocs } from 'firebase/firestore';
 import '../css/GymPassPage.css';
 
 interface Pass {
@@ -12,6 +12,8 @@ interface Pass {
   lastDay: Timestamp;
   purchasePrice?: number;
   purchaseCount?: number;
+  username?: string;
+  userRef?: any;
 }
 
 interface PrivatePass extends Pass {
@@ -28,6 +30,21 @@ interface MarketPass extends Pass {
 
 type AnyPass = PrivatePass | MarketPass;
 
+// Helper function to fetch username from userRef
+const fetchUsername = async (userRef: any): Promise<string> => {
+  if (!userRef) return 'Unknown';
+  try {
+    const userDoc = await getDoc(userRef);
+    if (userDoc.exists()) {
+      const userData = userDoc.data() as { name?: string };
+      return userData.name || 'Unknown';
+    }
+    return 'Unknown';
+  } catch (error) {
+    return 'Unknown';
+  }
+};
+
 const PassCard: React.FC<{ pass: AnyPass }> = ({ pass }) => {
   // Use UTC-preserving approach to match backend UTC handling
   const now = new Date();
@@ -39,7 +56,7 @@ const PassCard: React.FC<{ pass: AnyPass }> = ({ pass }) => {
         <h3>{pass.passName}</h3>
       </div>
       <div className="pass-card-body">
-        <p>Username: </p>
+        <p>Username: {pass.username || 'Unknown'}</p>
         {pass.type === 'private' && pass.purchasePrice && pass.purchaseCount && pass.purchaseCount > 0 ? (
           <p>Avg Price: ${(pass.purchasePrice / pass.purchaseCount).toFixed(2)}</p>
         ) : pass.type === 'market' ? (
@@ -57,6 +74,45 @@ const GymPassPage: React.FC = () => {
   const [privatePasses, setPrivatePasses] = useState<PrivatePass[]>([]);
   const [marketPasses, setMarketPasses] = useState<MarketPass[]>([]);
   const [expiredPasses, setExpiredPasses] = useState<AnyPass[]>([]);
+  const [gymDisplayName, setGymDisplayName] = useState<string>('');
+
+  if (!userProfile?.isAdmin) {
+    return (
+      <div className="gym-pass-page">
+        <div className="error-message">
+          <h2>Access Denied</h2>
+          <p>You must be an admin to access this page.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Fetch gym display name
+  useEffect(() => {
+    const fetchGymDisplayName = async () => {
+      if (!userProfile?.adminGym || !db) {
+        setGymDisplayName('[No Gym Assigned]');
+        return;
+      }
+
+      try {
+        const gymsQuery = query(collection(db, 'gyms'), where('id', '==', userProfile.adminGym));
+        const querySnapshot = await getDocs(gymsQuery);
+
+        if (!querySnapshot.empty) {
+          const gymDoc = querySnapshot.docs[0];
+          const gymData = gymDoc.data();
+          setGymDisplayName(gymData.displayName || '[No Gym Assigned]');
+        } else {
+          setGymDisplayName('[No Gym Assigned]');
+        }
+      } catch (error) {
+        setGymDisplayName('[No Gym Assigned]');
+      }
+    };
+
+    fetchGymDisplayName();
+  }, [userProfile?.adminGym]);
 
   useEffect(() => {
     if (!user || !db || !userProfile) {
@@ -66,22 +122,34 @@ const GymPassPage: React.FC = () => {
     const privatePassQuery = query(collection(db, 'privatePass'), where('gymId', '==', userProfile?.adminGym), where('active', '==', true));
     const marketPassQuery = query(collection(db, 'marketPass'), where('gymId', '==', userProfile?.adminGym), where('active', '==', true));
 
-    const unsubPrivate = onSnapshot(privatePassQuery, snapshot => {
-      const passes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), type: 'private' } as PrivatePass));
+    const unsubPrivate = onSnapshot(privatePassQuery, async snapshot => {
+      const passesWithUsernames = await Promise.all(
+        snapshot.docs.map(async doc => {
+          const passData = doc.data();
+          const username = await fetchUsername(passData.userRef);
+          return { id: doc.id, ...passData, type: 'private', username } as PrivatePass;
+        })
+      );
       const now = new Date();
-      const active = passes.filter(p => p.lastDay.toDate().getTime() >= now.getTime());
-      const expired = passes.filter(p => p.lastDay.toDate().getTime() < now.getTime());
-      
+      const active = passesWithUsernames.filter(p => p.lastDay.toDate().getTime() >= now.getTime());
+      const expired = passesWithUsernames.filter(p => p.lastDay.toDate().getTime() < now.getTime());
+
       setPrivatePasses(active);
       setExpiredPasses(prev => [...prev.filter(p => p.type !== 'private'), ...expired]);
     });
 
-    const unsubMarket = onSnapshot(marketPassQuery, snapshot => {
-      const passes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), type: 'market' } as MarketPass));
+    const unsubMarket = onSnapshot(marketPassQuery, async snapshot => {
+      const passesWithUsernames = await Promise.all(
+        snapshot.docs.map(async doc => {
+          const passData = doc.data();
+          const username = await fetchUsername(passData.userRef);
+          return { id: doc.id, ...passData, type: 'market', username } as MarketPass;
+        })
+      );
       // Use UTC-preserving approach to match backend UTC handling
       const now = new Date();
-      const active = passes.filter(p => p.lastDay.toDate().getTime() >= now.getTime());
-      const expired = passes.filter(p => p.lastDay.toDate().getTime() < now.getTime() && p.count > 0);
+      const active = passesWithUsernames.filter(p => p.lastDay.toDate().getTime() >= now.getTime());
+      const expired = passesWithUsernames.filter(p => p.lastDay.toDate().getTime() < now.getTime() && p.count > 0);
       setMarketPasses(active);
       setExpiredPasses(prev => [...prev.filter(p => p.type !== 'market'), ...expired]);
     });
@@ -97,7 +165,7 @@ const GymPassPage: React.FC = () => {
 
   return (
     <div className="gym-pass-page">
-            <h1 className="page-header">Gym Passes</h1>
+            <h1 className="page-header">Gym {gymDisplayName || '[No Gym Assigned]'} Passes</h1>
 
       <div className="pass-list-section">
         <h2>Private Passes</h2>

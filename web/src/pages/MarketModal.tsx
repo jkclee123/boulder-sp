@@ -96,7 +96,7 @@ const MarketModal: React.FC<MarketModalProps> = ({ isOpen, onClose, pass, onSucc
           <div className="pass-info">
             <h3>{pass.gymDisplayName}</h3>
             {pass.type === 'private' && pass.purchasePrice && pass.purchaseCount && pass.purchaseCount > 0 ? (
-              <p>Avg Price: ${(pass.purchasePrice / pass.purchaseCount).toFixed(2)}</p>
+              <p>Avg Price: ${(pass.purchasePrice / pass.purchaseCount).toFixed(0)}</p>
             ) : 0}
             <p>Available Punches: {pass.count}</p>
           </div>

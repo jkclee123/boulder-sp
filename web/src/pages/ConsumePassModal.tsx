@@ -194,7 +194,7 @@ const ConsumePassModal: React.FC<{
     <div className="modal-overlay">
       <div className="modal">
         <div className="modal-header">
-          <h2>Consume User Pass</h2>
+          <h2>Consume Pass</h2>
           <button onClick={onClose} className="close-btn">×</button>
         </div>
         <div className="modal-body">

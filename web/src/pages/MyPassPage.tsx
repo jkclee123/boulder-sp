@@ -76,7 +76,7 @@ const PassCard: React.FC<{ pass: AnyPass; onAction: (action: string, pass: AnyPa
       <div className="pass-card-body">
         <p>Gym: {pass.gymDisplayName}</p>
         {pass.type === 'private' && pass.purchasePrice && pass.purchaseCount && pass.purchaseCount > 0 ? (
-          <p>Avg Price: ${(pass.purchasePrice / pass.purchaseCount).toFixed(2)}</p>
+          <p>Avg Price: ${(pass.purchasePrice / pass.purchaseCount).toFixed(0)}</p>
         ) : pass.type === 'market' ? (
           <p>Price: ${pass.price}</p>
         ) : null}
@@ -88,7 +88,7 @@ const PassCard: React.FC<{ pass: AnyPass; onAction: (action: string, pass: AnyPa
           <button onClick={() => onAction('remove', pass)}>Remove</button>
         ) : (
           <>
-            <button onClick={() => onAction('transfer', pass)}>Transfer</button>
+            <button onClick={() => onAction('transfer', pass)}>{pass.type === 'market' ? 'Sell' : 'Transfer'}</button>
             {pass.type === 'private' && <button onClick={() => onAction('market', pass)}>Market</button>}
             {pass.type === 'market' && (
               <button
@@ -252,17 +252,6 @@ const MyPassPage: React.FC = () => {
         <MyPassCardHeader title="My Passes" />
         <MyPassCardBody>
           <div className="pass-list-section">
-            <h2>Private Passes</h2>
-            <div className="pass-list">
-              {privatePasses.length > 0 ? (
-                privatePasses.map(pass => <PassCard key={pass.id} pass={pass} onAction={handleAction} />)
-              ) : (
-                <p>No active private passes.</p>
-              )}
-            </div>
-          </div>
-
-          <div className="pass-list-section">
             <h2>Market Passes</h2>
             <div className="pass-list">
               {marketPasses.length > 0 ? (
@@ -276,6 +265,17 @@ const MyPassPage: React.FC = () => {
                 ))
               ) : (
                 <p>No active market passes.</p>
+              )}
+            </div>
+          </div>
+
+          <div className="pass-list-section">
+            <h2>Private Passes</h2>
+            <div className="pass-list">
+              {privatePasses.length > 0 ? (
+                privatePasses.map(pass => <PassCard key={pass.id} pass={pass} onAction={handleAction} />)
+              ) : (
+                <p>No active private passes.</p>
               )}
             </div>
           </div>

@@ -45,10 +45,41 @@ const fetchUsername = async (userRef: any): Promise<string> => {
   }
 };
 
-const PassCard: React.FC<{ pass: AnyPass }> = ({ pass }) => {
-  // Use UTC-preserving approach to match backend UTC handling
+// Helper function to determine if a pass should be considered expired
+// This matches the filtering logic used in MyPassPage
+const isPassExpired = (pass: AnyPass): boolean => {
   const now = new Date();
-  const isExpired = pass.lastDay.toDate().getTime() < now.getTime();
+  const isDateExpired = pass.lastDay.toDate().getTime() < now.getTime();
+
+  if (pass.type === 'private') {
+    // Private passes are expired if date expired OR count is 0
+    return isDateExpired || pass.count === 0;
+  } else {
+    // Market passes are expired if date expired AND count > 0
+    // (empty market passes are not shown in expired section)
+    return isDateExpired && pass.count > 0;
+  }
+};
+
+// --- Helper Components ---
+
+const MyPassCard = ({ children, className }: { children: React.ReactNode, className?: string }) => (
+  <div className={`my-pass-card ${className || ''}`}>{children}</div>
+);
+
+const MyPassCardHeader = ({ title, children }: { title: string, children?: React.ReactNode }) => (
+  <div className="my-pass-card-header">
+    <h2>{title}</h2>
+    <div>{children}</div>
+  </div>
+);
+
+const MyPassCardBody = ({ children }: { children: React.ReactNode }) => (
+  <div className="my-pass-card-body">{children}</div>
+);
+
+const PassCard: React.FC<{ pass: AnyPass }> = ({ pass }) => {
+  const isExpired = isPassExpired(pass);
 
   return (
     <div className={`pass-card ${isExpired ? 'expired' : ''}`}>
@@ -57,8 +88,8 @@ const PassCard: React.FC<{ pass: AnyPass }> = ({ pass }) => {
       </div>
       <div className="pass-card-body">
         <p>Username: {pass.username || 'Unknown'}</p>
-        {pass.type === 'private' && pass.purchasePrice && pass.purchaseCount && pass.purchaseCount > 0 ? (
-          <p>Avg Price: ${(pass.purchasePrice / pass.purchaseCount).toFixed(2)}</p>
+        {pass.type === 'private' ? (
+          <p>Purchase Price: ${pass.purchasePrice}</p>
         ) : pass.type === 'market' ? (
           <p>Price: ${pass.price}</p>
         ) : null}
@@ -130,9 +161,8 @@ const GymPassPage: React.FC = () => {
           return { id: doc.id, ...passData, type: 'private', username } as PrivatePass;
         })
       );
-      const now = new Date();
-      const active = passesWithUsernames.filter(p => p.lastDay.toDate().getTime() >= now.getTime());
-      const expired = passesWithUsernames.filter(p => p.lastDay.toDate().getTime() < now.getTime());
+      const active = passesWithUsernames.filter(p => !isPassExpired(p));
+      const expired = passesWithUsernames.filter(p => isPassExpired(p));
 
       setPrivatePasses(active);
       setExpiredPasses(prev => [...prev.filter(p => p.type !== 'private'), ...expired]);
@@ -146,10 +176,8 @@ const GymPassPage: React.FC = () => {
           return { id: doc.id, ...passData, type: 'market', username } as MarketPass;
         })
       );
-      // Use UTC-preserving approach to match backend UTC handling
-      const now = new Date();
-      const active = passesWithUsernames.filter(p => p.lastDay.toDate().getTime() >= now.getTime());
-      const expired = passesWithUsernames.filter(p => p.lastDay.toDate().getTime() < now.getTime() && p.count > 0);
+      const active = passesWithUsernames.filter(p => !isPassExpired(p));
+      const expired = passesWithUsernames.filter(p => isPassExpired(p));
       setMarketPasses(active);
       setExpiredPasses(prev => [...prev.filter(p => p.type !== 'market'), ...expired]);
     });
@@ -165,50 +193,53 @@ const GymPassPage: React.FC = () => {
 
   return (
     <div className="gym-pass-page">
-            <h1 className="page-header">Gym {gymDisplayName || '[No Gym Assigned]'} Passes</h1>
+      <MyPassCard className="main-content-card">
+        <MyPassCardHeader title={`Gym ${gymDisplayName || '[No Gym Assigned]'} Passes`} />
+        <MyPassCardBody>
+          <div className="pass-list-section">
+            <h2>Private Passes</h2>
+            <div className="pass-list">
+              {privatePasses.length > 0 ? (
+                privatePasses.map(pass => <PassCard key={pass.id} pass={pass} />)
+              ) : (
+                <p>No active private passes.</p>
+              )}
+            </div>
+          </div>
 
-      <div className="pass-list-section">
-        <h2>Private Passes</h2>
-        <div className="pass-list">
-          {privatePasses.length > 0 ? (
-            privatePasses.map(pass => <PassCard key={pass.id} pass={pass} />)
-          ) : (
-            <p>No active private passes.</p>
-          )}
-        </div>
-      </div>
+          <div className="pass-list-section">
+            <h2>Market Passes</h2>
+            <div className="pass-list">
+              {marketPasses.length > 0 ? (
+                marketPasses.map(pass => (
+                  <PassCard
+                    key={pass.id}
+                    pass={pass}
+                  />
+                ))
+              ) : (
+                <p>No active market passes.</p>
+              )}
+            </div>
+          </div>
 
-      <div className="pass-list-section">
-        <h2>Market Passes</h2>
-        <div className="pass-list">
-          {marketPasses.length > 0 ? (
-            marketPasses.map(pass => (
-              <PassCard
-                key={pass.id}
-                pass={pass}
-              />
-            ))
-          ) : (
-            <p>No active market passes.</p>
-          )}
-        </div>
-      </div>
-
-      <div className="pass-list-section">
-        <h2>Expired Passes</h2>
-        <div className="pass-list">
-          {expiredPasses.length > 0 ? (
-            expiredPasses.map(pass => (
-              <PassCard
-                key={pass.id}
-                pass={pass}
-              />
-            ))
-          ) : (
-            <p>No expired passes.</p>
-          )}
-        </div>
-      </div>
+          <div className="pass-list-section">
+            <h2>Expired or Empty Passes</h2>
+            <div className="pass-list">
+              {expiredPasses.length > 0 ? (
+                expiredPasses.map(pass => (
+                  <PassCard
+                    key={pass.id}
+                    pass={pass}
+                  />
+                ))
+              ) : (
+                <p>No expired passes.</p>
+              )}
+            </div>
+          </div>
+        </MyPassCardBody>
+      </MyPassCard>
     </div>
   );
 };

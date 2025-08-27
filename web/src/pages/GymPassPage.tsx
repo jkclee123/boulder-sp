@@ -2,11 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../providers/AuthProvider';
 import { db } from '../firebase';
 import { collection, query, where, onSnapshot, Timestamp } from 'firebase/firestore';
-import { httpsCallable } from 'firebase/functions';
-import { functions } from '../firebase';
 import '../css/GymPassPage.css';
-import TransferModal from './TransferModal';
-import MarketModal from './MarketModal';
 
 interface Pass {
   id: string;
@@ -14,21 +10,25 @@ interface Pass {
   gymId: string;
   count: number;
   lastDay: Timestamp;
+  purchasePrice?: number;
+  purchaseCount?: number;
 }
 
 interface PrivatePass extends Pass {
   type: 'private';
+  passName: string;
 }
 
 interface MarketPass extends Pass {
   type: 'market';
   price: number;
   privatePassRef: any;
+  passName: string;
 }
 
 type AnyPass = PrivatePass | MarketPass;
 
-const PassCard: React.FC<{ pass: AnyPass; onAction: (action: string, pass: AnyPass) => void; isUnlisting?: boolean }> = ({ pass, onAction, isUnlisting = false }) => {
+const PassCard: React.FC<{ pass: AnyPass }> = ({ pass }) => {
   // Use UTC-preserving approach to match backend UTC handling
   const now = new Date();
   const isExpired = pass.lastDay.toDate().getTime() < now.getTime();
@@ -36,30 +36,17 @@ const PassCard: React.FC<{ pass: AnyPass; onAction: (action: string, pass: AnyPa
   return (
     <div className={`pass-card ${isExpired ? 'expired' : ''}`}>
       <div className={`pass-card-header ${pass.type === 'private' ? 'private-pass' : 'market-pass'} ${isExpired ? 'expired-pass' : ''}`}>
-        <h3>{pass.gymDisplayName}</h3>
+        <h3>{pass.passName}</h3>
       </div>
       <div className="pass-card-body">
-        <p>Count: {pass.count}</p>
-        {pass.type === 'market' && <p>Price: ${pass.price}</p>}
+        <p>Username: </p>
+        {pass.type === 'private' && pass.purchasePrice && pass.purchaseCount && pass.purchaseCount > 0 ? (
+          <p>Avg Price: ${(pass.purchasePrice / pass.purchaseCount).toFixed(2)}</p>
+        ) : pass.type === 'market' ? (
+          <p>Price: ${pass.price}</p>
+        ) : null}
+        <p>Remaining Punches: {pass.count}</p>
         <p>Expires: {pass.lastDay.toDate().toLocaleDateString()}</p>
-      </div>
-      <div className="pass-card-actions">
-        {isExpired ? (
-          <button onClick={() => onAction('deactivate', pass)}>De-activate</button>
-        ) : (
-          <>
-            <button onClick={() => onAction('transfer', pass)}>Transfer</button>
-            {pass.type === 'private' && <button onClick={() => onAction('market', pass)}>Market</button>}
-            {pass.type === 'market' && (
-              <button
-                onClick={() => onAction('unlist', pass)}
-                disabled={isUnlisting}
-              >
-                {isUnlisting ? 'Unlisting...' : 'Unlist'}
-              </button>
-            )}
-          </>
-        )}
       </div>
     </div>
   );
@@ -70,20 +57,11 @@ const GymPassPage: React.FC = () => {
   const [privatePasses, setPrivatePasses] = useState<PrivatePass[]>([]);
   const [marketPasses, setMarketPasses] = useState<MarketPass[]>([]);
   const [expiredPasses, setExpiredPasses] = useState<AnyPass[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [transferModalOpen, setTransferModalOpen] = useState(false);
-  const [marketModalOpen, setMarketModalOpen] = useState(false);
-  const [selectedPass, setSelectedPass] = useState<AnyPass | null>(null);
-  const [unlistingPassId, setUnlistingPassId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user || !db || !userProfile) {
-      setLoading(false);
       return;
     }
-
-    console.log('userProfile:', userProfile);
-    console.log('userProfile.adminGym:', userProfile?.adminGym);
 
     const privatePassQuery = query(collection(db, 'privatePass'), where('gymId', '==', userProfile?.adminGym), where('active', '==', true));
     const marketPassQuery = query(collection(db, 'marketPass'), where('gymId', '==', userProfile?.adminGym), where('active', '==', true));
@@ -93,9 +71,9 @@ const GymPassPage: React.FC = () => {
       const now = new Date();
       const active = passes.filter(p => p.lastDay.toDate().getTime() >= now.getTime());
       const expired = passes.filter(p => p.lastDay.toDate().getTime() < now.getTime());
+      
       setPrivatePasses(active);
       setExpiredPasses(prev => [...prev.filter(p => p.type !== 'private'), ...expired]);
-      setLoading(false);
     });
 
     const unsubMarket = onSnapshot(marketPassQuery, snapshot => {
@@ -106,7 +84,6 @@ const GymPassPage: React.FC = () => {
       const expired = passes.filter(p => p.lastDay.toDate().getTime() < now.getTime() && p.count > 0);
       setMarketPasses(active);
       setExpiredPasses(prev => [...prev.filter(p => p.type !== 'market'), ...expired]);
-      setLoading(false);
     });
 
     return () => {
@@ -115,80 +92,8 @@ const GymPassPage: React.FC = () => {
     };
   }, [user, userProfile]);
 
-  const handleAction = (action: string, pass: AnyPass) => {
-    console.log(`Action: ${action} on pass:`, pass);
 
-    // Use UTC-preserving approach to match backend UTC handling
-    const now = new Date();
 
-    switch (action) {
-      case 'transfer':
-        if (pass.lastDay.toDate().getTime() < now.getTime()) {
-          alert('Cannot transfer expired passes.');
-          return;
-        }
-        setSelectedPass(pass);
-        setTransferModalOpen(true);
-        break;
-      case 'market':
-        if (!userProfile?.telegramId) {
-          alert('You must set your Telegram ID in your profile before you can list passes for sale. Go to Account page to set it.');
-          return;
-        }
-        if (pass.lastDay.toDate().getTime() < now.getTime()) {
-          alert('Cannot list expired passes for sale.');
-          return;
-        }
-        setSelectedPass(pass);
-        setMarketModalOpen(true);
-        break;
-      case 'unlist':
-        handleUnlist(pass);
-        break;
-      case 'deactivate':
-        // TODO: Implement deactivate functionality
-        alert('Deactivate functionality coming soon!');
-        break;
-      default:
-        alert(`Action: ${action} on pass ${pass.id}. Check console for details.`);
-    }
-  };
-
-  const handleTransferSuccess = () => {
-    // Refresh the passes data
-    setLoading(true);
-    // The useEffect will automatically refresh the data due to onSnapshot
-  };
-
-  const handleMarketSuccess = () => {
-    // Refresh the passes data
-    setLoading(true);
-    // The useEffect will automatically refresh the data due to onSnapshot
-  };
-
-  const handleUnlist = async (pass: AnyPass) => {
-    if (!user || !functions || pass.type !== 'market') return;
-
-    setUnlistingPassId(pass.id);
-    try {
-      const unlistFunction = httpsCallable(functions, 'unlistPass');
-      await unlistFunction({
-        marketPassId: pass.id,
-        userId: user.uid
-      });
-
-      // alert('Pass unlisted successfully! The count has been merged back to your private pass.');
-    } catch (error: any) {
-      console.error('Error unlisting pass:', error);
-      alert(`Failed to unlist pass: ${error.message || 'Unknown error'}`);
-    } finally {
-      setUnlistingPassId(null);
-    }
-  };
-
-  if (loading) {
-    return <div>Loading passes...</div>;
-  }
 
   return (
     <div className="gym-pass-page">
@@ -198,7 +103,7 @@ const GymPassPage: React.FC = () => {
         <h2>Private Passes</h2>
         <div className="pass-list">
           {privatePasses.length > 0 ? (
-            privatePasses.map(pass => <PassCard key={pass.id} pass={pass} onAction={handleAction} />)
+            privatePasses.map(pass => <PassCard key={pass.id} pass={pass} />)
           ) : (
             <p>No active private passes.</p>
           )}
@@ -213,8 +118,6 @@ const GymPassPage: React.FC = () => {
               <PassCard
                 key={pass.id}
                 pass={pass}
-                onAction={handleAction}
-                isUnlisting={unlistingPassId === pass.id}
               />
             ))
           ) : (
@@ -231,8 +134,6 @@ const GymPassPage: React.FC = () => {
               <PassCard
                 key={pass.id}
                 pass={pass}
-                onAction={handleAction}
-                isUnlisting={unlistingPassId === pass.id}
               />
             ))
           ) : (
@@ -240,24 +141,6 @@ const GymPassPage: React.FC = () => {
           )}
         </div>
       </div>
-
-      {selectedPass && (
-        <TransferModal
-          isOpen={transferModalOpen}
-          onClose={() => setTransferModalOpen(false)}
-          pass={selectedPass}
-          onTransferSuccess={handleTransferSuccess}
-        />
-      )}
-
-      {selectedPass && selectedPass.type === 'private' && (
-        <MarketModal
-          isOpen={marketModalOpen}
-          onClose={() => setMarketModalOpen(false)}
-          pass={selectedPass}
-          onSuccess={handleMarketSuccess}
-        />
-      )}
     </div>
   );
 };

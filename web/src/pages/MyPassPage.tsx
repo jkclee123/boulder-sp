@@ -14,16 +14,20 @@ interface Pass {
   gymId: string;
   count: number;
   lastDay: Timestamp;
+  purchasePrice?: number;
+  purchaseCount?: number;
 }
 
 interface PrivatePass extends Pass {
   type: 'private';
-}
+  passName: string;
+} 
 
 interface MarketPass extends Pass {
   type: 'market';
   price: number;
   privatePassRef: any;
+  passName: string;
 }
 
 type AnyPass = PrivatePass | MarketPass;
@@ -36,11 +40,16 @@ const PassCard: React.FC<{ pass: AnyPass; onAction: (action: string, pass: AnyPa
   return (
     <div className={`pass-card ${isExpired ? 'expired' : ''}`}>
       <div className={`pass-card-header ${pass.type === 'private' ? 'private-pass' : 'market-pass'} ${isExpired ? 'expired-pass' : ''}`}>
-        <h3>{pass.gymDisplayName}</h3>
+        <h3>{pass.passName}</h3>
       </div>
       <div className="pass-card-body">
-        <p>Count: {pass.count}</p>
-        {pass.type === 'market' && <p>Price: ${pass.price}</p>}
+        <p>Gym: {pass.gymDisplayName}</p>
+        {pass.type === 'private' && pass.purchasePrice && pass.purchaseCount && pass.purchaseCount > 0 ? (
+          <p>Avg Price: ${(pass.purchasePrice / pass.purchaseCount).toFixed(2)}</p>
+        ) : pass.type === 'market' ? (
+          <p>Price: ${pass.price}</p>
+        ) : null}
+        <p>Remaining Punches: {pass.count}</p>
         <p>Expires: {pass.lastDay.toDate().toLocaleDateString()}</p>
       </div>
       <div className="pass-card-actions">

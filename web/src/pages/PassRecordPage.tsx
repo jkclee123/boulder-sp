@@ -96,11 +96,11 @@ const PassRecordItem: React.FC<{ record: PassRecordRecord; currentUserId: string
         // Green if receiving (money coming in), Red if sending (money going out)
         return isFromUser ? 'price-green' : 'price-red';
       case 'sell_admin':
-        // Green if buying (receiving passes), Red if selling (giving passes)
+        // Red if buying (receiving passes), Green if selling (giving passes)
         return isFromUser ? 'price-green' : 'price-red';
       case 'consume':
         // Red for consuming (money spent)
-        return 'price-red';
+        return 'price-blue';
       default:
         return 'price-red';
     }
@@ -121,7 +121,7 @@ const PassRecordItem: React.FC<{ record: PassRecordRecord; currentUserId: string
         <span className="action-icon">{getActionIcon()}</span>
         <span className="action-description">{getCompactDescription()}</span>
         <span className="separator">•</span>
-        <span className="pass-count">{record.count} punch{record.count > 1 ? 'es' : ''}</span>
+        <span className="record-pass-count">{record.count} punch{record.count > 1 ? 'es' : ''}</span>
         <span className="separator">•</span>
         <span className={`pass-price ${getPriceColorClass()}`}>{getPriceDisplay()}</span>
       </div>

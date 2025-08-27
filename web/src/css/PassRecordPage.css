@@ -392,36 +392,36 @@
 
 .pass-record-row-2 {
   margin-bottom: 0.2rem;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   color: var(--muted);
 }
 
 .pass-record-row-3 {
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   color: var(--muted);
   opacity: 0.8;
 }
 
 .gym-icon {
-  font-size: 1rem;
+  font-size: 1.1rem;
   margin-right: 0.25rem;
 }
 
 .gym-name {
-  font-weight: 600;
+  font-weight: 700;
   color: var(--ink);
   max-width: 120px;
 }
 
 .pass-name {
-  font-weight: 500;
-  color: #1976d2;
+  font-weight: 600;
+  color: #1f6ebd;
   max-width: 100px;
 }
 
-.pass-count {
+.record-pass-count {
   font-weight: 600;
-  color: #388e3c;
+  color: var(--ink);
   white-space: nowrap;
 }
 
@@ -438,9 +438,13 @@
   color: #d32f2f;
 }
 
+.pass-price.price-blue {
+  color: #1976d2;
+}
+
 .action-icon {
   font-size: 0.9rem;
-  margin-right: 0.25rem;
+  margin-left: 0.3rem;
 }
 
 .action-description {
@@ -451,8 +455,7 @@
 
 .datetime-icon {
   font-size: 0.8rem;
-  margin-left: 0.5rem;
-  margin-right: 0.25rem;
+  margin-left: 0.3rem;
 }
 
 .datetime {
@@ -544,7 +547,7 @@
     font-size: 0.8rem;
   }
 
-  .pass-count {
+  .record-pass-count {
     font-size: 0.8rem;
   }
 

@@ -382,7 +382,7 @@ button:hover, .btn:hover {
 :root[data-theme="light"] {
   --background: #f9fafb;
   --surface: #ffffff;
-  --ink: hsl(0, 2%, 5%);
+  --ink: hsl(0, 2%, 15%);
   --muted: hsl(0, 2%, 25%);
   --primary: #c07a3a;
   --accent: #A23E48;

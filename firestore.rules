@@ -32,7 +32,7 @@ service cloud.firestore {
     }
 
     match /privatePass {
-      allow list: if isAuthenticated() || getUserData(request.auth.uid).isAdmin == true;
+      allow list: if isAuthenticated();
     }
 
     match /marketPass {
@@ -50,7 +50,6 @@ service cloud.firestore {
     // Gyms: Readable by any authenticated user, writable only by admins.
     match /gyms/{gymId} {
       allow read: if isAuthenticated();
-      allow write: if isRequestingUserAdmin();
     }
 
     // Users: Can manage their own profile. Admins have full access.
@@ -58,7 +57,7 @@ service cloud.firestore {
     // SECURITY NOTE: This allows all authenticated users to read user data for transfer functionality
     // Consider implementing a more secure search mechanism in the future if needed
     match /users/{userId} {
-      allow read: if isAuthenticated(); // Allow all authenticated users to read for search functionality
+      allow read: if request.auth.uid == userId || isRequestingUserAdmin(); // Allow all authenticated users to read for search functionality
 
       // On create, a user cannot assign themselves as admin.
       allow create: if request.auth.uid == userId && request.resource.data.isAdmin == false;
@@ -71,8 +70,8 @@ service cloud.firestore {
     // privatePass: Owned by a user. Readable/updatable by owner or a relevant gym admin.
     match /privatePass/{passId} {
       allow read: if isAuthenticated() && (resource.data.userRef == /databases/$(database)/documents/users/$(request.auth.uid) || ('gymId' in resource.data && isGymAdmin(resource.data.gymId)));
-      allow create: if isAuthenticated(); // Trust cloud function for validation.
-      allow update: if isAuthenticated() && (request.auth.uid == resource.data.userRef.id || ('gymId' in resource.data && isGymAdmin(resource.data.gymId)));
+      allow create: if isGymAdmin(request.resource.data.gymId);
+      allow update: if isAuthenticated() && (resource.data.userRef == /databases/$(database)/documents/users/$(request.auth.uid) || ('gymId' in resource.data && isGymAdmin(resource.data.gymId)));
       allow delete: if false; // Soft delete only
     }
 

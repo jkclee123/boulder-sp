@@ -24,8 +24,10 @@ const TransferModal: React.FC<TransferModalProps> = ({ isOpen, onClose, pass, on
   const [searchTerm, setSearchTerm] = useState('');
   const [searchType, setSearchType] = useState<'phone' | 'memberId'>('phone');
   const [recipient, setRecipient] = useState<User | null>(null);
-  const [transferCount, setTransferCount] = useState(1);
-  const [transferPrice, setTransferPrice] = useState(0);
+  const [formData, setFormData] = useState({
+    count: '',
+    price: ''
+  });
   const [loading, setLoading] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
   const [step, setStep] = useState<'search' | 'confirm' | 'details'>('search');
@@ -131,8 +133,10 @@ const TransferModal: React.FC<TransferModalProps> = ({ isOpen, onClose, pass, on
   const proceedToDetails = () => {
     // For admin passes, automatically set the full count and price
     if (pass.type === 'admin') {
-      setTransferCount(pass.count);
-      setTransferPrice(pass.price || 0);
+      setFormData({
+        count: pass.count.toString(),
+        price: (pass.price || 0).toString()
+      });
     }
     setStep('details');
   };
@@ -140,12 +144,24 @@ const TransferModal: React.FC<TransferModalProps> = ({ isOpen, onClose, pass, on
   const executeTransfer = async () => {
     if (!user || !recipient || !functions) return;
 
+    // Validation
+    const countValue = parseInt(formData.count.toString()) || 0;
+    const priceValue = parseFloat(formData.price.toString()) || 0;
+
     // For non-admin passes, validate the transfer count
     if (pass.type !== 'admin') {
-      if (transferCount <= 0) return;
+      if (countValue <= 0) {
+        alert('Count must be greater than 0');
+        return;
+      }
 
-      if (transferCount > pass.count) {
+      if (countValue > pass.count) {
         alert('Transfer count cannot exceed available passes.');
+        return;
+      }
+
+      if (priceValue < 0) {
+        alert('Price cannot be negative');
         return;
       }
     }
@@ -162,8 +178,8 @@ const TransferModal: React.FC<TransferModalProps> = ({ isOpen, onClose, pass, on
         toUserId: recipient.id,
         passId: pass.id,
         passType: pass.type,
-        count: transferCount,
-        price: transferPrice,
+        count: countValue,
+        price: priceValue,
       });
 
       alert('Transfer successful!');
@@ -182,8 +198,7 @@ const TransferModal: React.FC<TransferModalProps> = ({ isOpen, onClose, pass, on
   const resetModal = () => {
     setSearchTerm('');
     setRecipient(null);
-    setTransferCount(1);
-    setTransferPrice(0);
+    setFormData({ count: '', price: '' });
     setStep('search');
   };
 
@@ -283,13 +298,11 @@ const TransferModal: React.FC<TransferModalProps> = ({ isOpen, onClose, pass, on
                       <input
                         type="text"
                         inputMode="numeric"
-                        pattern="[0-9]*"
-                        value={transferCount.toString()}
-                        onChange={e => {
-                          const value = e.target.value.replace(/[^0-9]/g, '');
-                          const numValue = parseInt(value) || 0;
-                          setTransferCount(Math.min(pass.count, Math.max(0, numValue)));
-                        }}
+                        value={formData.count}
+                        onChange={(e) => setFormData(prev => ({ ...prev, count: e.target.value }))}
+                        min="1"
+                        max={pass.count}
+                        required
                       />
                       <small>Maximum: {pass.count}</small>
                     </div>
@@ -299,16 +312,11 @@ const TransferModal: React.FC<TransferModalProps> = ({ isOpen, onClose, pass, on
                       <input
                         type="text"
                         inputMode="decimal"
-                        pattern="[0-9]*\.?[0-9]*"
-                        value={transferPrice.toString()}
-                        onChange={e => {
-                          const value = e.target.value.replace(/[^0-9.]/g, '');
-                          // Ensure only one decimal point
-                          const parts = value.split('.');
-                          const cleanValue = parts[0] + (parts[1] ? '.' + parts[1] : '');
-                          const numValue = parseFloat(cleanValue) || 0;
-                          setTransferPrice(Math.max(0, numValue));
-                        }}
+                        value={formData.price}
+                        onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
+                        min="0"
+                        step="0.01"
+                        required
                       />
                     </div>
                   </>
@@ -326,8 +334,8 @@ const TransferModal: React.FC<TransferModalProps> = ({ isOpen, onClose, pass, on
                   <h4>Transfer Summary</h4>
                   <p><strong>From:</strong> You</p>
                   <p><strong>To:</strong> {recipient.name}</p>
-                  <p><strong>Passes:</strong> {transferCount}</p>
-                  <p><strong>Price:</strong> ${transferPrice.toFixed(2)}</p>
+                  <p><strong>Passes:</strong> {parseInt(formData.count.toString()) || 0}</p>
+                  <p><strong>Price:</strong> ${(parseFloat(formData.price.toString()) || 0).toFixed(2)}</p>
                   <p><strong>Gym:</strong> {pass.gymDisplayName}</p>
                 </div>
               </div>
@@ -336,7 +344,7 @@ const TransferModal: React.FC<TransferModalProps> = ({ isOpen, onClose, pass, on
                 <button onClick={() => setStep('confirm')}>Back</button>
                 <button
                   onClick={executeTransfer}
-                  disabled={loading || (pass.type !== 'admin' && transferCount <= 0)}
+                  disabled={loading || (pass.type !== 'admin' && (parseInt(formData.count.toString()) || 0) <= 0)}
                   className="primary-button"
                 >
                   {loading ? 'Transferring...' : 'Confirm Transfer'}

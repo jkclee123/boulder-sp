@@ -18,6 +18,30 @@ interface PassLogRecord {
   toUserName?: string;
 }
 
+// --- Helper Components ---
+
+const PassLogCard = ({ children, className }: { children: React.ReactNode, className?: string }) => (
+  <div className={`pass-log-card ${className || ''}`}>{children}</div>
+);
+
+const PassLogCardHeader = ({ title, subtitle, children }: {
+  title: string,
+  subtitle?: string,
+  children?: React.ReactNode
+}) => (
+  <div className="pass-log-card-header">
+    <div className="header-content">
+      <h2>{title}</h2>
+      {subtitle && <p className="page-subtitle">{subtitle}</p>}
+    </div>
+    <div>{children}</div>
+  </div>
+);
+
+const PassLogCardBody = ({ children }: { children: React.ReactNode }) => (
+  <div className="pass-log-card-body">{children}</div>
+);
+
 const formatDate = (timestamp: Timestamp): string => {
   const date = timestamp.toDate();
   // Convert to Hong Kong Time (UTC+8)
@@ -202,13 +226,15 @@ const PassLogPage: React.FC = () => {
   if (loading) {
     return (
       <div className="pass-log-page">
-        <div className="page-header">
-          <h1>Pass Records</h1>
-        </div>
-        <div className="loading-container">
-          <div className="loading-spinner"></div>
-          <p>Loading your pass records...</p>
-        </div>
+        <PassLogCard className="main-content-card">
+          <PassLogCardHeader title="Pass Records" subtitle="Your complete history of pass transactions" />
+          <PassLogCardBody>
+            <div className="loading-container">
+              <div className="loading-spinner"></div>
+              <p>Loading your pass records...</p>
+            </div>
+          </PassLogCardBody>
+        </PassLogCard>
       </div>
     );
   }
@@ -216,48 +242,48 @@ const PassLogPage: React.FC = () => {
   if (error) {
     return (
       <div className="pass-log-page">
-        <div className="page-header">
-          <h1>Pass Records</h1>
-        </div>
-        <div className="error-container">
-          <p>{error}</p>
-          <button
-            className="retry-button"
-            onClick={() => window.location.reload()}
-          >
-            Retry
-          </button>
-        </div>
+        <PassLogCard className="main-content-card">
+          <PassLogCardHeader title="Pass Records" subtitle="Your complete history of pass transactions" />
+          <PassLogCardBody>
+            <div className="error-container">
+              <p>{error}</p>
+              <button
+                className="retry-button"
+                onClick={() => window.location.reload()}
+              >
+                Retry
+              </button>
+            </div>
+          </PassLogCardBody>
+        </PassLogCard>
       </div>
     );
   }
 
   return (
     <div className="pass-log-page">
-      <div className="page-header">
-        <h1>Pass Records</h1>
-        <p className="page-subtitle">Your complete history of pass transactions</p>
-      </div>
-
-      <div className="pass-log-container">
-        {passLogs.length > 0 ? (
-          <div className="pass-log-list">
-            {passLogs.map(record => (
-              <PassLogItem
-                key={record.id}
-                record={record}
-                currentUserId={user?.uid || ''}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="empty-state">
-            <div className="empty-state-icon">📋</div>
-            <h3>No Pass Records Yet</h3>
-            <p>Your pass transaction history will appear here once you start transferring or consuming passes.</p>
-          </div>
-        )}
-      </div>
+      <PassLogCard className="main-content-card">
+        <PassLogCardHeader title="Pass Records" subtitle="Your complete history of pass transactions" />
+        <PassLogCardBody>
+          {passLogs.length > 0 ? (
+            <div className="pass-log-list">
+              {passLogs.map(record => (
+                <PassLogItem
+                  key={record.id}
+                  record={record}
+                  currentUserId={user?.uid || ''}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="empty-state">
+              <div className="empty-state-icon">📋</div>
+              <h3>No Pass Records Yet</h3>
+              <p>Your pass transaction history will appear here once you start transferring or consuming passes.</p>
+            </div>
+          )}
+        </PassLogCardBody>
+      </PassLogCard>
     </div>
   );
 };

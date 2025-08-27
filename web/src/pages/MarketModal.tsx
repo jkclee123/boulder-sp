@@ -11,14 +11,16 @@ interface MarketModalProps {
     gymDisplayName: string;
     count: number;
     type: 'private';
+    purchasePrice?: number;
+    purchaseCount?: number;
   };
   onSuccess: () => void;
 }
 
 const MarketModal: React.FC<MarketModalProps> = ({ isOpen, onClose, pass, onSuccess }) => {
   const [formData, setFormData] = useState({
-    count: 1,
-    price: 0,
+    count: '',
+    price: '',
     remarks: ''
   });
   const [loading, setLoading] = useState(false);
@@ -30,19 +32,22 @@ const MarketModal: React.FC<MarketModalProps> = ({ isOpen, onClose, pass, onSucc
     setError('');
 
     // Validation
-    if (formData.count > pass.count) {
+    const countValue = parseInt(formData.count.toString()) || 0;
+    if (countValue > pass.count) {
       setError('Cannot list more passes than you own');
       setLoading(false);
       return;
     }
 
-    if (formData.count <= 0) {
+    const priceValue = parseFloat(formData.price.toString()) || 0;
+
+    if (countValue <= 0) {
       setError('Count must be greater than 0');
       setLoading(false);
       return;
     }
 
-    if (formData.price <= 0) {
+    if (priceValue <= 0) {
       setError('Price must be greater than 0');
       setLoading(false);
       return;
@@ -55,14 +60,14 @@ const MarketModal: React.FC<MarketModalProps> = ({ isOpen, onClose, pass, onSucc
       const listPassForMarket = httpsCallable(functions, 'listPassForMarket');
       await listPassForMarket({
         privatePassId: pass.id,
-        count: formData.count,
-        price: formData.price,
+        count: countValue,
+        price: priceValue,
         remarks: formData.remarks
       });
 
       onSuccess();
       onClose();
-      setFormData({ count: 1, price: 0, remarks: '' });
+      setFormData({ count: '', price: '', remarks: '' });
     } catch (err: any) {
       console.error('Error listing pass for market:', err);
       setError(err.message || 'Failed to list pass for market');
@@ -72,7 +77,7 @@ const MarketModal: React.FC<MarketModalProps> = ({ isOpen, onClose, pass, onSucc
   };
 
   const handleClose = () => {
-    setFormData({ count: 1, price: 0, remarks: '' });
+    setFormData({ count: '', price: '', remarks: '' });
     setError('');
     onClose();
   };
@@ -90,7 +95,10 @@ const MarketModal: React.FC<MarketModalProps> = ({ isOpen, onClose, pass, onSucc
         <div className="modal-body">
           <div className="pass-info">
             <h3>{pass.gymDisplayName}</h3>
-            <p>Available Count: {pass.count}</p>
+            {pass.type === 'private' && pass.purchasePrice && pass.purchaseCount && pass.purchaseCount > 0 ? (
+              <p>Avg Price: ${(pass.purchasePrice / pass.purchaseCount).toFixed(2)}</p>
+            ) : 0}
+            <p>Available Punches: {pass.count}</p>
           </div>
 
           <form onSubmit={handleSubmit}>
@@ -103,7 +111,7 @@ const MarketModal: React.FC<MarketModalProps> = ({ isOpen, onClose, pass, onSucc
                 min="1"
                 max={pass.count}
                 value={formData.count}
-                onChange={(e) => setFormData(prev => ({ ...prev, count: parseInt(e.target.value) || 0 }))}
+                onChange={(e) => setFormData(prev => ({ ...prev, count: e.target.value }))}
                 required
               />
             </div>
@@ -117,7 +125,7 @@ const MarketModal: React.FC<MarketModalProps> = ({ isOpen, onClose, pass, onSucc
                 min="0"
                 step="0.01"
                 value={formData.price}
-                onChange={(e) => setFormData(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
+                onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
                 required
               />
             </div>

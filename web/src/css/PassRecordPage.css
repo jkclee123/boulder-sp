@@ -76,26 +76,25 @@
 }
 
 .pass-record-item {
-  border: 1px solid #e0e0e0;
-  border-radius: 12px;
-  background-color: #fafafa;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-  transition: all 0.3s ease;
-  overflow: hidden;
+  border-bottom: 1px solid #e0e0e0;
+  background-color: transparent;
+  transition: background-color 0.2s ease;
 }
 
 .pass-record-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  background-color: #f8f9fa;
+}
+
+.pass-record-item:last-child {
+  border-bottom: none;
 }
 
 .pass-record-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 1.5rem;
-  background-color: #f0f0f0;
-  border-bottom: 1px solid #e0e0e0;
+  padding: 1rem 1.5rem 0.5rem;
+  margin-bottom: 0.5rem;
 }
 
 .pass-record-gym {
@@ -124,7 +123,7 @@
 }
 
 .pass-record-body {
-  padding: 1.5rem;
+  padding: 0 1.5rem 0.5rem;
 }
 
 .pass-record-description {
@@ -166,9 +165,7 @@
 }
 
 .pass-record-footer {
-  padding: 1rem 1.5rem;
-  background-color: #f8f9fa;
-  border-top: 1px solid #e0e0e0;
+  padding: 0.5rem 1.5rem 1rem;
 }
 
 .pass-record-timestamp {
@@ -335,21 +332,24 @@
     padding: 0.75rem;
   }
 
-  .pass-record-card-header {
-    padding: 0.75rem 1rem;
-  }
-
-  .pass-record-card-body {
-    padding: 1rem;
-  }
-
-  .pass-record-item {
-    border-radius: 8px;
-  }
-
   .pass-record-header,
   .pass-record-body,
   .pass-record-footer {
-    padding: 0.75rem 1rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .pass-record-header {
+    padding-top: 0.75rem;
+    padding-bottom: 0.25rem;
+  }
+
+  .pass-record-body {
+    padding-bottom: 0.25rem;
+  }
+
+  .pass-record-footer {
+    padding-bottom: 0.75rem;
   }
 }
+

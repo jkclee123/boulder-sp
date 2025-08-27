@@ -97,8 +97,8 @@ const PassRecordItem: React.FC<{ record: PassRecordRecord; currentUserId: string
   };
 
   const getPriceDisplay = () => {
-    if (record.action === 'consume' || record.price === 0) {
-      return 'Free';
+    if (record.action === 'consume') {
+      return '---';
     }
     return formatCurrency(record.price);
   };

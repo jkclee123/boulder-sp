@@ -38,9 +38,6 @@ export const transferPass = onCall(async (request) => {
             else if (passType === 'market') {
                 sourcePassRef = db.collection('marketPass').doc(passId);
             }
-            else if (passType === 'admin') {
-                sourcePassRef = db.collection('adminPass').doc(passId);
-            }
             else {
                 throw new HttpsError('invalid-argument', 'Invalid pass type');
             }
@@ -75,42 +72,9 @@ export const transferPass = onCall(async (request) => {
             }
             // Calculate lastDay for new pass
             let newPassLastDay = null;
-            if (passType === 'admin') {
-                // For admin passes, calculate new lastDay based on source pass creation time
-                const duration = sourcePassData.duration || 0;
-                if (duration > 0) {
-                    // Use source pass creation time as the base, or current time if not available
-                    const baseTime = sourcePassData.createdAt
-                        ? (sourcePassData.createdAt.toDate ? sourcePassData.createdAt.toDate() : new Date(sourcePassData.createdAt))
-                        : new Date();
-
-                    // Work in UTC to avoid timezone complications
-                    const baseYear = baseTime.getUTCFullYear();
-                    const baseMonth = baseTime.getUTCMonth();
-                    const baseDay = baseTime.getUTCDate();
-
-                    // Calculate target month and year
-                    const totalMonths = baseMonth + duration;
-                    const targetYear = baseYear + Math.floor(totalMonths / 12);
-                    const targetMonth = totalMonths % 12;
-
-                    // Get the number of days in the target month to prevent rollover
-                    const daysInTargetMonth = new Date(targetYear, targetMonth + 1, 0).getDate();
-
-                    // Use the minimum of the original day or the target month's max day
-                    const targetDay = Math.min(baseDay, daysInTargetMonth);
-
-                    // Create the target date in UTC (15:59:59.999 UTC = 23:59:59.999 HKT)
-                    const targetDate = new Date(Date.UTC(targetYear, targetMonth, targetDay, 15, 59, 59, 999));
-
-                    newPassLastDay = Timestamp.fromDate(targetDate);
-                }
-            }
-            else {
-                // For private and market passes, preserve the original lastDay
-                if (sourcePassData.lastDay && typeof sourcePassData.lastDay.toDate === 'function') {
-                    newPassLastDay = sourcePassData.lastDay;
-                }
+            // For private and market passes, preserve the original lastDay
+            if (sourcePassData.lastDay && typeof sourcePassData.lastDay.toDate === 'function') {
+                newPassLastDay = sourcePassData.lastDay;
             }
             // Create new private pass for recipient
             const newPassRef = db.collection('privatePass').doc();
@@ -120,21 +84,19 @@ export const transferPass = onCall(async (request) => {
                 gymDisplayName: sourcePassData.gymDisplayName,
                 gymId: sourcePassData.gymId,
                 passName: sourcePassData.passName,
-                purchasePrice: passType === 'admin' ? sourcePassData.price : transferPrice,
-                purchaseCount: passType === 'admin' ? sourcePassData.count : count,
+                purchasePrice: transferPrice,
+                purchaseCount: count,
                 count: count,
                 userRef: toUserRef,
                 lastDay: newPassLastDay,
                 active: true
             };
             transaction.set(newPassRef, newPassData);
-            // Reduce count from source pass (unless it's an admin pass)
-            if (passType !== 'admin') {
-                transaction.update(sourcePassRef, {
-                    count: FieldValue.increment(-count),
-                    updatedAt: FieldValue.serverTimestamp()
-                });
-            }
+            // Reduce count from source pass
+            transaction.update(sourcePassRef, {
+                count: FieldValue.increment(-count),
+                updatedAt: FieldValue.serverTimestamp()
+            });
             // Create pass record entry
             const passRecordRef = db.collection('passRecord').doc();
             const passRecordData = {

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../firebase';
-import '../css/TransferModal.css';
+import '../css/MarketModal.css';
 
 interface MarketModalProps {
   isOpen: boolean;

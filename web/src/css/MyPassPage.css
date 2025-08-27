@@ -1,10 +1,44 @@
 .my-pass-page {
   max-width: 1200px; /* Keep it wider for the pass layout */
-  margin: 1rem auto;
-  padding: 2rem;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 0 20px rgba(0,0,0,0.05);
+  margin: 0.5rem auto;
+  padding: 1rem;
+  background-color: #f9fafb;
+  min-height: 100vh;
+}
+
+.my-pass-card {
+  background-color: #ffffff;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  overflow: hidden;
+}
+
+.my-pass-card-header {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.my-pass-card-header h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.my-pass-card-body {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.main-content-card {
+  grid-column: span 2;
 }
 
 .page-header {
@@ -103,4 +137,18 @@
   background-color: #007bff;
   color: white;
   border-color: #007bff;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .my-pass-card-header {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .my-pass-card-header h2 {
+    text-align: center;
+  }
 }

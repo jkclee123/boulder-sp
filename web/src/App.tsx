@@ -115,7 +115,7 @@ function AppShell() {
       <main
         style={{
           flex: 1,
-          padding: isLoginRoute ? '0' : '1rem 0',
+          padding: isLoginRoute ? '0' : '0.5rem 0',
           display: isLoginRoute ? 'grid' : 'block',
           placeItems: isLoginRoute ? 'center' : undefined,
           // Solid base background; actual image handled by LoginPage pseudo-element

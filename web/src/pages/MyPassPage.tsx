@@ -32,6 +32,23 @@ interface MarketPass extends Pass {
 
 type AnyPass = PrivatePass | MarketPass;
 
+// --- Helper Components ---
+
+const MyPassCard = ({ children, className }: { children: React.ReactNode, className?: string }) => (
+  <div className={`my-pass-card ${className || ''}`}>{children}</div>
+);
+
+const MyPassCardHeader = ({ title, children }: { title: string, children?: React.ReactNode }) => (
+  <div className="my-pass-card-header">
+    <h2>{title}</h2>
+    <div>{children}</div>
+  </div>
+);
+
+const MyPassCardBody = ({ children }: { children: React.ReactNode }) => (
+  <div className="my-pass-card-body">{children}</div>
+);
+
 const PassCard: React.FC<{ pass: AnyPass; onAction: (action: string, pass: AnyPass) => void; isUnlisting?: boolean }> = ({ pass, onAction, isUnlisting = false }) => {
   // Use UTC-preserving approach to match backend UTC handling
   const now = new Date();
@@ -201,54 +218,57 @@ const MyPassPage: React.FC = () => {
 
   return (
     <div className="my-pass-page">
-            <h1 className="page-header">My Passes</h1>
+      <MyPassCard className="main-content-card">
+        <MyPassCardHeader title="My Passes" />
+        <MyPassCardBody>
+          <div className="pass-list-section">
+            <h2>Private Passes</h2>
+            <div className="pass-list">
+              {privatePasses.length > 0 ? (
+                privatePasses.map(pass => <PassCard key={pass.id} pass={pass} onAction={handleAction} />)
+              ) : (
+                <p>No active private passes.</p>
+              )}
+            </div>
+          </div>
 
-      <div className="pass-list-section">
-        <h2>Private Passes</h2>
-        <div className="pass-list">
-          {privatePasses.length > 0 ? (
-            privatePasses.map(pass => <PassCard key={pass.id} pass={pass} onAction={handleAction} />)
-          ) : (
-            <p>No active private passes.</p>
-          )}
-        </div>
-      </div>
+          <div className="pass-list-section">
+            <h2>Market Passes</h2>
+            <div className="pass-list">
+              {marketPasses.length > 0 ? (
+                marketPasses.map(pass => (
+                  <PassCard
+                    key={pass.id}
+                    pass={pass}
+                    onAction={handleAction}
+                    isUnlisting={unlistingPassId === pass.id}
+                  />
+                ))
+              ) : (
+                <p>No active market passes.</p>
+              )}
+            </div>
+          </div>
 
-      <div className="pass-list-section">
-        <h2>Market Passes</h2>
-        <div className="pass-list">
-          {marketPasses.length > 0 ? (
-            marketPasses.map(pass => (
-              <PassCard
-                key={pass.id}
-                pass={pass}
-                onAction={handleAction}
-                isUnlisting={unlistingPassId === pass.id}
-              />
-            ))
-          ) : (
-            <p>No active market passes.</p>
-          )}
-        </div>
-      </div>
-
-      <div className="pass-list-section">
-        <h2>Expired Passes</h2>
-        <div className="pass-list">
-          {expiredPasses.length > 0 ? (
-            expiredPasses.map(pass => (
-              <PassCard
-                key={pass.id}
-                pass={pass}
-                onAction={handleAction}
-                isUnlisting={unlistingPassId === pass.id}
-              />
-            ))
-          ) : (
-            <p>No expired passes.</p>
-          )}
-        </div>
-      </div>
+          <div className="pass-list-section">
+            <h2>Expired Passes</h2>
+            <div className="pass-list">
+              {expiredPasses.length > 0 ? (
+                expiredPasses.map(pass => (
+                  <PassCard
+                    key={pass.id}
+                    pass={pass}
+                    onAction={handleAction}
+                    isUnlisting={unlistingPassId === pass.id}
+                  />
+                ))
+              ) : (
+                <p>No expired passes.</p>
+              )}
+            </div>
+          </div>
+        </MyPassCardBody>
+      </MyPassCard>
 
       {selectedPass && (
         <TransferModal

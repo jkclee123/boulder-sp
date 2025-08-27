@@ -1,4 +1,4 @@
-.pass-log-page {
+.pass-record-page {
   max-width: 1200px;
   margin: 0.5rem auto;
   padding: 1rem;
@@ -6,14 +6,14 @@
   min-height: 100vh;
 }
 
-.pass-log-card {
+.pass-record-card {
   background-color: #ffffff;
   border-radius: 0.75rem;
   box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   overflow: hidden;
 }
 
-.pass-log-card-header {
+.pass-record-card-header {
   padding: 1rem 1.5rem;
   border-bottom: 1px solid #e5e7eb;
   display: flex;
@@ -23,20 +23,20 @@
   gap: 0.75rem;
 }
 
-.pass-log-card-header .header-content h2 {
+.pass-record-card-header .header-content h2 {
   font-size: 1.25rem;
   font-weight: 600;
   color: #111827;
   margin: 0;
 }
 
-.pass-log-card-header .header-content .page-subtitle {
+.pass-record-card-header .header-content .page-subtitle {
   margin: 0.25rem 0 0 0;
   color: var(--muted);
   font-size: 0.875rem;
 }
 
-.pass-log-card-body {
+.pass-record-card-body {
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
@@ -65,17 +65,17 @@
   font-size: 1rem;
 }
 
-.pass-log-container {
+.pass-record-container {
   margin-top: 2rem;
 }
 
-.pass-log-list {
+.pass-record-list {
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
 
-.pass-log-item {
+.pass-record-item {
   border: 1px solid #e0e0e0;
   border-radius: 12px;
   background-color: #fafafa;
@@ -84,12 +84,12 @@
   overflow: hidden;
 }
 
-.pass-log-item:hover {
+.pass-record-item:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
-.pass-log-header {
+.pass-record-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -98,13 +98,13 @@
   border-bottom: 1px solid #e0e0e0;
 }
 
-.pass-log-gym {
+.pass-record-gym {
   font-size: 1.1rem;
   font-weight: 600;
   color: var(--ink);
 }
 
-.pass-log-action {
+.pass-record-action {
   padding: 0.25rem 0.75rem;
   border-radius: 20px;
   font-size: 0.8rem;
@@ -113,65 +113,65 @@
   letter-spacing: 0.5px;
 }
 
-.pass-log-action.action-transfer {
+.pass-record-action.action-transfer {
   background-color: #e8f4fd;
   color: #1976d2;
 }
 
-.pass-log-action.action-consume {
+.pass-record-action.action-consume {
   background-color: #f0f8e8;
   color: #388e3c;
 }
 
-.pass-log-body {
+.pass-record-body {
   padding: 1.5rem;
 }
 
-.pass-log-description {
+.pass-record-description {
   font-size: 1rem;
   color: var(--ink);
   margin-bottom: 1rem;
   line-height: 1.5;
 }
 
-.pass-log-details {
+.pass-record-details {
   display: flex;
   gap: 2rem;
   align-items: center;
   flex-wrap: wrap;
 }
 
-.pass-log-count,
-.pass-log-price {
+.pass-record-count,
+.pass-record-price {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   font-size: 0.9rem;
 }
 
-.pass-log-count .label,
-.pass-log-price .label {
+.pass-record-count .label,
+.pass-record-price .label {
   color: var(--muted);
   font-weight: 500;
 }
 
-.pass-log-count {
+.pass-record-count {
   color: #1976d2;
   font-weight: 600;
 }
 
-.pass-log-price {
+.pass-record-price {
   color: #388e3c;
   font-weight: 600;
 }
 
-.pass-log-footer {
+.pass-record-footer {
   padding: 1rem 1.5rem;
   background-color: #f8f9fa;
   border-top: 1px solid #e0e0e0;
 }
 
-.pass-log-timestamp {
+.pass-record-timestamp {
   font-size: 0.85rem;
   color: var(--muted);
   text-align: right;
@@ -275,23 +275,23 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .pass-log-page {
+  .pass-record-page {
     margin: 0.5rem;
     padding: 1rem;
   }
 
-  .pass-log-card-header {
+  .pass-record-card-header {
     flex-direction: column;
     justify-content: center;
     align-items: center;
     gap: 0.75rem;
   }
 
-  .pass-log-card-header .header-content {
+  .pass-record-card-header .header-content {
     text-align: center;
   }
 
-  .pass-log-card-body {
+  .pass-record-card-body {
     padding: 1rem;
   }
 
@@ -299,57 +299,57 @@
     font-size: 1.5rem;
   }
 
-  .pass-log-header {
+  .pass-record-header {
     flex-direction: column;
     gap: 0.5rem;
     align-items: flex-start;
   }
 
-  .pass-log-gym {
+  .pass-record-gym {
     font-size: 1rem;
   }
 
-  .pass-log-body {
+  .pass-record-body {
     padding: 1rem;
   }
 
-  .pass-log-details {
+  .pass-record-details {
     flex-direction: column;
     gap: 1rem;
     align-items: flex-start;
   }
 
-  .pass-log-footer {
+  .pass-record-footer {
     padding: 0.75rem 1rem;
   }
 
-  .pass-log-timestamp {
+  .pass-record-timestamp {
     text-align: left;
     font-size: 0.8rem;
   }
 }
 
 @media (max-width: 480px) {
-  .pass-log-page {
+  .pass-record-page {
     margin: 0.25rem;
     padding: 0.75rem;
   }
 
-  .pass-log-card-header {
+  .pass-record-card-header {
     padding: 0.75rem 1rem;
   }
 
-  .pass-log-card-body {
+  .pass-record-card-body {
     padding: 1rem;
   }
 
-  .pass-log-item {
+  .pass-record-item {
     border-radius: 8px;
   }
 
-  .pass-log-header,
-  .pass-log-body,
-  .pass-log-footer {
+  .pass-record-header,
+  .pass-record-body,
+  .pass-record-footer {
     padding: 0.75rem 1rem;
   }
 }

@@ -135,9 +135,9 @@ export const transferPass = onCall(async (request) => {
                     updatedAt: FieldValue.serverTimestamp()
                 });
             }
-            // Create pass log entry
-            const passLogRef = db.collection('passLog').doc();
-            const passLogData = {
+            // Create pass record entry
+            const passRecordRef = db.collection('passRecord').doc();
+            const passRecordData = {
                 createdAt: FieldValue.serverTimestamp(),
                 gymDisplayName: sourcePassData.gymDisplayName,
                 passName: sourcePassData.passName,
@@ -148,7 +148,7 @@ export const transferPass = onCall(async (request) => {
                 action: 'transfer',
                 participants: [fromUserId, toUserId]
             };
-            transaction.set(passLogRef, passLogData);
+            transaction.set(passRecordRef, passRecordData);
             return {
                 success: true,
                 message: 'Transfer completed successfully',

@@ -30,7 +30,7 @@ The Minimum Viable Product (MVP) will focus on core pass management, transfer, a
 * **FR9**: Unlisting a `marketPass` shall delete the `marketPass` record and merge its `count` back into the parent `privatePass`.
 * **FR10**: Users can initiate a transfer of any active `privatePass` or `marketPass` they own.
 * **FR11**: The transfer process requires the sender to find the recipient by their unique `phoneNumber` or `gymMemberId`.
-* **FR12**: A successful transfer creates a new `privatePass` for the recipient and generates a `passLog` record.
+* **FR12**: A successful transfer creates a new `privatePass` for the recipient and generates a `passRecord` record.
 * **FR13**: The Market page shall display all active, unexpired `marketPass` records with a `count` greater than 0.
 * **FR14**: The Market page shall include a button on each listing that links to the owner's Telegram profile.
 * **FR15**: Users must set their `phoneNumber` number before they can contact a seller on Telegram from the market page.
@@ -39,8 +39,8 @@ The Minimum Viable Product (MVP) will focus on core pass management, transfer, a
 * **FR18**: Admins can transfer an `adminPass` to a normal user, which creates a `privatePass` for that user. An `adminPass`'s count is not reduced upon transfer.
 * **FR19**: Admins can consume passes from users belonging to their gym by searching for the user via `phoneNumber` or `gymMemberId`.
 * **FR20**: The consume process shall default to consuming a `privatePass` before consuming a `marketPass`. A transaction attempting to consume from both types simultaneously shall fail.
-* **FR21**: A successful consumption shall reduce the `count` of the user's pass and create a `passLog` record.
-* **FR22**: The "Pass Log" page shall display all log entries where the current user is either the `fromUserRef` or the `toUserRef`.
+* **FR21**: A successful consumption shall reduce the `count` of the user's pass and create a `passRecord` record.
+* **FR22**: The "Pass Record" page shall display all record entries where the current user is either the `fromUserRef` or the `toUserRef`.
 
 ### Non-Functional
 * **NFR1**: All timestamps stored and displayed in the application must be in Hong Kong Time (UTC+8).
@@ -59,7 +59,7 @@ The Minimum Viable Product (MVP) will focus on core pass management, transfer, a
     * Login Page
     * Account Page
     * My Pass Page
-    * Pass Log Page
+    * Pass Record Page
     * Market Page
     * Admin Page
 * **Accessibility**: The application should strive to meet WCAG 2.1 Level AA compliance.
@@ -176,9 +176,9 @@ The Minimum Viable Product (MVP) will focus on core pass management, transfer, a
 * **Story 3.4: Pass Transaction Logging**
     * **As a** user, **I want** to see a log of all my pass activities, **so that** I can track my transfers and consumptions.
     * **Acceptance Criteria**:
-        1.  A `passLog` record is created for every successful transfer and consumption.
+        1.  A `passRecord` record is created for every successful transfer and consumption.
         2.  The log includes `fromUserRef`, `toUserRef`, `count`, `price`, `action` ('transfer' or 'consume'), and `gym`.
-        3.  The "Pass Log" page displays all log records where the current user is a participant.
+        3.  The "Pass Record" page displays all record entries where the current user is a participant.
 
 * **Story 3.5: Contact Seller from Market**
     * **As a** buyer, **I want** to contact a seller from the market page, **so that** I can arrange payment.
@@ -206,7 +206,7 @@ The Minimum Viable Product (MVP) will focus on core pass management, transfer, a
         3.  On confirmation, a Firebase Function creates a new `privatePass` for the recipient.
         4.  The new `privatePass` inherits its `duration` from the `adminPass`. Its `lastDay` is calculated as `createdAt` + `duration`, ending at 23:59:59 HKT.
         5.  The original `adminPass` `count` is NOT reduced.
-        6.  A `passLog` is created for the transaction.
+        6.  A `passRecord` is created for the transaction.
 
 * **Story 4.3: Consume User Pass**
     * **As an** admin, **I want** to consume a pass from a user who is visiting the gym, **so that** I can redeem their entry.
@@ -216,7 +216,7 @@ The Minimum Viable Product (MVP) will focus on core pass management, transfer, a
         3.  The admin enters the number of passes to consume.
         4.  A Firebase Function verifies the user has enough passes of a single type (`privatePass` or `marketPass`) from the admin's gym. It shows an error if not, or if the consumption would require using both types.
         5.  The function preferentially reduces the count of a `privatePass`. If none exists, it reduces the count of a `marketPass`.
-        6.  A `passLog` is created with `price: 0`, `fromUser`: the target user, and `toUser`: the admin.
+        6.  A `passRecord` is created with `price: 0`, `fromUser`: the target user, and `toUser`: the admin.
 
 ---
 ## Checklist Results Report

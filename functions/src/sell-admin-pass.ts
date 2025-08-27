@@ -96,9 +96,9 @@ export const sellAdminPass = onCall(async (request) => {
                 active: true
             };
             transaction.set(newPassRef, newPassData);
-            // Create pass log entry
-            const passLogRef = db.collection('passLog').doc();
-            const passLogData = {
+            // Create pass record entry
+            const passRecordRef = db.collection('passRecord').doc();
+            const passRecordData = {
                 createdAt: FieldValue.serverTimestamp(),
                 gymDisplayName: adminPassData.gymDisplayName,
                 gymId: adminPassData.gymId,
@@ -110,7 +110,7 @@ export const sellAdminPass = onCall(async (request) => {
                 action: 'sell_admin',
                 participants: [adminId, recipientUserId]
             };
-            transaction.set(passLogRef, passLogData);
+            transaction.set(passRecordRef, passRecordData);
             return {
                 success: true,
                 message: 'Admin pass sold successfully',

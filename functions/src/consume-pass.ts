@@ -97,9 +97,9 @@ export const consumePass = onCall(async (request) => {
                 updatedAt: FieldValue.serverTimestamp()
             });
 
-            // Create pass log entry
-            const passLogRef = db.collection('passLog').doc();
-            const passLogData = {
+            // Create pass record entry
+            const passRecordRef = db.collection('passRecord').doc();
+            const passRecordData = {
                 createdAt: FieldValue.serverTimestamp(),
                 gymDisplayName: passData.gymDisplayName,
                 gymId: passData.gymId,
@@ -112,7 +112,7 @@ export const consumePass = onCall(async (request) => {
                 passType: passType,
                 participants: [userId, adminId]
             };
-            transaction.set(passLogRef, passLogData);
+            transaction.set(passRecordRef, passRecordData);
 
             return {
                 success: true,

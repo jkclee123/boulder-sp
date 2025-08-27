@@ -6,7 +6,7 @@ import LoginPage from './pages/LoginPage'
 import MarketPage from './pages/MarketPage'
 import ProfilePage from './pages/ProfilePage'
 import MyPassPage from './pages/MyPassPage'
-import PassLogPage from './pages/PassLogPage'
+import PassRecordPage from './pages/PassRecordPage'
 import AdminPage from './pages/AdminPage'
 import GymPassPage from './pages/GymPassPage'
 
@@ -90,7 +90,7 @@ function AppShell() {
                     ) : (
                       <Link to="/mypass" className="profile-menu-item" onClick={() => setIsProfileMenuOpen(false)}>My Pass</Link>
                     )}
-                    <Link to="/pass-log" className="profile-menu-item" onClick={() => setIsProfileMenuOpen(false)}>Pass Records</Link>
+                    <Link to="/passRecord" className="profile-menu-item" onClick={() => setIsProfileMenuOpen(false)}>Pass Records</Link>
                     {userProfile?.isAdmin && (
                       <Link to="/admin" className="profile-menu-item" onClick={() => setIsProfileMenuOpen(false)}>Admin Portal</Link>
                     )}
@@ -126,7 +126,7 @@ function AppShell() {
           <Route path="/" element={<MarketPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/mypass" element={<MyPassPage />} />
-          <Route path="/pass-log" element={<PassLogPage />} />
+          <Route path="/passRecord" element={<PassRecordPage />} />
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/gymPass" element={<GymPassPage />} />
           <Route path="/login" element={<RedirectIfAuthed><LoginPage /></RedirectIfAuthed>} />

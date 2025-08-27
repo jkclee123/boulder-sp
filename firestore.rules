@@ -43,7 +43,7 @@ service cloud.firestore {
       allow list: if isAuthenticated() && getUserData(request.auth.uid).isAdmin == true;
     }
 
-    match /passLog {
+    match /passRecord {
       allow list: if isAuthenticated();
     }
 
@@ -92,8 +92,8 @@ service cloud.firestore {
         : isGymAdmin(request.method == 'create' ? request.resource.data.gymId : resource.data.gymId);
     }
 
-    // passLog: Immutable logs. Readable by participants or a relevant gym admin.
-    match /passLog/{logId} {
+    // passRecord: Immutable records. Readable by participants or a relevant gym admin.
+    match /passRecord/{recordId} {
       allow read: if isAuthenticated() && (request.auth.uid in resource.data.participants || isGymAdmin(resource.data.gymId));
       allow create: if isAuthenticated(); // Trust cloud function for validation.
       allow update, delete: if false;

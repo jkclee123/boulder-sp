@@ -2,17 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../providers/AuthProvider';
 import { db } from '../firebase';
 import { collection, query, where, onSnapshot, orderBy, Timestamp, doc, getDoc } from 'firebase/firestore';
-import '../css/PassLogPage.css';
+import '../css/PassRecordPage.css';
 
-interface PassLogRecord {
+interface PassRecordRecord {
   id: string;
   createdAt: Timestamp;
-  gym: string;
+  gymDisplayName: string;
+  gymId: string;
+  passName: string;
   count: number;
   price: number;
   fromUserRef: any;
   toUserRef: any;
-  action: 'transfer' | 'consume';
+  action: 'transfer' | 'consume' | 'sell_admin';
   participants: [string, string];
   fromUserName?: string;
   toUserName?: string;
@@ -20,16 +22,16 @@ interface PassLogRecord {
 
 // --- Helper Components ---
 
-const PassLogCard = ({ children, className }: { children: React.ReactNode, className?: string }) => (
-  <div className={`pass-log-card ${className || ''}`}>{children}</div>
+const PassRecordCard = ({ children, className }: { children: React.ReactNode, className?: string }) => (
+  <div className={`pass-record-card ${className || ''}`}>{children}</div>
 );
 
-const PassLogCardHeader = ({ title, subtitle, children }: {
+const PassRecordCardHeader = ({ title, subtitle, children }: {
   title: string,
   subtitle?: string,
   children?: React.ReactNode
 }) => (
-  <div className="pass-log-card-header">
+  <div className="pass-record-card-header">
     <div className="header-content">
       <h2>{title}</h2>
       {subtitle && <p className="page-subtitle">{subtitle}</p>}
@@ -38,8 +40,8 @@ const PassLogCardHeader = ({ title, subtitle, children }: {
   </div>
 );
 
-const PassLogCardBody = ({ children }: { children: React.ReactNode }) => (
-  <div className="pass-log-card-body">{children}</div>
+const PassRecordCardBody = ({ children }: { children: React.ReactNode }) => (
+  <div className="pass-record-card-body">{children}</div>
 );
 
 const formatDate = (timestamp: Timestamp): string => {
@@ -61,7 +63,7 @@ const formatCurrency = (amount: number): string => {
   return `HK$${amount.toLocaleString('en-HK')}`;
 };
 
-const PassLogItem: React.FC<{ record: PassLogRecord; currentUserId: string }> = ({ record, currentUserId }) => {
+const PassRecordItem: React.FC<{ record: PassRecordRecord; currentUserId: string }> = ({ record, currentUserId }) => {
   const isFromUser = record.participants[0] === currentUserId;
 
   const getActionDescription = () => {
@@ -102,26 +104,26 @@ const PassLogItem: React.FC<{ record: PassLogRecord; currentUserId: string }> = 
   };
 
   return (
-    <div className="pass-log-item">
-      <div className="pass-log-header">
-        <div className="pass-log-gym">{record.gym}</div>
-        <div className={`pass-log-action ${getActionBadgeClass()}`}>{record.action}</div>
+    <div className="pass-record-item">
+      <div className="pass-record-header">
+        <div className="pass-record-gym">{record.gymDisplayName}</div>
+        <div className={`pass-record-action ${getActionBadgeClass()}`}>{record.action}</div>
       </div>
-      <div className="pass-log-body">
-        <div className="pass-log-description">
+      <div className="pass-record-body">
+        <div className="pass-record-description">
           {getActionDescription()}
         </div>
-        <div className="pass-log-details">
-          <div className="pass-log-count">
+        <div className="pass-record-details">
+          <div className="pass-record-count">
             <span className="label">Count:</span> {record.count}
           </div>
-          <div className="pass-log-price">
+          <div className="pass-record-price">
             <span className="label">Price:</span> {getPriceDisplay()}
           </div>
         </div>
       </div>
-      <div className="pass-log-footer">
-        <div className="pass-log-timestamp">
+      <div className="pass-record-footer">
+        <div className="pass-record-timestamp">
           {formatDate(record.createdAt)}
         </div>
       </div>
@@ -129,9 +131,9 @@ const PassLogItem: React.FC<{ record: PassLogRecord; currentUserId: string }> = 
   );
 };
 
-const PassLogPage: React.FC = () => {
+const PassRecordPage: React.FC = () => {
   const { user, userProfile } = useAuth();
-  const [passLogs, setPassLogs] = useState<PassLogRecord[]>([]);
+  const [passRecords, setPassRecords] = useState<PassRecordRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -142,25 +144,25 @@ const PassLogPage: React.FC = () => {
     }
 
     // Query for records where current user is either fromUser or toUser
-    const passLogQuery = query(
-      collection(db, 'passLog'),
+    const passRecordQuery = query(
+      collection(db, 'passRecord'),
       where('participants', 'array-contains', user.uid),
       orderBy('createdAt', 'desc')
     );
 
     const unsub = onSnapshot(
-      passLogQuery,
+      passRecordQuery,
       async (snapshot) => {
         try {
-          const logs = snapshot.docs.map(doc => ({
+          const records = snapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
-          } as PassLogRecord));
+          } as PassRecordRecord));
 
           // Fetch user names for display
-          const enrichedLogs = await Promise.all(
-            logs.map(async (log) => {
-              const [fromUserId, toUserId] = log.participants;
+          const enrichedRecords = await Promise.all(
+            records.map(async (record) => {
+              const [fromUserId, toUserId] = record.participants;
 
               // Get fromUser name
               let fromUserName = 'Unknown User';
@@ -197,25 +199,25 @@ const PassLogPage: React.FC = () => {
               }
 
               return {
-                ...log,
+                ...record,
                 fromUserName,
                 toUserName
               };
             })
           );
 
-          setPassLogs(enrichedLogs);
+          setPassRecords(enrichedRecords);
           setLoading(false);
           setError(null);
         } catch (err) {
-          console.error('Error processing pass logs:', err);
-          setError('Failed to load pass logs');
+          console.error('Error processing pass records:', err);
+          setError('Failed to load pass records');
           setLoading(false);
         }
       },
       (err) => {
-        console.error('Error fetching pass logs:', err);
-        setError('Failed to load pass logs');
+        console.error('Error fetching pass records:', err);
+        setError('Failed to load pass records');
         setLoading(false);
       }
     );
@@ -225,26 +227,26 @@ const PassLogPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="pass-log-page">
-        <PassLogCard className="main-content-card">
-          <PassLogCardHeader title="Pass Records" subtitle="Your complete history of pass transactions" />
-          <PassLogCardBody>
+      <div className="pass-record-page">
+        <PassRecordCard className="main-content-card">
+          <PassRecordCardHeader title="Pass Records" subtitle="Your complete history of pass transactions" />
+          <PassRecordCardBody>
             <div className="loading-container">
               <div className="loading-spinner"></div>
               <p>Loading your pass records...</p>
             </div>
-          </PassLogCardBody>
-        </PassLogCard>
+          </PassRecordCardBody>
+        </PassRecordCard>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="pass-log-page">
-        <PassLogCard className="main-content-card">
-          <PassLogCardHeader title="Pass Records" subtitle="Your complete history of pass transactions" />
-          <PassLogCardBody>
+      <div className="pass-record-page">
+        <PassRecordCard className="main-content-card">
+          <PassRecordCardHeader title="Pass Records" subtitle="Your complete history of pass transactions" />
+          <PassRecordCardBody>
             <div className="error-container">
               <p>{error}</p>
               <button
@@ -254,21 +256,21 @@ const PassLogPage: React.FC = () => {
                 Retry
               </button>
             </div>
-          </PassLogCardBody>
-        </PassLogCard>
+          </PassRecordCardBody>
+        </PassRecordCard>
       </div>
     );
   }
 
   return (
-    <div className="pass-log-page">
-      <PassLogCard className="main-content-card">
-        <PassLogCardHeader title="Pass Records" subtitle="Your complete history of pass transactions" />
-        <PassLogCardBody>
-          {passLogs.length > 0 ? (
-            <div className="pass-log-list">
-              {passLogs.map(record => (
-                <PassLogItem
+    <div className="pass-record-page">
+      <PassRecordCard className="main-content-card">
+        <PassRecordCardHeader title="Pass Records" subtitle="Your complete history of pass transactions" />
+        <PassRecordCardBody>
+          {passRecords.length > 0 ? (
+            <div className="pass-record-list">
+              {passRecords.map(record => (
+                <PassRecordItem
                   key={record.id}
                   record={record}
                   currentUserId={user?.uid || ''}
@@ -282,10 +284,10 @@ const PassLogPage: React.FC = () => {
               <p>Your pass transaction history will appear here once you start transferring or consuming passes.</p>
             </div>
           )}
-        </PassLogCardBody>
-      </PassLogCard>
+        </PassRecordCardBody>
+      </PassRecordCard>
     </div>
   );
 };
 
-export default PassLogPage;
+export default PassRecordPage;

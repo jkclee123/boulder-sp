@@ -22,7 +22,7 @@ This document details the server-side implementation logic for core application 
         - The sender's pass count is reduced (unless it's an `adminPass`).
         - A new `privatePass` is created for the recipient.
         - The new pass's `lastDay` is calculated as `createdAt` + `duration` from the source pass, ending at 23:59:59 HKT.
-        - A `passLog` record is generated.
+        - A `passRecord` record is generated.
 - **Special Rule for `adminPass`**: The `count` of an `adminPass` is never reduced upon transfer.
 
 ## Consume Process (Admin Only)
@@ -39,4 +39,4 @@ This document details the server-side implementation logic for core application 
         - **Error Condition 2**: The consumption would require using both `privatePass` and `marketPass` types (e.g., consume 2, user has 1 of each). This is not allowed to simplify the transaction.
         - **Consumption Priority**: The function will consume from a `privatePass` first. If no matching `privatePass` exists, it will consume from a `marketPass`.
         - The `count` of the consumed pass is reduced.
-    5.  **Logging**: A `passLog` record is created with `price: 0`, `fromUserRef` pointing to the target user, and `toUserRef` pointing to the admin.
+    5.  **Logging**: A `passRecord` record is created with `price: 0`, `fromUserRef` pointing to the target user, and `toUserRef` pointing to the admin.

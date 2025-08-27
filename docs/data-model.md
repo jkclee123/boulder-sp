@@ -56,7 +56,7 @@
 - **`lastDay`**: `timestamp` (expiration date for the admin pass itself)
 - **`active`**: `boolean`
 
-### `passLog` collection
+### `passRecord` collection
 - **`createdAt`**: `timestamp`
 - **`gymDisplayName`**: `string` 
 - **`gymId`**: `string`

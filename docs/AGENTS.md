@@ -164,7 +164,7 @@ Key security principles:
 1. **adminPass**: Created by admins, never reduced on transfer, physically deleted
 2. **privatePass**: User's personal passes, can be listed on market
 3. **marketPass**: Listed for sale, references parent privatePass
-4. **passLog**: Immutable transaction records
+4. **passRecord**: Immutable transaction records
 
 ### Critical Business Rules
 - **Hong Kong Time**: All timestamps in UTC+8

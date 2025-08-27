@@ -6,7 +6,7 @@ This document details the user interface and user experience for each page of th
 - Clicking on the user's profile icon should show a pop-up/menu with links to:
     - "Account Page"
     - "My Pass Page"
-    - "Pass Log Page"
+    - "Pass Record Page"
     - "Admin Page" (only if the logged-in user is an admin)
 
 ## Page-Specific Designs
@@ -60,6 +60,6 @@ This document details the user interface and user experience for each page of th
     - **Transfer Admin Pass**: Initiates a transfer to a normal user, creating a `privatePass` for them.
     - **Consume Pass**: A dedicated button to start the pass consumption process for a user.
 
-### Pass Log Page
+### Pass Record Page
 - **Objective**: Show a history of the user's transactions.
-- **Content**: A list of all `passLog` records where the current user is either the `fromUserRef` or the `toUserRef`.
+- **Content**: A list of all `passRecord` records where the current user is either the `fromUserRef` or the `toUserRef`.

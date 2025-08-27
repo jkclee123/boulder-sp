@@ -57,7 +57,7 @@ service cloud.firestore {
     // SECURITY NOTE: This allows all authenticated users to read user data for transfer functionality
     // Consider implementing a more secure search mechanism in the future if needed
     match /users/{userId} {
-      allow read: if request.auth.uid == userId || isRequestingUserAdmin(); // Allow all authenticated users to read for search functionality
+      allow read: if isAuthenticated();
 
       // On create, a user cannot assign themselves as admin.
       allow create: if request.auth.uid == userId && request.resource.data.isAdmin == false;

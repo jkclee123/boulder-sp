@@ -181,15 +181,13 @@ const MyPassPage: React.FC = () => {
   };
 
   const handleTransferSuccess = () => {
-    // Refresh the passes data
-    setLoading(true);
-    // The useEffect will automatically refresh the data due to onSnapshot
+    // The onSnapshot listeners will automatically update the data when Firestore changes
+    // No manual refresh needed - the real-time listeners handle this
   };
 
   const handleMarketSuccess = () => {
-    // Refresh the passes data
-    setLoading(true);
-    // The useEffect will automatically refresh the data due to onSnapshot
+    // The onSnapshot listeners will automatically update the data when Firestore changes
+    // No manual refresh needed - the real-time listeners handle this
   };
 
   const handleUnlist = async (pass: AnyPass) => {

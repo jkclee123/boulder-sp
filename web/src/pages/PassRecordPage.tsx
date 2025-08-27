@@ -90,6 +90,22 @@ const PassRecordItem: React.FC<{ record: PassRecordRecord; currentUserId: string
     return formatCurrency(record.price);
   };
 
+  const getPriceColorClass = () => {
+    switch (record.action) {
+      case 'transfer':
+        // Green if receiving (money coming in), Red if sending (money going out)
+        return isFromUser ? 'price-green' : 'price-red';
+      case 'sell_admin':
+        // Green if buying (receiving passes), Red if selling (giving passes)
+        return isFromUser ? 'price-green' : 'price-red';
+      case 'consume':
+        // Red for consuming (money spent)
+        return 'price-red';
+      default:
+        return 'price-red';
+    }
+  };
+
   const truncateText = (text: string, maxLength: number): string => {
     return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
   };
@@ -107,7 +123,7 @@ const PassRecordItem: React.FC<{ record: PassRecordRecord; currentUserId: string
         <span className="separator">•</span>
         <span className="pass-count">{record.count} punch{record.count > 1 ? 'es' : ''}</span>
         <span className="separator">•</span>
-        <span className="pass-price">{getPriceDisplay()}</span>
+        <span className={`pass-price ${getPriceColorClass()}`}>{getPriceDisplay()}</span>
       </div>
       <div className="pass-record-row-3">
         <span className="datetime-icon">📅</span>

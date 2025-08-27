@@ -427,8 +427,15 @@
 
 .pass-price {
   font-weight: 600;
-  color: #d32f2f;
   white-space: nowrap;
+}
+
+.pass-price.price-green {
+  color: #2e7d32;
+}
+
+.pass-price.price-red {
+  color: #d32f2f;
 }
 
 .action-icon {

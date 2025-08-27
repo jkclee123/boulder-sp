@@ -197,17 +197,6 @@ const GymPassPage: React.FC = () => {
         <MyPassCardHeader title={`Gym ${gymDisplayName || '[No Gym Assigned]'} Passes`} />
         <MyPassCardBody>
           <div className="pass-list-section">
-            <h2>Private Passes</h2>
-            <div className="pass-list">
-              {privatePasses.length > 0 ? (
-                privatePasses.map(pass => <PassCard key={pass.id} pass={pass} />)
-              ) : (
-                <p>No active private passes.</p>
-              )}
-            </div>
-          </div>
-
-          <div className="pass-list-section">
             <h2>Market Passes</h2>
             <div className="pass-list">
               {marketPasses.length > 0 ? (
@@ -219,6 +208,17 @@ const GymPassPage: React.FC = () => {
                 ))
               ) : (
                 <p>No active market passes.</p>
+              )}
+            </div>
+          </div>
+
+          <div className="pass-list-section">
+            <h2>Private Passes</h2>
+            <div className="pass-list">
+              {privatePasses.length > 0 ? (
+                privatePasses.map(pass => <PassCard key={pass.id} pass={pass} />)
+              ) : (
+                <p>No active private passes.</p>
               )}
             </div>
           </div>

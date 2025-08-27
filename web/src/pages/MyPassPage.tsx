@@ -5,7 +5,8 @@ import { collection, query, where, onSnapshot, Timestamp, doc } from 'firebase/f
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../firebase';
 import '../css/MyPassPage.css';
-import TransferModal from './TransferModal';
+import TransferPrivatePassModal from './TransferPrivatePassModal';
+import SellMarketPassModal from './SellMarketPassModal';
 import MarketModal from './MarketModal';
 
 interface Pass {
@@ -49,57 +50,69 @@ const MyPassCardBody = ({ children }: { children: React.ReactNode }) => (
   <div className="my-pass-card-body">{children}</div>
 );
 
-// Helper function to determine if a pass should be considered expired
-// This matches the filtering logic used in MyPassPage
-const isPassExpired = (pass: AnyPass): boolean => {
-  const now = new Date();
-  const isDateExpired = pass.lastDay.toDate().getTime() < now.getTime();
-
-  if (pass.type === 'private') {
-    // Private passes are expired if date expired OR count is 0
-    return isDateExpired || pass.count === 0;
-  } else {
-    // Market passes are expired if date expired AND count > 0
-    // (empty market passes are not shown in expired section)
-    return isDateExpired && pass.count > 0;
-  }
-};
-
-const PassCard: React.FC<{ pass: AnyPass; onAction: (action: string, pass: AnyPass) => void; isUnlisting?: boolean }> = ({ pass, onAction, isUnlisting = false }) => {
-  const isExpired = isPassExpired(pass);
-
+// Private Pass Card Component - for active private passes
+const PrivatePassCard: React.FC<{ pass: PrivatePass; onAction: (action: string, pass: PrivatePass) => void }> = ({ pass, onAction }) => {
   return (
-    <div className={`pass-card ${isExpired ? 'expired' : ''}`}>
-      <div className={`pass-card-header ${pass.type === 'private' ? 'private-pass' : 'market-pass'} ${isExpired ? 'expired-pass' : ''}`}>
+    <div className="pass-card">
+      <div className="pass-card-header private-pass">
         <h3>{pass.passName}</h3>
       </div>
       <div className="pass-card-body">
         <p>Gym: {pass.gymDisplayName}</p>
-        {pass.type === 'private' && pass.purchasePrice && pass.purchaseCount && pass.purchaseCount > 0 ? (
+        {pass.purchasePrice && pass.purchaseCount && pass.purchaseCount > 0 && (
           <p>Avg Price: ${(pass.purchasePrice / pass.purchaseCount).toFixed(0)}</p>
-        ) : pass.type === 'market' ? (
-          <p>Price: ${pass.price}</p>
-        ) : null}
+        )}
         <p>Remaining Punches: {pass.count}</p>
         <p>Expires: {pass.lastDay.toDate().toLocaleDateString()}</p>
       </div>
       <div className="pass-card-actions">
-        {isExpired ? (
-          <button onClick={() => onAction('remove', pass)}>Remove</button>
-        ) : (
-          <>
-            <button onClick={() => onAction('transfer', pass)}>{pass.type === 'market' ? 'Sell' : 'Transfer'}</button>
-            {pass.type === 'private' && <button onClick={() => onAction('market', pass)}>Market</button>}
-            {pass.type === 'market' && (
-              <button
-                onClick={() => onAction('unlist', pass)}
-                disabled={isUnlisting}
-              >
-                {isUnlisting ? 'Unlisting...' : 'Unlist'}
-              </button>
-            )}
-          </>
-        )}
+        <button onClick={() => onAction('transfer_private', pass)}>Transfer</button>
+        <button onClick={() => onAction('market', pass)}>Market</button>
+      </div>
+    </div>
+  );
+};
+
+// Market Pass Card Component - for active market passes
+const MarketPassCard: React.FC<{ pass: MarketPass; onAction: (action: string, pass: MarketPass) => void; isUnlisting?: boolean }> = ({ pass, onAction, isUnlisting = false }) => {
+  return (
+    <div className="pass-card">
+      <div className="pass-card-header market-pass">
+        <h3>{pass.passName}</h3>
+      </div>
+      <div className="pass-card-body">
+        <p>Gym: {pass.gymDisplayName}</p>
+        <p>Price: ${pass.price}</p>
+        <p>Remaining Punches: {pass.count}</p>
+        <p>Expires: {pass.lastDay.toDate().toLocaleDateString()}</p>
+      </div>
+      <div className="pass-card-actions">
+        <button onClick={() => onAction('sell_market', pass)}>Sell</button>
+        <button
+          onClick={() => onAction('unlist', pass)}
+          disabled={isUnlisting}
+        >
+          {isUnlisting ? 'Unlisting...' : 'Unlist'}
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// Expired Pass Card Component - for expired passes (both private and market)
+const ExpiredPassCard: React.FC<{ pass: AnyPass; onAction: (action: string, pass: AnyPass) => void }> = ({ pass, onAction }) => {
+  return (
+    <div className="pass-card expired">
+      <div className="pass-card-header expired-pass">
+        <h3>{pass.passName}</h3>
+      </div>
+      <div className="pass-card-body">
+        <p>Gym: {pass.gymDisplayName}</p>
+        <p>Remaining Punches: {pass.count}</p>
+        <p>Expired: {pass.lastDay.toDate().toLocaleDateString()}</p>
+      </div>
+      <div className="pass-card-actions">
+        <button onClick={() => onAction('remove', pass)}>Remove</button>
       </div>
     </div>
   );
@@ -111,7 +124,8 @@ const MyPassPage: React.FC = () => {
   const [marketPasses, setMarketPasses] = useState<MarketPass[]>([]);
   const [expiredPasses, setExpiredPasses] = useState<AnyPass[]>([]);
   const [loading, setLoading] = useState(true);
-  const [transferModalOpen, setTransferModalOpen] = useState(false);
+  const [transferPrivateModalOpen, setTransferPrivateModalOpen] = useState(false);
+  const [sellMarketModalOpen, setSellMarketModalOpen] = useState(false);
   const [marketModalOpen, setMarketModalOpen] = useState(false);
   const [selectedPass, setSelectedPass] = useState<AnyPass | null>(null);
   const [unlistingPassId, setUnlistingPassId] = useState<string | null>(null);
@@ -163,13 +177,21 @@ const MyPassPage: React.FC = () => {
     const now = new Date();
 
     switch (action) {
-      case 'transfer':
+      case 'transfer_private':
         if (pass.lastDay.toDate().getTime() < now.getTime()) {
           alert('Cannot transfer expired passes.');
           return;
         }
         setSelectedPass(pass);
-        setTransferModalOpen(true);
+        setTransferPrivateModalOpen(true);
+        break;
+      case 'sell_market':
+        if (pass.lastDay.toDate().getTime() < now.getTime()) {
+          alert('Cannot sell expired passes.');
+          return;
+        }
+        setSelectedPass(pass);
+        setSellMarketModalOpen(true);
         break;
       case 'market':
         if (!userProfile?.telegramId) {
@@ -195,11 +217,17 @@ const MyPassPage: React.FC = () => {
   };
 
   const handleTransferSuccess = () => {
+    // Close both transfer modals when transfer is successful
+    setTransferPrivateModalOpen(false);
+    setSellMarketModalOpen(false);
     // The onSnapshot listeners will automatically update the data when Firestore changes
     // No manual refresh needed - the real-time listeners handle this
   };
 
   const handleMarketSuccess = () => {
+    // Close market modal when market operation is successful
+    setMarketModalOpen(false);
+    setSelectedPass(null);
     // The onSnapshot listeners will automatically update the data when Firestore changes
     // No manual refresh needed - the real-time listeners handle this
   };
@@ -256,7 +284,7 @@ const MyPassPage: React.FC = () => {
             <div className="pass-list">
               {marketPasses.length > 0 ? (
                 marketPasses.map(pass => (
-                  <PassCard
+                  <MarketPassCard
                     key={pass.id}
                     pass={pass}
                     onAction={handleAction}
@@ -273,7 +301,7 @@ const MyPassPage: React.FC = () => {
             <h2>Private Passes</h2>
             <div className="pass-list">
               {privatePasses.length > 0 ? (
-                privatePasses.map(pass => <PassCard key={pass.id} pass={pass} onAction={handleAction} />)
+                privatePasses.map(pass => <PrivatePassCard key={pass.id} pass={pass} onAction={handleAction} />)
               ) : (
                 <p>No active private passes.</p>
               )}
@@ -285,11 +313,10 @@ const MyPassPage: React.FC = () => {
             <div className="pass-list">
               {expiredPasses.length > 0 ? (
                 expiredPasses.map(pass => (
-                  <PassCard
+                  <ExpiredPassCard
                     key={pass.id}
                     pass={pass}
                     onAction={handleAction}
-                    isUnlisting={unlistingPassId === pass.id}
                   />
                 ))
               ) : (
@@ -301,9 +328,24 @@ const MyPassPage: React.FC = () => {
       </MyPassCard>
 
       {selectedPass && (
-        <TransferModal
-          isOpen={transferModalOpen}
-          onClose={() => setTransferModalOpen(false)}
+        <TransferPrivatePassModal
+          isOpen={transferPrivateModalOpen}
+          onClose={() => {
+            setTransferPrivateModalOpen(false);
+            setSelectedPass(null);
+          }}
+          pass={selectedPass}
+          onTransferSuccess={handleTransferSuccess}
+        />
+      )}
+
+      {selectedPass && (
+        <SellMarketPassModal
+          isOpen={sellMarketModalOpen}
+          onClose={() => {
+            setSellMarketModalOpen(false);
+            setSelectedPass(null);
+          }}
           pass={selectedPass}
           onTransferSuccess={handleTransferSuccess}
         />
@@ -312,7 +354,10 @@ const MyPassPage: React.FC = () => {
       {selectedPass && selectedPass.type === 'private' && (
         <MarketModal
           isOpen={marketModalOpen}
-          onClose={() => setMarketModalOpen(false)}
+          onClose={() => {
+            setMarketModalOpen(false);
+            setSelectedPass(null);
+          }}
           pass={selectedPass}
           onSuccess={handleMarketSuccess}
         />

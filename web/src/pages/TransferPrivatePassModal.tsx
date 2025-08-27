@@ -3,7 +3,7 @@ import { db, functions } from '../firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { useAuth } from '../providers/AuthProvider';
-import '../css/TransferModal.css';
+import '../css/TransferPrivatePassModal.css';
 
 interface User {
   id: string;
@@ -12,14 +12,14 @@ interface User {
   gymMemberId?: { [gymId: string]: string };
 }
 
-interface TransferModalProps {
+interface TransferPrivatePassModalProps {
   isOpen: boolean;
   onClose: () => void;
   pass: any;
   onTransferSuccess: () => void;
 }
 
-const TransferModal: React.FC<TransferModalProps> = ({ isOpen, onClose, pass, onTransferSuccess }) => {
+const TransferPrivatePassModal: React.FC<TransferPrivatePassModalProps> = ({ isOpen, onClose, pass, onTransferSuccess }) => {
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [searchType, setSearchType] = useState<'phone' | 'memberId'>('phone');
@@ -162,17 +162,7 @@ const TransferModal: React.FC<TransferModalProps> = ({ isOpen, onClose, pass, on
         throw new Error('Firebase functions not initialized. Please check your configuration.');
       }
 
-      // Select the appropriate function based on pass type
-      let functionName: string;
-      if (pass.type === 'private') {
-        functionName = 'transferPrivatePass';
-      } else if (pass.type === 'market') {
-        functionName = 'sellMarketPass';
-      } else {
-        throw new Error(`Unsupported pass type: ${pass.type}`);
-      }
-
-      const transferFunction = httpsCallable(functions, functionName);
+      const transferFunction = httpsCallable(functions, 'transferPrivatePass');
       await transferFunction({
         fromUserId: user.uid,
         toUserId: recipient.id,
@@ -181,12 +171,12 @@ const TransferModal: React.FC<TransferModalProps> = ({ isOpen, onClose, pass, on
         price: priceValue,
       });
 
-      alert('Transfer successful!');
+      alert('Private pass transfer successful!');
       onTransferSuccess();
       onClose();
       resetModal();
     } catch (error: any) {
-      console.error('Error executing transfer:', error);
+      console.error('Error executing private pass transfer:', error);
       const errorMessage = error.message || 'Error executing transfer. Please try again.';
       alert(`Transfer failed: ${errorMessage}`);
     } finally {
@@ -212,7 +202,7 @@ const TransferModal: React.FC<TransferModalProps> = ({ isOpen, onClose, pass, on
     <div className="modal-overlay" onClick={handleClose}>
       <div className="modal" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>Transfer Pass</h2>
+          <h2>Transfer Private Pass</h2>
           <button className="close-btn" onClick={handleClose}>×</button>
         </div>
 
@@ -221,7 +211,7 @@ const TransferModal: React.FC<TransferModalProps> = ({ isOpen, onClose, pass, on
             <div className="search-step">
               <div className="pass-info">
                 <h3>Transferring from {pass.gymDisplayName}</h3>
-                <p>Available: {pass.count} passes</p>
+                <p>Available: {pass.count} private passes</p>
                 <p>Expires: {pass.lastDay.toDate().toLocaleDateString()}</p>
               </div>
 
@@ -287,11 +277,11 @@ const TransferModal: React.FC<TransferModalProps> = ({ isOpen, onClose, pass, on
 
           {step === 'details' && recipient && (
             <div className="details-step">
-              <h3>Transfer Details</h3>
+              <h3>Private Pass Transfer Details</h3>
 
               <div className="transfer-form">
                 <div className="form-group">
-                  <label>Number of passes to transfer:</label>
+                  <label>Number of private passes to transfer:</label>
                   <input
                     type="text"
                     inputMode="numeric"
@@ -318,10 +308,10 @@ const TransferModal: React.FC<TransferModalProps> = ({ isOpen, onClose, pass, on
                 </div>
 
                 <div className="transfer-summary">
-                  <h4>Transfer Summary</h4>
+                  <h4>Private Pass Transfer Summary</h4>
                   <p><strong>From:</strong> You</p>
                   <p><strong>To:</strong> {recipient.name}</p>
-                  <p><strong>Passes:</strong> {parseInt(formData.count.toString()) || 0}</p>
+                  <p><strong>Private Passes:</strong> {parseInt(formData.count.toString()) || 0}</p>
                   <p><strong>Price:</strong> ${(parseFloat(formData.price.toString()) || 0).toFixed(2)}</p>
                   <p><strong>Gym:</strong> {pass.gymDisplayName}</p>
                 </div>
@@ -334,7 +324,7 @@ const TransferModal: React.FC<TransferModalProps> = ({ isOpen, onClose, pass, on
                   disabled={loading || (parseInt(formData.count.toString()) || 0) <= 0}
                   className="primary-button"
                 >
-                  {loading ? 'Transferring...' : 'Confirm Transfer'}
+                  {loading ? 'Transferring...' : 'Confirm Private Pass Transfer'}
                 </button>
               </div>
             </div>
@@ -345,4 +335,4 @@ const TransferModal: React.FC<TransferModalProps> = ({ isOpen, onClose, pass, on
   );
 };
 
-export default TransferModal;
+export default TransferPrivatePassModal;

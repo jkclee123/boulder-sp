@@ -68,7 +68,7 @@ export const sellMarketPass = onCall(async (request) => {
                 gymDisplayName: sourcePassData.gymDisplayName,
                 gymId: sourcePassData.gymId,
                 passName: sourcePassData.passName,
-                purchasePrice: sellPrice,
+                purchasePrice: sellPrice * count,
                 purchaseCount: count,
                 count: count,
                 userRef: toUserRef,

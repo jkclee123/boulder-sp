@@ -100,15 +100,16 @@ const PassRecordItem: React.FC<{ record: PassRecordRecord; currentUserId: string
         <span className="gym-name">{truncateText(record.gymDisplayName, 15)}</span>
         <span className="separator">•</span>
         <span className="pass-name">{truncateText(record.passName, 12)}</span>
-        <span className="separator">•</span>
-        <span className="pass-count">{record.count} punch{record.count > 1 ? 'es' : ''}</span>
-        <span className="separator">•</span>
-        <span className="pass-price">{getPriceDisplay()}</span>
       </div>
       <div className="pass-record-row-2">
         <span className="action-icon">{getActionIcon()}</span>
         <span className="action-description">{getCompactDescription()}</span>
         <span className="separator">•</span>
+        <span className="pass-count">{record.count} punch{record.count > 1 ? 'es' : ''}</span>
+        <span className="separator">•</span>
+        <span className="pass-price">{getPriceDisplay()}</span>
+      </div>
+      <div className="pass-record-row-3">
         <span className="datetime-icon">📅</span>
         <span className="datetime">{record.createdAt.toDate().toLocaleString()}</span>
       </div>

@@ -28,7 +28,7 @@ The Minimum Viable Product (MVP) will focus on core pass management, transfer, a
 * **FR7**: Users must set their `telegramId` before they can list a `privatePass` for sale on the market.
 * **FR8**: Listing a `privatePass` for sale shall decrease its count and create a corresponding `marketPass` record with the specified count and price.
 * **FR9**: Unlisting a `marketPass` shall delete the `marketPass` record and merge its `count` back into the parent `privatePass`.
-* **FR10**: Users can initiate a transfer of any active `privatePass` or `marketPass` they own.
+* **FR10**: Users can initiate a transfer of any active (non-expired and count > 0) `privatePass` or `marketPass` they own.
 * **FR11**: The transfer process requires the sender to find the recipient by their unique `phoneNumber` or `gymMemberId`.
 * **FR12**: A successful transfer creates a new `privatePass` for the recipient and generates a `passRecord` record.
 * **FR13**: The Market page shall display all active, unexpired `marketPass` records with a `count` greater than 0.
@@ -125,17 +125,20 @@ The Minimum Viable Product (MVP) will focus on core pass management, transfer, a
     * **As a** user, **I want** to see my active private and market passes on the "My Pass" page, **so that** I can track my current inventory.
     * **Acceptance Criteria**:
         1.  The "My Pass" page contains two lists: one for `privatePass` and one for `marketPass`.
-        2.  The `privatePass` list displays all passes from the `privatePass` collection where `userRef` matches the current user, `active` is true, and `lastDay` has not passed.
-        3.  The `marketPass` list displays all passes from the `marketPass` collection under the same conditions.
+        2.  The `privatePass` list displays all passes from the `privatePass` collection where `userRef` matches the current user, `active` is true, `lastDay` has not passed, and `count` > 0.
+        3.  The `marketPass` list displays all passes from the `marketPass` collection where `userRef` matches the current user, `active` is true, `lastDay` has not passed, and `count` > 0.
         4.  Each list item shows key details like gym, count, and last day.
 
 * **Story 2.2: My Pass Page - View Expired Passes**
     * **As a** user, **I want** to see a list of my expired passes, **so that** I can review my past inventory.
     * **Acceptance Criteria**:
         1.  The "My Pass" page has a third list for expired passes.
-        2.  This list shows `privatePass` and `marketPass` records where `lastDay` is in the past but the pass is still `active`.
-        3.  Expired `privatePass` records with `count: 0` are displayed.
-        4.  Expired `marketPass` records with `count: 0` are NOT displayed.
+        2.  This list shows `privatePass` and `marketPass` records that are considered expired but are still `active`.
+        3.  A `privatePass` is considered expired if `lastDay` is in the past OR `count` is 0.
+        4.  A `marketPass` is considered expired if `lastDay` is in the past AND `count` > 0.
+        5.  Expired `privatePass` records with `count: 0` are displayed (even if not date-expired).
+        6.  Expired `marketPass` records with `count: 0` are NOT displayed.
+        7.  Expired passes show a "Remove" button that performs soft delete (sets `active` to `false`).
 
 * **Story 2.3: Market Page - View & Filter Listings**
     * **As a** user, **I want** to view all passes for sale on the Market page and filter them by gym, **so that** I can find passes I'm interested in buying.
@@ -167,7 +170,7 @@ The Minimum Viable Product (MVP) will focus on core pass management, transfer, a
 * **Story 3.3: Transfer Pass to Another User**
     * **As a** user, **I want** to transfer a pass to another user, **so that** I can give or sell it to them directly.
     * **Acceptance Criteria**:
-        1.  A "Transfer" button is available on active `privatePass` and `marketPass` items.
+        1.  A "Transfer" button is available on active (non-expired and count > 0) `privatePass` and `marketPass` items.
         2.  The transfer form requires searching for the recipient by `phoneNumber` or `gymMemberId`. The recipient's name is displayed for confirmation.
         3.  The sender can specify the `count` and total `purchasePrice` for the transfer.
         4.  A Firebase Function executes the transfer, reducing the sender's pass count and creating a new `privatePass` for the recipient.

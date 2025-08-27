@@ -49,10 +49,24 @@ const MyPassCardBody = ({ children }: { children: React.ReactNode }) => (
   <div className="my-pass-card-body">{children}</div>
 );
 
-const PassCard: React.FC<{ pass: AnyPass; onAction: (action: string, pass: AnyPass) => void; isUnlisting?: boolean }> = ({ pass, onAction, isUnlisting = false }) => {
-  // Use UTC-preserving approach to match backend UTC handling
+// Helper function to determine if a pass should be considered expired
+// This matches the filtering logic used in MyPassPage
+const isPassExpired = (pass: AnyPass): boolean => {
   const now = new Date();
-  const isExpired = pass.lastDay.toDate().getTime() < now.getTime();
+  const isDateExpired = pass.lastDay.toDate().getTime() < now.getTime();
+
+  if (pass.type === 'private') {
+    // Private passes are expired if date expired OR count is 0
+    return isDateExpired || pass.count === 0;
+  } else {
+    // Market passes are expired if date expired AND count > 0
+    // (empty market passes are not shown in expired section)
+    return isDateExpired && pass.count > 0;
+  }
+};
+
+const PassCard: React.FC<{ pass: AnyPass; onAction: (action: string, pass: AnyPass) => void; isUnlisting?: boolean }> = ({ pass, onAction, isUnlisting = false }) => {
+  const isExpired = isPassExpired(pass);
 
   return (
     <div className={`pass-card ${isExpired ? 'expired' : ''}`}>
@@ -71,7 +85,7 @@ const PassCard: React.FC<{ pass: AnyPass; onAction: (action: string, pass: AnyPa
       </div>
       <div className="pass-card-actions">
         {isExpired ? (
-          <button onClick={() => onAction('deactivate', pass)}>De-activate</button>
+          <button onClick={() => onAction('remove', pass)}>Remove</button>
         ) : (
           <>
             <button onClick={() => onAction('transfer', pass)}>Transfer</button>
@@ -111,14 +125,14 @@ const MyPassPage: React.FC = () => {
     const userRef = doc(db, 'users', user.uid);
 
     const privatePassQuery = query(collection(db, 'privatePass'), where('userRef', '==', userRef), where('active', '==', true));
-    const marketPassQuery = query(collection(db, 'marketPass'), where('userRef', '==', userRef), where('active', '==', true));
+    const marketPassQuery = query(collection(db, 'marketPass'), where('userRef', '==', userRef), where('active', '==', true), where('count', '>', 0));
 
     const unsubPrivate = onSnapshot(privatePassQuery, snapshot => {
       const passes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), type: 'private' } as PrivatePass));
       // Use UTC-preserving approach to match backend UTC handling
       const now = new Date();
-      const active = passes.filter(p => p.lastDay.toDate().getTime() >= now.getTime());
-      const expired = passes.filter(p => p.lastDay.toDate().getTime() < now.getTime());
+      const active = passes.filter(p => p.lastDay.toDate().getTime() >= now.getTime() && p.count > 0);
+      const expired = passes.filter(p => p.lastDay.toDate().getTime() < now.getTime() || p.count === 0);
       setPrivatePasses(active);
       setExpiredPasses(prev => [...prev.filter(p => p.type !== 'private'), ...expired]);
       setLoading(false);
@@ -127,9 +141,10 @@ const MyPassPage: React.FC = () => {
     const unsubMarket = onSnapshot(marketPassQuery, snapshot => {
       const passes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), type: 'market' } as MarketPass));
       // Use UTC-preserving approach to match backend UTC handling
+      // Query already filters count > 0, so we only need to check expiration date
       const now = new Date();
       const active = passes.filter(p => p.lastDay.toDate().getTime() >= now.getTime());
-      const expired = passes.filter(p => p.lastDay.toDate().getTime() < now.getTime() && p.count > 0);
+      const expired = passes.filter(p => p.lastDay.toDate().getTime() < now.getTime());
       setMarketPasses(active);
       setExpiredPasses(prev => [...prev.filter(p => p.type !== 'market'), ...expired]);
       setLoading(false);
@@ -171,9 +186,8 @@ const MyPassPage: React.FC = () => {
       case 'unlist':
         handleUnlist(pass);
         break;
-      case 'deactivate':
-        // TODO: Implement deactivate functionality
-        alert('Deactivate functionality coming soon!');
+      case 'remove':
+        handleRemove(pass);
         break;
       default:
         alert(`Action: ${action} on pass ${pass.id}. Check console for details.`);
@@ -207,6 +221,24 @@ const MyPassPage: React.FC = () => {
       alert(`Failed to unlist pass: ${error.message || 'Unknown error'}`);
     } finally {
       setUnlistingPassId(null);
+    }
+  };
+
+  const handleRemove = async (pass: AnyPass) => {
+    if (!user || !functions) return;
+
+    try {
+      const removeFunction = httpsCallable(functions, 'removePass');
+      await removeFunction({
+        passId: pass.id,
+        passType: pass.type,
+        userId: user.uid
+      });
+
+      // alert('Pass removed successfully!');
+    } catch (error: any) {
+      console.error('Error removing pass:', error);
+      alert(`Failed to remove pass: ${error.message || 'Unknown error'}`);
     }
   };
 
@@ -249,7 +281,7 @@ const MyPassPage: React.FC = () => {
           </div>
 
           <div className="pass-list-section">
-            <h2>Expired Passes</h2>
+            <h2>Expired or Empty Passes</h2>
             <div className="pass-list">
               {expiredPasses.length > 0 ? (
                 expiredPasses.map(pass => (

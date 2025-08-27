@@ -4,6 +4,7 @@ export { getUserProfile } from './get-user-profile';
 export { transferPass } from './transfer-pass';
 export { listPassForMarket } from './list-pass-for-market';
 export { unlistPass } from './unlist-pass';
+export { removePass } from './remove-pass';
 export { addAdminPass } from './add-admin-pass';
 export { sellAdminPass } from './sell-admin-pass';
 export { deleteAdminPass } from './delete-admin-pass';

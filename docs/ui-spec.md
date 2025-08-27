@@ -27,10 +27,12 @@ This document details the user interface and user experience for each page of th
 ### My Pass Page
 - **Objective**: Display the user's pass inventory.
 - **Views**: Three separate list views:
-    1.  **Private Passes**: Active `privatePass` records belonging to the user that have not expired.
-    2.  **Market Passes**: Active `marketPass` records belonging to the user that have not expired.
-    3.  **Expired Passes**: `privatePass` and `marketPass` records where `lastDay` is in the past.
-        - Show expired `privatePass` even if `count` is 0.
+    1.  **Private Passes**: Active `privatePass` records belonging to the user that have not expired and have `count` > 0.
+    2.  **Market Passes**: Active `marketPass` records belonging to the user that have not expired and have `count` > 0.
+    3.  **Expired Passes**: `privatePass` and `marketPass` records that are considered expired but are still active.
+        - A `privatePass` is considered expired if `lastDay` is in the past OR `count` is 0.
+        - A `marketPass` is considered expired if `lastDay` is in the past AND `count` > 0.
+        - Show expired `privatePass` even if `count` is 0 (even if not date-expired).
         - Do NOT show expired `marketPass` if `count` is 0.
 - **Actions (List Item Buttons)**:
     - **Private Pass**:
@@ -40,7 +42,7 @@ This document details the user interface and user experience for each page of th
         - `Transfer`: Initiates the transfer process.
         - `Unlist`: Removes the pass from the market and merges the count back to the parent `privatePass`.
     - **Expired Pass**:
-        - `De-activate`: Sets the `active` flag to `false`.
+        - `Remove`: Performs soft delete by setting the `active` flag to `false`.
 
 ### Market Page
 - **Objective**: Display all passes available for sale.

@@ -74,7 +74,8 @@ const AddAdminPassModal: React.FC<AddAdminPassModalProps> = ({ isOpen, onClose, 
               <div className="form-group">
                 <label htmlFor="modal-count">Punches:</label>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
                   id="modal-count"
                   value={count}
                   onChange={(e) => {
@@ -92,7 +93,8 @@ const AddAdminPassModal: React.FC<AddAdminPassModalProps> = ({ isOpen, onClose, 
               <div className="form-group">
                 <label htmlFor="modal-price">Total Price (HKD):</label>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="decimal"
                   id="modal-price"
                   value={price}
                   onChange={(e) => {
@@ -110,7 +112,8 @@ const AddAdminPassModal: React.FC<AddAdminPassModalProps> = ({ isOpen, onClose, 
               <div className="form-group">
                 <label htmlFor="modal-duration">Valid for (months):</label>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
                   id="modal-duration"
                   value={duration}
                   onChange={(e) => {

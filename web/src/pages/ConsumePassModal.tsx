@@ -222,11 +222,11 @@ const ConsumePassModal: React.FC<{
               </div>
               <div className="search-input">
                 <input
-                  type="text"
+                  type={searchType === 'phone' ? 'tel' : 'text'}
                   placeholder={searchType === 'phone' ? 'Enter phone number' : 'Enter member ID'}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && searchRecipient()}
+                  onKeyDown={(e) => e.key === 'Enter' && searchRecipient()}
                 />
                 <button onClick={searchRecipient} disabled={searchLoading}>
                   {searchLoading ? 'Searching...' : 'Search'}

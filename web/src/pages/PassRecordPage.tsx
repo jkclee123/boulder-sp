@@ -26,15 +26,43 @@ const PassRecordCard = ({ children, className }: { children: React.ReactNode, cl
   <div className={`pass-record-card ${className || ''}`}>{children}</div>
 );
 
-const PassRecordCardHeader = ({ title, subtitle, children }: {
+const PassRecordCardHeader = ({ title, subtitle, children, fromDate, toDate, onFromDateChange, onToDateChange }: {
   title: string,
   subtitle?: string,
-  children?: React.ReactNode
+  children?: React.ReactNode,
+  fromDate?: string,
+  toDate?: string,
+  onFromDateChange?: (value: string) => void,
+  onToDateChange?: (value: string) => void
 }) => (
   <div className="pass-record-card-header">
     <div className="header-content">
       <h2>{title}</h2>
       {subtitle && <p className="page-subtitle">{subtitle}</p>}
+      {fromDate !== undefined && toDate !== undefined && onFromDateChange && onToDateChange && (
+        <div className="date-filters">
+          <div className="date-filter-group">
+            <label htmlFor="from-date">From Date:</label>
+            <input
+              id="from-date"
+              type="date"
+              value={fromDate}
+              onChange={(e) => onFromDateChange(e.target.value)}
+              className="date-input"
+            />
+          </div>
+          <div className="date-filter-group">
+            <label htmlFor="to-date">To Date:</label>
+            <input
+              id="to-date"
+              type="date"
+              value={toDate}
+              onChange={(e) => onToDateChange(e.target.value)}
+              className="date-input"
+            />
+          </div>
+        </div>
+      )}
     </div>
     <div>{children}</div>
   </div>
@@ -136,8 +164,11 @@ const PassRecordItem: React.FC<{ record: PassRecordRecord; currentUserId: string
 const PassRecordPage: React.FC = () => {
   const { user, userProfile } = useAuth();
   const [passRecords, setPassRecords] = useState<PassRecordRecord[]>([]);
+  const [filteredRecords, setFilteredRecords] = useState<PassRecordRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [fromDate, setFromDate] = useState<string>('');
+  const [toDate, setToDate] = useState<string>('');
 
   useEffect(() => {
     if (!user || !db) {
@@ -209,6 +240,7 @@ const PassRecordPage: React.FC = () => {
           );
 
           setPassRecords(enrichedRecords);
+          setFilteredRecords(enrichedRecords);
           setLoading(false);
           setError(null);
         } catch (err) {
@@ -226,6 +258,25 @@ const PassRecordPage: React.FC = () => {
 
     return () => unsub();
   }, [user, userProfile]);
+
+  // Filter records based on date range
+  useEffect(() => {
+    let filtered = passRecords;
+
+    if (fromDate) {
+      const fromDateObj = new Date(fromDate);
+      fromDateObj.setHours(0, 0, 0, 0);
+      filtered = filtered.filter(record => record.createdAt.toDate() >= fromDateObj);
+    }
+
+    if (toDate) {
+      const toDateObj = new Date(toDate);
+      toDateObj.setHours(23, 59, 59, 999);
+      filtered = filtered.filter(record => record.createdAt.toDate() <= toDateObj);
+    }
+
+    setFilteredRecords(filtered);
+  }, [passRecords, fromDate, toDate]);
 
   if (loading) {
     return (
@@ -267,17 +318,30 @@ const PassRecordPage: React.FC = () => {
   return (
     <div className="pass-record-page">
       <PassRecordCard className="main-content-card">
-        <PassRecordCardHeader title="Pass Records" subtitle="Your complete history of pass transactions" />
+        <PassRecordCardHeader
+          title="Pass Records"
+          subtitle="Your complete history of pass transactions"
+          fromDate={fromDate}
+          toDate={toDate}
+          onFromDateChange={setFromDate}
+          onToDateChange={setToDate}
+        />
         <PassRecordCardBody>
-          {passRecords.length > 0 ? (
+          {filteredRecords.length > 0 ? (
             <div className="pass-record-list">
-              {passRecords.map(record => (
+              {filteredRecords.map(record => (
                 <PassRecordItem
                   key={record.id}
                   record={record}
                   currentUserId={user?.uid || ''}
                 />
               ))}
+            </div>
+          ) : passRecords.length > 0 ? (
+            <div className="empty-state">
+              <div className="empty-state-icon">🔍</div>
+              <h3>No Records Found</h3>
+              <p>No pass records match your current date filter criteria. Try adjusting the date range.</p>
             </div>
           ) : (
             <div className="empty-state">

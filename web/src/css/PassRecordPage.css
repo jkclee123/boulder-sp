@@ -17,7 +17,7 @@
   padding: 1rem 1.5rem;
   border-bottom: 1px solid #e5e7eb;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   flex-wrap: wrap;
   gap: 0.75rem;
@@ -30,10 +30,60 @@
   margin: 0;
 }
 
+.pass-record-card-header .header-content {
+  text-align: center;
+}
+
 .pass-record-card-header .header-content .page-subtitle {
   margin: 0.25rem 0 0 0;
   color: var(--muted);
   font-size: 0.875rem;
+}
+
+.date-filters {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-end;
+  justify-content: center;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+
+.date-filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 140px;
+  flex: 1;
+  max-width: 200px;
+}
+
+.date-filter-group label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--ink);
+  margin: 0;
+}
+
+.date-input {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  color: var(--ink);
+  background-color: #ffffff;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.date-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.date-input:hover {
+  border-color: #9ca3af;
 }
 
 .pass-record-card-body {
@@ -288,6 +338,17 @@
     text-align: center;
   }
 
+  .date-filters {
+    gap: 0.75rem;
+    justify-content: center;
+  }
+
+  .date-filter-group {
+    min-width: 120px;
+    flex: 1;
+    max-width: 180px;
+  }
+
   .pass-record-card-body {
     padding: 1rem;
   }
@@ -337,6 +398,15 @@
   .pass-record-footer {
     padding-left: 1rem;
     padding-right: 1rem;
+  }
+
+  .date-input {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.6rem;
+  }
+
+  .date-filter-group label {
+    font-size: 0.8rem;
   }
 
   .pass-record-header {

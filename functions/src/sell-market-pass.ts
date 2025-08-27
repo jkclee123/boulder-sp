@@ -1,6 +1,6 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import * as admin from 'firebase-admin';
-import { FieldValue, Timestamp } from 'firebase-admin/firestore';
+import { FieldValue } from 'firebase-admin/firestore';
 import { isPassExpired } from './utils';
 
 if (!admin.apps.length) {
@@ -8,44 +8,34 @@ if (!admin.apps.length) {
 }
 const db = admin.firestore();
 
-// Transfer pass function
-export const transferPass = onCall(async (request) => {
+// Sell market pass function
+export const sellMarketPass = onCall(async (request) => {
     // Check if user is authenticated
     if (!request.auth) {
         throw new HttpsError('unauthenticated', 'User must be authenticated');
     }
-    const { fromUserId, toUserId, passId, passType, count, price } = request.data;
+    const { fromUserId, toUserId, passId, count, price } = request.data;
     // Validate input
-    if (!fromUserId || !toUserId || !passId || !passType || !count || typeof count !== 'number' || count <= 0) {
-        throw new HttpsError('invalid-argument', 'Invalid transfer parameters');
+    if (!fromUserId || !toUserId || !passId || !count || typeof count !== 'number' || count <= 0) {
+        throw new HttpsError('invalid-argument', 'Invalid sell parameters');
     }
     if (fromUserId !== request.auth.uid) {
-        throw new HttpsError('permission-denied', 'You can only transfer your own passes');
+        throw new HttpsError('permission-denied', 'You can only sell your own passes');
     }
     if (fromUserId === toUserId) {
-        throw new HttpsError('invalid-argument', 'Cannot transfer to yourself');
+        throw new HttpsError('invalid-argument', 'Cannot sell to yourself');
     }
-    const transferPrice = price || 0;
+    const sellPrice = price || 0;
     try {
         return await db.runTransaction(async (transaction) => {
             var _a;
-            // Get source pass document
-            let sourcePassRef;
-            let sourcePassData;
-            if (passType === 'private') {
-                sourcePassRef = db.collection('privatePass').doc(passId);
-            }
-            else if (passType === 'market') {
-                sourcePassRef = db.collection('marketPass').doc(passId);
-            }
-            else {
-                throw new HttpsError('invalid-argument', 'Invalid pass type');
-            }
+            // Get source market pass document
+            const sourcePassRef = db.collection('marketPass').doc(passId);
             const sourcePassDoc = await transaction.get(sourcePassRef);
             if (!sourcePassDoc.exists) {
                 throw new HttpsError('not-found', 'Source pass not found');
             }
-            sourcePassData = sourcePassDoc.data();
+            const sourcePassData = sourcePassDoc.data();
             if (!sourcePassData) {
                 throw new HttpsError('not-found', 'Source pass data is empty or invalid');
             }
@@ -58,7 +48,7 @@ export const transferPass = onCall(async (request) => {
             }
             // Check if pass is expired
             if (isPassExpired(sourcePassData.lastDay)) {
-                throw new HttpsError('failed-precondition', 'Cannot transfer expired pass');
+                throw new HttpsError('failed-precondition', 'Cannot sell expired pass');
             }
             // Check if count is sufficient
             if (sourcePassData.count < count) {
@@ -70,13 +60,7 @@ export const transferPass = onCall(async (request) => {
             if (!toUserDoc.exists) {
                 throw new HttpsError('not-found', 'Recipient user not found');
             }
-            // Calculate lastDay for new pass
-            let newPassLastDay = null;
-            // For private and market passes, preserve the original lastDay
-            if (sourcePassData.lastDay && typeof sourcePassData.lastDay.toDate === 'function') {
-                newPassLastDay = sourcePassData.lastDay;
-            }
-            // Create new private pass for recipient
+            // Create new private pass for buyer
             const newPassRef = db.collection('privatePass').doc();
             const newPassData = {
                 createdAt: FieldValue.serverTimestamp(),
@@ -84,11 +68,11 @@ export const transferPass = onCall(async (request) => {
                 gymDisplayName: sourcePassData.gymDisplayName,
                 gymId: sourcePassData.gymId,
                 passName: sourcePassData.passName,
-                purchasePrice: transferPrice,
+                purchasePrice: sellPrice,
                 purchaseCount: count,
                 count: count,
                 userRef: toUserRef,
-                lastDay: newPassLastDay,
+                lastDay: sourcePassData.lastDay,
                 active: true
             };
             transaction.set(newPassRef, newPassData);
@@ -104,25 +88,25 @@ export const transferPass = onCall(async (request) => {
                 gymDisplayName: sourcePassData.gymDisplayName,
                 passName: sourcePassData.passName,
                 count: count,
-                price: transferPrice,
+                price: sellPrice,
                 fromUserRef: db.collection('users').doc(fromUserId),
                 toUserRef: toUserRef,
-                action: 'transfer',
+                action: 'sell_market',
                 participants: [fromUserId, toUserId]
             };
             transaction.set(passRecordRef, passRecordData);
             return {
                 success: true,
-                message: 'Transfer completed successfully',
+                message: 'Sale completed successfully',
                 newPassId: newPassRef.id
             };
         });
     }
     catch (error) {
-        console.error('Error in transfer:', error);
+        console.error('Error in sellMarketPass:', error);
         if (error instanceof HttpsError) {
             throw error;
         }
-        throw new HttpsError('internal', 'Transfer failed. Please try again.');
+        throw new HttpsError('internal', 'Sale failed. Please try again.');
     }
 });

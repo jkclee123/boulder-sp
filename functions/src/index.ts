@@ -1,7 +1,8 @@
 // Main entry point - import and export all functions
 export { updateUserProfile } from './update-user-profile';
 export { getUserProfile } from './get-user-profile';
-export { transferPass } from './transfer-pass';
+export { transferPrivatePass } from './transfer-private-pass';
+export { sellMarketPass } from './sell-market-pass';
 export { listPassForMarket } from './list-pass-for-market';
 export { unlistPass } from './unlist-pass';
 export { removePass } from './remove-pass';

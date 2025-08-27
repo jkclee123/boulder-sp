@@ -131,13 +131,6 @@ const TransferModal: React.FC<TransferModalProps> = ({ isOpen, onClose, pass, on
   };
 
   const proceedToDetails = () => {
-    // For admin passes, automatically set the full count and price
-    if (pass.type === 'admin') {
-      setFormData({
-        count: pass.count.toString(),
-        price: (pass.price || 0).toString()
-      });
-    }
     setStep('details');
   };
 
@@ -148,22 +141,19 @@ const TransferModal: React.FC<TransferModalProps> = ({ isOpen, onClose, pass, on
     const countValue = parseInt(formData.count.toString()) || 0;
     const priceValue = parseFloat(formData.price.toString()) || 0;
 
-    // For non-admin passes, validate the transfer count
-    if (pass.type !== 'admin') {
-      if (countValue <= 0) {
-        alert('Count must be greater than 0');
-        return;
-      }
+    if (countValue <= 0) {
+      alert('Count must be greater than 0');
+      return;
+    }
 
-      if (countValue > pass.count) {
-        alert('Transfer count cannot exceed available passes.');
-        return;
-      }
+    if (countValue > pass.count) {
+      alert('Transfer count cannot exceed available passes.');
+      return;
+    }
 
-      if (priceValue < 0) {
-        alert('Price cannot be negative');
-        return;
-      }
+    if (priceValue < 0) {
+      alert('Price cannot be negative');
+      return;
     }
 
     setLoading(true);
@@ -172,12 +162,21 @@ const TransferModal: React.FC<TransferModalProps> = ({ isOpen, onClose, pass, on
         throw new Error('Firebase functions not initialized. Please check your configuration.');
       }
 
-      const transferFunction = httpsCallable(functions, 'transferPass');
+      // Select the appropriate function based on pass type
+      let functionName: string;
+      if (pass.type === 'private') {
+        functionName = 'transferPrivatePass';
+      } else if (pass.type === 'market') {
+        functionName = 'sellMarketPass';
+      } else {
+        throw new Error(`Unsupported pass type: ${pass.type}`);
+      }
+
+      const transferFunction = httpsCallable(functions, functionName);
       await transferFunction({
         fromUserId: user.uid,
         toUserId: recipient.id,
         passId: pass.id,
-        passType: pass.type,
         count: countValue,
         price: priceValue,
       });
@@ -291,44 +290,32 @@ const TransferModal: React.FC<TransferModalProps> = ({ isOpen, onClose, pass, on
               <h3>Transfer Details</h3>
 
               <div className="transfer-form">
-                {pass.type !== 'admin' && (
-                  <>
-                    <div className="form-group">
-                      <label>Number of passes to transfer:</label>
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        value={formData.count}
-                        onChange={(e) => setFormData(prev => ({ ...prev, count: e.target.value }))}
-                        min="1"
-                        max={pass.count}
-                        required
-                      />
-                      <small>Maximum: {pass.count}</small>
-                    </div>
+                <div className="form-group">
+                  <label>Number of passes to transfer:</label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={formData.count}
+                    onChange={(e) => setFormData(prev => ({ ...prev, count: e.target.value }))}
+                    min="1"
+                    max={pass.count}
+                    required
+                  />
+                  <small>Maximum: {pass.count}</small>
+                </div>
 
-                    <div className="form-group">
-                      <label>Total transfer price (HKD):</label>
-                      <input
-                        type="text"
-                        inputMode="decimal"
-                        value={formData.price}
-                        onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
-                        min="0"
-                        step="0.01"
-                        required
-                      />
-                    </div>
-                  </>
-                )}
-
-                {pass.type === 'admin' && (
-                  <div className="admin-pass-notice">
-                    <p><strong>Admin Pass Transfer:</strong></p>
-                    <p>Count: ({pass.count})</p>
-                    <p>Price: (${(pass.price || 0).toFixed(2)})</p>
-                  </div>
-                )}
+                <div className="form-group">
+                  <label>Total transfer price (HKD):</label>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={formData.price}
+                    onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
+                    min="0"
+                    step="0.01"
+                    required
+                  />
+                </div>
 
                 <div className="transfer-summary">
                   <h4>Transfer Summary</h4>
@@ -344,7 +331,7 @@ const TransferModal: React.FC<TransferModalProps> = ({ isOpen, onClose, pass, on
                 <button onClick={() => setStep('confirm')}>Back</button>
                 <button
                   onClick={executeTransfer}
-                  disabled={loading || (pass.type !== 'admin' && (parseInt(formData.count.toString()) || 0) <= 0)}
+                  disabled={loading || (parseInt(formData.count.toString()) || 0) <= 0}
                   className="primary-button"
                 >
                   {loading ? 'Transferring...' : 'Confirm Transfer'}

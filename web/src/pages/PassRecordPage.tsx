@@ -44,20 +44,7 @@ const PassRecordCardBody = ({ children }: { children: React.ReactNode }) => (
   <div className="pass-record-card-body">{children}</div>
 );
 
-const formatDate = (timestamp: Timestamp): string => {
-  const date = timestamp.toDate();
-  // Convert to Hong Kong Time (UTC+8)
-  const hkTime = new Date(date.getTime() + (8 * 60 * 60 * 1000));
 
-  return hkTime.toLocaleDateString('en-HK', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false
-  }) + ' HKT';
-};
 
 const formatCurrency = (amount: number): string => {
   return `HK$${amount.toLocaleString('en-HK')}`;
@@ -66,33 +53,33 @@ const formatCurrency = (amount: number): string => {
 const PassRecordItem: React.FC<{ record: PassRecordRecord; currentUserId: string }> = ({ record, currentUserId }) => {
   const isFromUser = record.participants[0] === currentUserId;
 
-  const getActionDescription = () => {
+  const getActionIcon = () => {
     switch (record.action) {
-      case 'transfer':
-        if (isFromUser) {
-          return `You transferred ${record.count} pass${record.count > 1 ? 'es' : ''} to ${record.toUserName || 'another user'}`;
-        } else {
-          return `${record.fromUserName || 'Another user'} transferred ${record.count} pass${record.count > 1 ? 'es' : ''} to you`;
-        }
-      case 'consume':
-        if (isFromUser) {
-          return `Your ${record.count} pass${record.count > 1 ? 'es' : ''} were consumed`;
-        } else {
-          return `You consumed ${record.count} pass${record.count > 1 ? 'es' : ''} from ${record.fromUserName || 'another user'}`;
-        }
-      default:
-        return record.action;
+      case 'transfer': return '↔️';
+      case 'consume': return '🔥';
+      case 'sell_admin': return '💰';
+      default: return '📋';
     }
   };
 
-  const getActionBadgeClass = () => {
+  const getCompactDescription = () => {
     switch (record.action) {
       case 'transfer':
-        return 'action-transfer';
+        if (isFromUser) {
+          return `to ${record.toUserName || 'user'}`;
+        } else {
+          return `from ${record.fromUserName || 'user'}`;
+        }
       case 'consume':
-        return 'action-consume';
+        return `consumed`;
+      case 'sell_admin':
+        if (isFromUser) {
+          return `Sold`;
+        } else {
+          return `Bought`;
+        }
       default:
-        return '';
+        return record.action;
     }
   };
 
@@ -103,29 +90,27 @@ const PassRecordItem: React.FC<{ record: PassRecordRecord; currentUserId: string
     return formatCurrency(record.price);
   };
 
+  const truncateText = (text: string, maxLength: number): string => {
+    return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+  };
+
   return (
-    <div className="pass-record-item">
-      <div className="pass-record-header">
-        <div className="pass-record-gym">{record.gymDisplayName}</div>
-        <div className={`pass-record-action ${getActionBadgeClass()}`}>{record.action}</div>
+    <div className="pass-record-item compact">
+      <div className="pass-record-row-1">
+        <span className="gym-name">{truncateText(record.gymDisplayName, 15)}</span>
+        <span className="separator">•</span>
+        <span className="pass-name">{truncateText(record.passName, 12)}</span>
+        <span className="separator">•</span>
+        <span className="pass-count">{record.count} punch{record.count > 1 ? 'es' : ''}</span>
+        <span className="separator">•</span>
+        <span className="pass-price">{getPriceDisplay()}</span>
       </div>
-      <div className="pass-record-body">
-        <div className="pass-record-description">
-          {getActionDescription()}
-        </div>
-        <div className="pass-record-details">
-          <div className="pass-record-count">
-            <span className="label">Count:</span> {record.count}
-          </div>
-          <div className="pass-record-price">
-            <span className="label">Price:</span> {getPriceDisplay()}
-          </div>
-        </div>
-      </div>
-      <div className="pass-record-footer">
-        <div className="pass-record-timestamp">
-          {formatDate(record.createdAt)}
-        </div>
+      <div className="pass-record-row-2">
+        <span className="action-icon">{getActionIcon()}</span>
+        <span className="action-description">{getCompactDescription()}</span>
+        <span className="separator">•</span>
+        <span className="datetime-icon">📅</span>
+        <span className="datetime">{record.createdAt.toDate().toLocaleString()}</span>
       </div>
     </div>
   );

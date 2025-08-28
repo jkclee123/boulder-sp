@@ -287,8 +287,6 @@ const SellMarketPassModal: React.FC<SellMarketPassModalProps> = ({ isOpen, onClo
                   <small>Maximum: {pass.count}</small>
                 </div>
 
-
-
                 <div className="transfer-summary">
                   <h4>Market Pass Sale Summary</h4>
                   <p><strong>From:</strong> You</p>
